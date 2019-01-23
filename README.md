@@ -38,6 +38,10 @@ This code was run on 8 Nvidia Titan Xp 12GB GPUs. Only 1 was used per simulation
 * **Evan Gebhardt** 
 * **Arijit Raychowdhury** 
 
+## Affiliation 
+
+``![image text](icsrl.png)``
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
