@@ -40,6 +40,10 @@ This code was run on 8 Nvidia Titan Xp 12GB GPUs. Only 1 was used per simulation
 
 ## Affiliation 
 
+```
+Georiga Institute of Technology, ICSRL (http://icsrl.ece.gatech.edu/)
+```
+
 ![Alt text](icsrl.png?raw=true "Title")
 
 ## License
