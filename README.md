@@ -40,7 +40,7 @@ This code was run on 8 Nvidia Titan Xp 12GB GPUs. Only 1 was used per simulation
 
 ## Affiliation 
 
-``![image text](icsrl.png)``
+![Alt text](icsrl.png?raw=true "Title")
 
 ## License
 
