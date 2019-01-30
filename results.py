@@ -30,9 +30,9 @@ def get_perms(param):
 # cifar10 fc
 ################################################
 
-cifar10_fc_bp = {'benchmark':'cifar10_fc.py', 'epochs':300, 'batch_size':64, 'alpha':[3e-5], 'eps':[1e-6], 'act':['relu'], 'dropout':[0.25], 'dfa':0, 'sparse':0, 'rank':0, 'init':'sqrt_fan_in', 'opt':['adam'], 'load':None}
-cifar10_fc_dfa = {'benchmark':'cifar10_fc.py', 'epochs':300, 'batch_size':64, 'alpha':[1e-4], 'eps':[1e-6], 'act':['relu'], 'dropout':[0.25], 'dfa':1, 'sparse':[0], 'rank':0, 'init':'zero', 'opt':['adam'], 'load':None}
-cifar10_fc_sparse = {'benchmark':'cifar10_fc.py', 'epochs':500, 'batch_size':64, 'alpha':[1e-4], 'eps':[1e-4], 'act':['relu'], 'dropout':[0.25], 'dfa':1, 'sparse':[1], 'rank':0, 'init':'zero', 'opt':['adam'], 'load':None}
+cifar10_fc_bp = {'benchmark':'cifar10_fc.py', 'epochs':300, 'batch_size':64, 'alpha':[3e-5], 'l2':[0.], 'eps':[1e-6], 'act':['relu'], 'bias':[0.1], 'dropout':[0.25], 'dfa':0, 'sparse':0, 'rank':0, 'init':'sqrt_fan_in', 'opt':['adam'], 'load':None}
+cifar10_fc_dfa = {'benchmark':'cifar10_fc.py', 'epochs':300, 'batch_size':64, 'alpha':[1e-4], 'l2':[0.], 'eps':[1e-6], 'act':['relu'], 'bias':[0.1], 'dropout':[0.25], 'dfa':1, 'sparse':[0], 'rank':0, 'init':'zero', 'opt':['adam'], 'load':None}
+cifar10_fc_sparse = {'benchmark':'cifar10_fc.py', 'epochs':500, 'batch_size':64, 'alpha':[1e-4], 'l2':[0.], 'eps':[1e-4], 'act':['relu'], 'bias':[0.1], 'dropout':[0.25], 'dfa':1, 'sparse':[1], 'rank':0, 'init':'zero', 'opt':['adam'], 'load':None}
 
 
 ################################################
