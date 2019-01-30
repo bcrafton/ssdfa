@@ -11,14 +11,19 @@ parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--alpha', type=float, default=1e-2)
 parser.add_argument('--l2', type=float, default=0.)
 parser.add_argument('--decay', type=float, default=1.)
+parser.add_argument('--eps', type=float, default=1.)
+parser.add_argument('--dropout', type=float, default=0.0)
+parser.add_argument('--act', type=str, default='tanh')
+parser.add_argument('--bias', type=float, default=0.)
 parser.add_argument('--gpu', type=int, default=0)
-parser.add_argument('--alg', type=str, default='bp')
+parser.add_argument('--dfa', type=int, default=0)
 parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
 parser.add_argument('--init', type=str, default="sqrt_fan_in")
-parser.add_argument('--opt', type=str, default="gd")
+parser.add_argument('--opt', type=str, default="adam")
 parser.add_argument('--save', type=int, default=0)
-parser.add_argument('--name', type=str, default="mnist_fc_weights")
+parser.add_argument('--name', type=str, default="mnist_fc")
+parser.add_argument('--load', type=str, default=None)
 args = parser.parse_args()
 
 if args.gpu >= 0:
@@ -63,8 +68,6 @@ TRAIN_EXAMPLES = 60000
 TEST_EXAMPLES = 10000
 BATCH_SIZE = args.batch_size
 
-bias = 0.0
-
 ##############################################
 
 tf.set_random_seed(0)
@@ -77,11 +80,11 @@ learning_rate = tf.placeholder(tf.float32, shape=())
 X = tf.placeholder(tf.float32, [None, 784])
 Y = tf.placeholder(tf.float32, [None, 10])
 
-l0 = FullyConnected(size=[784, 400], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Tanh(), bias=bias, l2=args.l2, last_layer=False, name="fc1")
+l0 = FullyConnected(size=[784, 400], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Tanh(), bias=args.bias, l2=args.l2, last_layer=False, name="fc1")
 l1 = Dropout(rate=dropout_rate)
 l2 = FeedbackFC(size=[784, 400], num_classes=10, sparse=args.sparse, rank=args.rank, name="fc1_fb")
 
-l3 = FullyConnected(size=[400, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=bias, l2=args.l2, last_layer=True, name="fc2")
+l3 = FullyConnected(size=[400, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, l2=args.l2, last_layer=True, name="fc2")
 
 model = Model(layers=[l0, l1, l2, l3])
 
@@ -92,34 +95,26 @@ predict = model.predict(X=X)
 weights = model.get_weights()
 
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay":
-    if args.alg == 'dfa':
+    if args.dfa:
         grads_and_vars = model.dfa_gvs(X=X, Y=Y)
-    if args.alg == 'lel':
-        grads_and_vars = model.lel_gvs(X=X, Y=Y)
-    elif args.alg == 'bp':
-        grads_and_vars = model.gvs(X=X, Y=Y)
     else:
-        assert(False)
+        grads_and_vars = model.gvs(X=X, Y=Y)
         
     if args.opt == "adam":
-        train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=1.0).apply_gradients(grads_and_vars=grads_and_vars)
+        train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
     elif args.opt == "rms":
-        train = tf.train.RMSPropOptimizer(learning_rate=learning_rate, decay=0.99, epsilon=1.0).apply_gradients(grads_and_vars=grads_and_vars)
+        train = tf.train.RMSPropOptimizer(learning_rate=learning_rate, decay=0.99, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
     elif args.opt == "decay":
         train = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).apply_gradients(grads_and_vars=grads_and_vars)
     else:
         assert(False)
 
 else:
-    if args.alg == 'dfa':
+    if args.dfa:
         train = model.dfa(X=X, Y=Y)
-    if args.alg == 'lel':
-        train = model.lel(X=X, Y=Y)
-    elif args.alg == 'bp':
-        train = model.train(X=X, Y=Y)
     else:
-        assert(False)
-    
+        train = model.train(X=X, Y=Y)
+
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(Y,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
 
