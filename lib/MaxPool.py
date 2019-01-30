@@ -5,9 +5,9 @@ import math
 from tensorflow.python.ops import gen_nn_ops
 # return gen_nn_ops.max_pool_v2(value=X, ksize=self.size, strides=self.strides, padding="SAME")
 
-from Layer import Layer 
-from Activation import Activation
-from Activation import Sigmoid
+from lib.Layer import Layer 
+from lib.Activation import Activation
+from lib.Activation import Sigmoid
 
 class MaxPool(Layer):
     def __init__(self, size, ksize, strides, padding):

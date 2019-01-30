@@ -3,9 +3,9 @@ import tensorflow as tf
 import numpy as np
 import math
 
-from Layer import Layer 
-from Activation import Activation
-from Activation import Sigmoid
+from lib.Layer import Layer 
+from lib.Activation import Activation
+from lib.Activation import Sigmoid
 
 class FullyConnected(Layer):
 

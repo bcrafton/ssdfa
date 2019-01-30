@@ -3,7 +3,7 @@ import tensorflow as tf
 import numpy as np
 import math
 
-from Layer import Layer 
+from lib.Layer import Layer 
 
 class Dropout(Layer):
 

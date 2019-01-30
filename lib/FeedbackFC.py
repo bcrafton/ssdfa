@@ -3,11 +3,10 @@ import tensorflow as tf
 import numpy as np
 import math
 
-from Layer import Layer 
-from Activation import Activation
-from Activation import Sigmoid
-
-from FeedbackMatrix import FeedbackMatrix
+from lib.Layer import Layer 
+from lib.Activation import Activation
+from lib.Activation import Sigmoid
+from lib.FeedbackMatrix import FeedbackMatrix
 
 np.set_printoptions(threshold=np.inf)
 
