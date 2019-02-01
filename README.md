@@ -19,9 +19,17 @@ ImageNet (http://www.image-net.org/)
 
 ```
 git clone https://github.com/bcrafton/ssdfa
+```
+
+### Running
+
+```
 cd ssdfa
 python mnist_fc.py --dfa 1 --sparse 1
 ```
+
+To run imagenet, the training and test set can be acquired from: http://www.image-net.org/
+The links must be changed inside of imagenet.py and imagenet_vgg.py
 
 ## Hardware
 
