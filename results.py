@@ -44,8 +44,9 @@ cifar100_fc_sparse = {'benchmark':'cifar100_fc.py', 'epochs':500, 'batch_size':6
 # CONV
 ################################################
 
-mnist_conv_bp = {'benchmark':'mnist_conv.py', 'epochs':300, 'batch_size':64, 'alpha':[0.01, 0.005], 'dfa':0, 'sparse':0, 'rank':0, 'init':'sqrt_fan_in', 'opt':'gd', 'load':[None, './transfer/mnist_conv_weights.npy']}
-mnist_conv_dfa = {'benchmark':'mnist_conv.py', 'epochs':300, 'batch_size':64, 'alpha':[0.01, 0.005], 'dfa':1, 'sparse':[0, 1], 'rank':0, 'init':'zero', 'opt':'gd', 'load':[None, './transfer/mnist_conv_weights.npy']}
+mnist_conv_bp = {'benchmark':'mnist_conv.py', 'epochs':300, 'batch_size':64, 'alpha':[0.01, 0.005], 'l2':[0.], 'eps':[1.], 'act':['tanh'], 'bias':[0.0], 'dropout':[0.25], 'dfa':0, 'sparse':0, 'rank':0, 'init':'sqrt_fan_in', 'opt':'adam', 'load':None}
+mnist_conv_dfa = {'benchmark':'mnist_conv.py', 'epochs':300, 'batch_size':64, 'alpha':[0.01, 0.005], 'l2':[0.], 'eps':[1.], 'act':['tanh'], 'bias':[0.0], 'dropout':[0.25], 'dfa':1, 'sparse':0, 'rank':0, 'init':'zero', 'opt':'adam', 'load':None}
+mnist_conv_sparse = {'benchmark':'mnist_conv.py', 'epochs':300, 'batch_size':64, 'alpha':[0.01, 0.005], 'l2':[0.], 'eps':[1.], 'act':['tanh'], 'bias':[0.0], 'dropout':[0.25], 'dfa':1, 'sparse':1, 'rank':0, 'init':'zero', 'opt':'adam', 'load':None}
 
 cifar10_conv_bp = {'benchmark':'cifar10_conv.py', 'epochs':500, 'batch_size':64, 'alpha':[3e-5], 'l2':[0.], 'eps':[1e-4], 'act':['relu'], 'bias':[0.1], 'dropout':[0.25], 'dfa':0, 'sparse':0, 'rank':0, 'init':'sqrt_fan_in', 'opt':['adam'], 'load':None}
 cifar10_conv_dfa = {'benchmark':'cifar10_conv.py', 'epochs':500, 'batch_size':64, 'alpha':[1e-5], 'l2':[0.], 'eps':[1e-5], 'act':['relu'], 'bias':[0.1], 'dropout':[0.5], 'dfa':1, 'sparse':0, 'rank':0, 'init':'zero', 'opt':['adam'], 'load':None}
@@ -74,7 +75,8 @@ imagenet_vgg_sparse3 = {'benchmark':'vgg_fc.py', 'epochs':100, 'batch_size':32, 
 # params = [cifar10_fc_bp, cifar10_fc_dfa, cifar10_fc_sparse]
 # params = [cifar10_conv_bp, cifar10_conv_dfa, cifar10_conv_sparse]
 # params = [cifar100_conv_bp, cifar100_conv_dfa, cifar100_conv_sparse]
-params = [mnist_fc_bp, mnist_fc_dfa, mnist_fc_sparse]
+# params = [mnist_fc_bp, mnist_fc_dfa, mnist_fc_sparse]
+params = [mnist_conv_bp, mnist_conv_dfa, mnist_conv_sparse]
 
 ################################################
 
