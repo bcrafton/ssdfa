@@ -9,7 +9,7 @@ from lib.Activation import Sigmoid
 
 class FullyConnected(Layer):
 
-    def __init__(self, size, num_classes, init_weights, alpha, activation, bias, last_layer, l2=0., name=None, load=None, train=True, fa=False):
+    def __init__(self, size, num_classes, init_weights, alpha, activation, bias, last_layer, l2=0., name=None, load=None, train=True):
         
         # TODO
         # check to make sure what we put in here is correct
@@ -34,10 +34,12 @@ class FullyConnected(Layer):
 
         self.name = name
         self._train = train
-        self.fa = fa
         
         if load:
-            assert(False)
+            print ("Loading Weights: " + self.name)
+            weight_dict = np.load(load).item()
+            self.weights = tf.Variable(weight_dict[self.name])
+            self.bias = tf.Variable(weight_dict[self.name + '_bias'])
         else:
             if init_weights == "zero":
                 weights = np.zeros(shape=self.size)
@@ -50,9 +52,7 @@ class FullyConnected(Layer):
                 # glorot
                 assert(False)
 
-        fb = np.copy(weights)
         self.weights = tf.Variable(weights, dtype=tf.float32)
-        self.fb = tf.Variable(fb, dtype=tf.float32)
 
     ###################################################################
         
@@ -73,12 +73,7 @@ class FullyConnected(Layer):
             
     def backward(self, AI, AO, DO):
         DO = tf.multiply(DO, self.activation.gradient(AO))
-
-        if self.fa:
-            DI = tf.matmul(DO, tf.transpose(self.fb))
-        else:
-            DI = tf.matmul(DO, tf.transpose(self.weights))
-
+        DI = tf.matmul(DO, tf.transpose(self.weights))
         return DI
         
     def gv(self, AI, AO, DO):
@@ -91,6 +86,7 @@ class FullyConnected(Layer):
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DW = tf.matmul(tf.transpose(AI), DO) + self.l2 * self.weights
         DB = tf.reduce_sum(DO, axis=0)
+
         return [(DW, self.weights), (DB, self.bias)]
 
     def train(self, AI, AO, DO):
@@ -156,7 +152,7 @@ class FullyConnected(Layer):
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DW = tf.matmul(tf.transpose(AI), DO) + self.l2 * self.weights
         DB = tf.reduce_sum(DO, axis=0)
-
+        
         return [(DW, self.weights), (DB, self.bias)]
         
     def lel(self, AI, AO, E, DO, Y):
