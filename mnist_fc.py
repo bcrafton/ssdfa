@@ -94,6 +94,8 @@ predict = model.predict(X=X)
 
 weights = model.get_weights()
 
+metrics = model.metrics()
+
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay":
     if args.dfa:
         grads_and_vars = model.dfa_gvs(X=X, Y=Y)
@@ -182,10 +184,12 @@ for ii in range(EPOCHS):
     for jj in range(int(TEST_EXAMPLES / BATCH_SIZE)):
         xs = x_test[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
         ys = y_test[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
-        _correct = sess.run(total_correct, feed_dict={batch_size: BATCH_SIZE, dropout_rate: 0.0, learning_rate: 0.0, X: xs, Y: ys})
+        [_correct, _metrics] = sess.run([total_correct, metrics], feed_dict={batch_size: BATCH_SIZE, dropout_rate: 0.0, learning_rate: 0.0, X: xs, Y: ys})
         
         _total_correct += _correct
         _count += BATCH_SIZE
+        
+        print (_metrics)
         
     test_acc = 1.0 * _total_correct / _count
     test_accs.append(test_acc)
