@@ -329,12 +329,12 @@ class Model:
         
     def metrics(self):
     
-        mac = 0
-        add = 0
-        read = 0
-        write = 0
-        send = 0
-        receive= 0
+        mac = tf.Variable(0, dtype=tf.int64)
+        add = tf.Variable(0, dtype=tf.int64)
+        read = tf.Variable(0, dtype=tf.int64)
+        write = tf.Variable(0, dtype=tf.int64)
+        send = tf.Variable(0, dtype=tf.int64)
+        receive= tf.Variable(0, dtype=tf.int64)
         
         for ii in range(self.num_layers):
             l = self.layers[ii]

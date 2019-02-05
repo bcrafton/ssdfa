@@ -83,16 +83,18 @@ class FullyConnected(Layer):
         Z = tf.matmul(X, self.weights) + self.bias
         A = self.activation.forward(Z)
         
+        '''
         # metrics 
         self.memory.read(self.weights)
         self.memory.read(self.bias)
         
-        self.compute.mac(self.weights, X)
+        self.compute.mac(X, self.weights)
         # need to fix this ... only doing 1/N adds.
         self.compute.add(self.bias)
         
         self.movement.receive(X)
         self.movement.send(A)
+        '''
         
         return A
 
@@ -101,6 +103,8 @@ class FullyConnected(Layer):
     def backward(self, AI, AO, DO):
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DI = tf.matmul(DO, tf.transpose(self.weights))
+        
+        # DI = tf.Print(DI, [tf.shape(DI)], message='')
         
         # metrics 
         self.memory.read(self.weights)
@@ -127,6 +131,8 @@ class FullyConnected(Layer):
         # only do this step if we are in DRAM
         self.memory.read(self.weights)
         self.memory.write(DW)
+        
+        # DW = tf.Print(DW, [tf.shape(DW)], message='')
         
         self.compute.mac(tf.transpose(AI), DO)
         
@@ -231,7 +237,7 @@ class FullyConnected(Layer):
         send = self.movement.send_count
         receive = self.movement.receive_count
         
-        return [mac, add, read, write, send, receive]
+        return [read, write, mac, add, send, receive]
         
         
         

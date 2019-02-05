@@ -22,31 +22,43 @@ class Movement:
 ###################################################################           
 
 
-class vonNeumann:
+class vonNeumann(Movement):
 
     def __init__(self):
-        self.send_count = 0
-        self.receive_count = 0
+        self.send_count = tf.Variable(0, dtype=tf.int64)
+        self.receive_count = tf.Variable(0, dtype=tf.int64)
 
     def send(self, X):
-        self.send_count = tf.add(self.send_count, tf.reduce_prod(tf.shape(X)))
+        sends = tf.cast(tf.reduce_prod(tf.shape(X)), tf.int64)
+        self.send_count = tf.assign_add(self.send_count, sends)
+        # self.send_count = tf.add(self.send_count, sends)
 
     def receive(self, X):
-        self.receive_count = tf.add(self.receive_count, tf.reduce_prod(tf.shape(X)))
+        receives = tf.cast(tf.reduce_prod(tf.shape(X)), tf.int64)
+        self.receive_count = tf.assign_add(self.receive_count, receives)
+        # self.receive_count = tf.add(self.receive_count, receives)
 
 ###################################################################           
 
-class Neuromorphic:
+class Neuromorphic(Movement):
 
     def __init__(self):
-        self.send_count = 0
-        self.receive_count = 0
+        self.send_count = tf.Variable(0, dtype=tf.int64)
+        self.receive_count = tf.Variable(0, dtype=tf.int64)
 
     def send(self, X):
-        self.send_count = tf.add(self.send_count, tf.reduce_prod(tf.shape(X)))
+        sends = tf.cast(tf.reduce_prod(tf.shape(X)), tf.int64)
+        self.send_count = tf.assign_add(self.send_count, sends)
+        # self.send_count = tf.add(self.send_count, sends)
 
     def receive(self, X):
-        self.receive_count = tf.add(self.receive_count, tf.reduce_prod(tf.shape(X)))
+        receives = tf.cast(tf.reduce_prod(tf.shape(X)), tf.int64)
+        self.receive_count = tf.assign_add(self.receive_count, receives)
+        # self.receive_count = tf.add(self.receive_count, receives)
 
 ###################################################################           
+
+
+
+
 

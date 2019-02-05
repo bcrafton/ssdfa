@@ -168,10 +168,13 @@ for ii in range(EPOCHS):
     for jj in range(int(TRAIN_EXAMPLES / BATCH_SIZE)):
         xs = x_train[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
         ys = y_train[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
-        _correct, _ = sess.run([total_correct, train], feed_dict={batch_size: BATCH_SIZE, dropout_rate: args.dropout, learning_rate: lr, X: xs, Y: ys})
+        _correct, _metrics, _ = sess.run([total_correct, metrics, train], feed_dict={batch_size: BATCH_SIZE, dropout_rate: args.dropout, learning_rate: lr, X: xs, Y: ys})
         
         _total_correct += _correct
         _count += BATCH_SIZE
+        
+        [read, write, mac, add, send, receive] = _metrics
+        print ("| read: %d | write: %d | mac: %d | add: %d | send: %d | receive: %d |" % (read, write, mac, add, send, receive))
 
     train_acc = 1.0 * _total_correct / _count
     train_accs.append(train_acc)
@@ -184,12 +187,10 @@ for ii in range(EPOCHS):
     for jj in range(int(TEST_EXAMPLES / BATCH_SIZE)):
         xs = x_test[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
         ys = y_test[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
-        [_correct, _metrics] = sess.run([total_correct, metrics], feed_dict={batch_size: BATCH_SIZE, dropout_rate: 0.0, learning_rate: 0.0, X: xs, Y: ys})
+        [_correct] = sess.run([total_correct], feed_dict={batch_size: BATCH_SIZE, dropout_rate: 0.0, learning_rate: 0.0, X: xs, Y: ys})
         
         _total_correct += _correct
         _count += BATCH_SIZE
-        
-        print (_metrics)
         
     test_acc = 1.0 * _total_correct / _count
     test_accs.append(test_acc)

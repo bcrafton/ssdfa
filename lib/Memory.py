@@ -25,28 +25,36 @@ class Memory:
 class DRAM(Memory):
 
     def __init__(self):
-        self.read_count = 0
-        self.write_count = 0
+        self.read_count = tf.Variable(0, dtype=tf.int64)
+        self.write_count = tf.Variable(0, dtype=tf.int64)
 
     def read(self, X):
-        self.read_count = tf.add(self.read_count, tf.reduce_prod(tf.shape(X)))
+        reads = tf.cast(tf.reduce_prod(tf.shape(X)), tf.int64)
+        self.read_count = tf.assign_add(self.read_count, reads)
+        # self.read_count = tf.add(self.read_count, reads)
 
     def write(self, X):
-        self.write_count = tf.add(self.write_count, tf.reduce_prod(tf.shape(X)))
+        writes = tf.cast(tf.reduce_prod(tf.shape(X)), tf.int64)
+        self.write_count = tf.assign_add(self.write_count, writes)
+        # self.write_count = tf.add(self.write_count, writes)
 
 ###################################################################           
 
 class RRAM(Memory):
 
     def __init__(self):
-        self.read_count = 0
-        self.write_count = 0
+        self.read_count = tf.Variable(0, dtype=tf.int64)
+        self.write_count = tf.Variable(0, dtype=tf.int64)
 
     def read(self, X):
-        self.read_count = tf.add(self.read_count, tf.reduce_prod(tf.shape(X)))
+        reads = tf.cast(tf.reduce_prod(tf.shape(X)), tf.int64)
+        self.read_count = tf.assign_add(self.read_count, reads)
+        # self.read_count = tf.add(self.read_count, reads)
 
     def write(self, X):
-        self.write_count = tf.add(self.write_count, tf.reduce_prod(tf.shape(X)))
+        writes = tf.cast(tf.reduce_prod(tf.shape(X)), tf.int64)
+        self.write_count = tf.assign_add(self.write_count, writes)
+        # self.write_count = tf.add(self.write_count, writes)
 
 ###################################################################           
 
