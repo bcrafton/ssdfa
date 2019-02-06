@@ -149,6 +149,8 @@ f.close()
 train_accs = []
 test_accs = []
 
+print (model.metrics())
+
 for ii in range(EPOCHS):
     if args.opt == 'decay' or args.opt == 'gd':
         decay = np.power(args.decay, ii)

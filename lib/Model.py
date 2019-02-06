@@ -325,9 +325,29 @@ class Model:
                 
         return A[N]
         
+    ####################################################################
         
+    def metrics(self):
+    
+        mac = 0
+        add = 0
+        read = 0
+        write = 0
+        send = 0
+        receive = 0
         
+        for ii in range(self.num_layers):
+            l = self.layers[ii]
+            [_mac, _add, _read, _write, _send, _receive] = l.metrics()
+            
+            mac = mac + _mac
+            add = add + _add
+            read = read + _read
+            write = write + _write
+            send = send + _send
+            receive = receive + _receive
         
+        return [mac, add, read, write, send, receive]
         
         
         

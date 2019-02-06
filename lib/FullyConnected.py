@@ -7,6 +7,18 @@ from lib.Layer import Layer
 from lib.Activation import Activation
 from lib.Activation import Sigmoid
 
+from lib.Memory import Memory
+from lib.Memory import DRAM
+from lib.Memory import RRAM
+
+from lib.Compute import Compute
+from lib.Compute import CMOS
+from lib.Compute import RRAM
+
+from lib.Movement import Movement
+from lib.Movement import vonNeumann
+from lib.Movement import Neuromorphic
+
 class FullyConnected(Layer):
 
     def __init__(self, size, num_classes, init_weights, alpha, activation, bias, last_layer, l2=0., name=None, load=None, train=True):
@@ -34,6 +46,10 @@ class FullyConnected(Layer):
 
         self.name = name
         self._train = train
+        
+        self.memory = DRAM()
+        self.compute = CMOS()
+        self.movement = vonNeumann()
         
         if load:
             print ("Loading Weights: " + self.name)
@@ -171,5 +187,18 @@ class FullyConnected(Layer):
         
         return [(DW, self.weights), (DB, self.bias)]
         
+    ###################################################################
+        
+    def metrics(self):
+        read = self.memory.read_count
+        write = self.memory.write_count
+        
+        mac = self.compute.mac_count
+        add = self.compute.add_count
+        
+        send = self.movement.send_count
+        receive = self.movement.receive_count
+        
+        return [read, write, mac, add, send, receive]
         
         
