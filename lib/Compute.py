@@ -13,7 +13,10 @@ class Compute:
     def __init__(self):
         super().__init__()
 
-    def mac(self, W, X):
+    def matmult(self, W, X):
+        pass
+
+    def conv(self, W, X):
         pass
 
     def add(self, X):
@@ -28,13 +31,16 @@ class CMOS(Compute):
         self.add_count = 0
 
     def matmult(self, shape_X, shape_Y):
+        assert(shape_X[1] == shape_Y[0])
         self.mac_count += shape_X[0] * shape_X[1] * shape_Y[1]
 
+    # TODO make this work
     def conv(self, shape_X, shape_Y):
         self.mac_count += shape_X[0] * shape_X[1] * shape_Y[1]
 
-    def add(self, shape_X, shape_Y):
-        self.add_count += np.prod(shape_X) # need to do np.prod(np.max(shape_X, shape_Y)) or something like this
+    # TODO this should be add(x, y) where x and y are same length and we pick the max along each index...
+    def add(self, shape_X):
+        self.add_count += np.prod(shape_X) 
 
 ###################################################################           
 
@@ -44,14 +50,14 @@ class RRAM(Compute):
         self.mac_count = 0
         self.add_count = 0
 
-    def mult(self, shape_X, shape_Y):
-        self.mac_count += shape_X[0] * shape_X[1] * shape_Y[1]
+    def matmult(self, W, X):
+        pass
 
-    def conv(self, shape_X, shape_Y):
-        self.mac_count += shape_X[0] * shape_X[1] * shape_Y[1]
+    def conv(self, W, X):
+        pass
 
-    def add(self, shape_X, shape_Y):
-        self.add_count += np.prod(shape_X) # need to do np.prod(np.max(shape_X, shape_Y)) or something like this
-
+    def add(self, X):
+        pass
+        
 ###################################################################           
 

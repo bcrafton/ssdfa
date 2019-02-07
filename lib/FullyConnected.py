@@ -189,35 +189,46 @@ class FullyConnected(Layer):
         
     ###################################################################
         
-    def metrics(self, dfa=False, sparsity=0., batch_size=1):
+    def metrics(self, dfa=False, sparsity=0., examples=1, epochs=1):
+        
+        total_examples = examples * epochs
+    
+        size = (self.input_size, self.output_size)
+        size_T = (self.output_size, self.input_size)
+        
+        input_size = (total_examples, self.input_size)
+        input_size_T = (self.input_size, total_examples)
+        
+        output_size = (total_examples, self.output_size)
+        output_size_T = (self.output_size, total_examples)
     
         #############################
     
         # forward
-        self.memory.read(self.size)
-        self.memory.read(self.output_size)
+        self.memory.read(size)
+        self.memory.read(output_size)
         
-        self.compute.matmult(self.size, self.input_size)
-        self.compute.add(self.output_size)
+        self.compute.matmult(input_size, size)
+        self.compute.add(output_size)
         
-        self.movement.receive(self.input_size)
-        self.movement.send(self.output_size)
+        self.movement.receive(input_size)
+        self.movement.send(output_size)
         
         # backward
-        self.memory.read(self.size)
+        self.memory.read(size)
         
-        self.compute.matmult((self.input_size, self.output_size), self.output_size)
+        self.compute.matmult(output_size, size_T)
         
-        self.movement.receive(self.output_size)
-        self.movement.send(self.input_size)
+        self.movement.receive(output_size)
+        self.movement.send(input_size)
 
         # update
-        # self.memory.read(self.size) # done in backward
-        self.memory.write(self.size)
+        # self.memory.read(size) # done in backward
+        self.memory.write(size)
         
-        self.compute.mac((self.input_size, 1), (1, self.output_size))
+        self.compute.matmult(input_size_T, output_size)
         
-        # self.movement.receive(self.output_size) # done in backward
+        # self.movement.receive(output_size) # done in backward
 
         #############################
     
