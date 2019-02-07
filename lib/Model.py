@@ -1,6 +1,9 @@
 
 import tensorflow as tf
 import numpy as np
+
+from lib.add_dict import add_dict
+
 np.set_printoptions(threshold=1000)
 
 class Model:
@@ -328,26 +331,15 @@ class Model:
     ####################################################################
         
     def metrics(self, dfa=False, sparsity=0., examples=1, epochs=1):
-    
-        mac = 0
-        add = 0
-        read = 0
-        write = 0
-        send = 0
-        receive = 0
+        
+        total = {}
         
         for ii in range(self.num_layers):
             l = self.layers[ii]
-            [_mac, _add, _read, _write, _send, _receive] = l.metrics(dfa=dfa, sparsity=sparsity, examples=examples, epochs=epochs)
-            
-            mac = mac + _mac
-            add = add + _add
-            read = read + _read
-            write = write + _write
-            send = send + _send
-            receive = receive + _receive
+            _total = l.metrics(dfa=dfa, sparsity=sparsity, examples=examples, epochs=epochs)
+            total = add_dict(total, _total)
         
-        return [mac, add, read, write, send, receive]
+        return total
         
         
         

@@ -23,6 +23,9 @@ class Compute:
 
     def add(self, X):
         pass
+        
+    def total(self):
+        pass
 
 ###################################################################           
 
@@ -51,6 +54,9 @@ class CMOS(Compute):
     # TODO this should be add(x, y) where x and y are same length and we pick the max along each index...
     def add(self, shape_X):
         self.add_count += np.prod(shape_X) 
+        
+    def total(self):
+        return {'mac': self.mac_count, 'add': self.add_count}
 
 ###################################################################           
 
@@ -68,6 +74,9 @@ class RRAM(Compute):
 
     def add(self, X):
         pass
-        
+
+    def total(self):
+        pass
+
 ###################################################################           
 

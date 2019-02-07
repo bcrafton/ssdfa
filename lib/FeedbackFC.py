@@ -20,6 +20,8 @@ from lib.Movement import Movement
 from lib.Movement import vonNeumann
 from lib.Movement import Neuromorphic
 
+from lib.add_dict import add_dict
+
 np.set_printoptions(threshold=np.inf)
 
 class FeedbackFC(Layer):
@@ -116,7 +118,7 @@ class FeedbackFC(Layer):
     def metrics(self, dfa=False, sparsity=0., examples=1, epochs=1):
     
         if not dfa:
-            return [0, 0, 0, 0, 0, 0]
+            return {}
 
         total_examples = examples * epochs
 
@@ -133,17 +135,12 @@ class FeedbackFC(Layer):
         
         #############################
     
-        read = self.memory.read_count
-        write = self.memory.write_count
-        
-        mac = self.compute.mac_count
-        add = self.compute.add_count
-        
-        send = self.movement.send_count
-        receive = self.movement.receive_count
-        
+        total = {}
+        total = add_dict(total, self.memory.total())
+        total = add_dict(total, self.compute.total())
+        total = add_dict(total, self.movement.total())
+
         #############################
         
-        return [read, write, mac, add, send, receive]
+        return total
         
-

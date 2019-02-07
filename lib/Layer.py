@@ -54,6 +54,6 @@ class Layer:
     ###################################################################   
     
     def metrics(self, dfa=False, sparsity=0., examples=1, epochs=1):
-        return [0, 0, 0, 0, 0, 0]
+        return {}
     
     

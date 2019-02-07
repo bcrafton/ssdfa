@@ -19,6 +19,8 @@ from lib.Movement import Movement
 from lib.Movement import vonNeumann
 from lib.Movement import Neuromorphic
 
+from lib.add_dict import add_dict
+
 class FullyConnected(Layer):
 
     def __init__(self, size, num_classes, init_weights, alpha, activation, bias, last_layer, l2=0., name=None, load=None, train=True):
@@ -233,18 +235,14 @@ class FullyConnected(Layer):
 
         #############################
     
-        read = self.memory.read_count
-        write = self.memory.write_count
-        
-        mac = self.compute.mac_count
-        add = self.compute.add_count
-        
-        send = self.movement.send_count
-        receive = self.movement.receive_count
-        
+        total = {}
+        total = add_dict(total, self.memory.total())
+        total = add_dict(total, self.compute.total())
+        total = add_dict(total, self.movement.total())
+
         #############################
         
-        return [read, write, mac, add, send, receive]
+        return total
         
         
         
