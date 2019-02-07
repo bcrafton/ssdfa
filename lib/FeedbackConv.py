@@ -8,6 +8,18 @@ from lib.Activation import Activation
 from lib.Activation import Sigmoid
 from lib.FeedbackMatrix import FeedbackMatrix
 
+from lib.Memory import Memory
+from lib.Memory import DRAM
+from lib.Memory import RRAM
+
+from lib.Compute import Compute
+from lib.Compute import CMOS
+from lib.Compute import RRAM
+
+from lib.Movement import Movement
+from lib.Movement import vonNeumann
+from lib.Movement import Neuromorphic
+
 class FeedbackConv(Layer):
 
     def __init__(self, size : tuple, num_classes : int, sparse : int, rank : int, name=None, load=None):
@@ -18,6 +30,10 @@ class FeedbackConv(Layer):
         self.batch_size, self.h, self.w, self.f = self.size
         self.name = name
         self.num_output = self.h * self.w * self.f
+
+        self.memory = DRAM()
+        self.compute = CMOS()
+        self.movement = vonNeumann()
 
         if load:
             weight_dict = np.load(load).item()
@@ -92,6 +108,37 @@ class FeedbackConv(Layer):
         
     ###################################################################
         
+    def metrics(self, dfa=False, sparsity=0., examples=1, epochs=1):
+    
+        if not dfa:
+            return [0, 0, 0, 0, 0, 0]
+
+        total_examples = examples * epochs
+
+        size = (self.num_classes, self.num_output)
+        input_size = (total_examples, self.num_classes)
+        output_size = (total_examples, self.num_output)
+    
+        self.memory.read(size)
         
+        self.compute.matmult(input_size, size)
+        
+        self.movement.receive(input_size)
+        self.movement.send(output_size)
+
+        #############################
+    
+        read = self.memory.read_count
+        write = self.memory.write_count
+        
+        mac = self.compute.mac_count
+        add = self.compute.add_count
+        
+        send = self.movement.send_count
+        receive = self.movement.receive_count
+        
+        #############################
+
+        return [read, write, mac, add, send, receive]
 
 

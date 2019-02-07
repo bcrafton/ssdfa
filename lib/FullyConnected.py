@@ -215,12 +215,13 @@ class FullyConnected(Layer):
         self.movement.send(output_size)
         
         # backward
-        self.memory.read(size)
-        
-        self.compute.matmult(output_size, size_T)
-        
-        self.movement.receive(output_size)
-        self.movement.send(input_size)
+        if not dfa:
+            self.memory.read(size)
+            
+            self.compute.matmult(output_size, size_T)
+            
+            self.movement.receive(output_size)
+            self.movement.send(input_size)
 
         # update
         # self.memory.read(size) # done in backward

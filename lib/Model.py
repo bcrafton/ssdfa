@@ -327,7 +327,7 @@ class Model:
         
     ####################################################################
         
-    def metrics(self):
+    def metrics(self, dfa=False, sparsity=0., examples=1, epochs=1):
     
         mac = 0
         add = 0
@@ -338,7 +338,7 @@ class Model:
         
         for ii in range(self.num_layers):
             l = self.layers[ii]
-            [_mac, _add, _read, _write, _send, _receive] = l.metrics()
+            [_mac, _add, _read, _write, _send, _receive] = l.metrics(dfa=dfa, sparsity=sparsity, examples=examples, epochs=epochs)
             
             mac = mac + _mac
             add = add + _add

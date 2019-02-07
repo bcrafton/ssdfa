@@ -6,6 +6,20 @@ import math
 from lib.Layer import Layer 
 from lib.Activation import Activation
 from lib.Activation import Sigmoid
+from lib.conv_utils import conv_output_length
+from lib.conv_utils import conv_input_length
+
+from lib.Memory import Memory
+from lib.Memory import DRAM
+from lib.Memory import RRAM
+
+from lib.Compute import Compute
+from lib.Compute import CMOS
+from lib.Compute import RRAM
+
+from lib.Movement import Movement
+from lib.Movement import vonNeumann
+from lib.Movement import Neuromorphic
 
 class Convolution(Layer):
 
@@ -30,7 +44,11 @@ class Convolution(Layer):
 
         self.name = name
         self._train = train
-        
+
+        self.memory = DRAM()
+        self.compute = CMOS()
+        self.movement = vonNeumann()
+
         if load:
             print ("Loading Weights: " + self.name)
             weight_dict = np.load(load, encoding='latin1').item()
@@ -146,5 +164,63 @@ class Convolution(Layer):
         return [(DF, self.filters), (DB, self.bias)]
         
     ################################################################### 
+
+    # for convolution we can just use conv_utils code.
+    def metrics(self, dfa=False, sparsity=0., examples=1, epochs=1):
+        
+        total_examples = examples * epochs
+        
+        # filter_size = self.filter_sizes # filters
+        # output_size = self.fout # bias
+        input_size = (total_examples, self.h, self.w, self.fin)
+
+        output_row = conv_output_length(self.h, self.fh, self.padding.lower(), self.strides[1])
+        output_col = conv_output_length(self.w, self.fw, self.padding.lower(), self.strides[2])
+        output_size = (total_examples, output_row, output_col, self.fout)
+
+        #############################
+    
+        # forward
+        self.memory.read(self.filter_sizes)
+        self.memory.read(self.fout)
+        
+        self.compute.conv(self.filter_sizes, input_size, self.padding, self.strides)
+        self.compute.add(self.fout)
+        
+        self.movement.receive(input_size)
+        self.movement.send(output_size)
+        
+        # backward
+        if not dfa:
+            self.memory.read(self.filter_sizes)
+            
+            self.compute.conv(self.filter_sizes, output_size, "full", [1, 1, 1, 1])
+            
+            self.movement.receive(output_size)
+            self.movement.send(input_size)
+
+        # update
+        # self.memory.read(size) # done in backward
+        self.memory.write(self.filter_sizes)
+        
+        self.compute.conv(output_size, input_size, self.padding, self.strides)
+        
+        # self.movement.receive(output_size) # done in backward
+
+        #############################
+    
+        read = self.memory.read_count
+        write = self.memory.write_count
+        
+        mac = self.compute.mac_count
+        add = self.compute.add_count
+        
+        send = self.movement.send_count
+        receive = self.movement.receive_count
+        
+        #############################
+        
+        return [read, write, mac, add, send, receive]
+        
         
         

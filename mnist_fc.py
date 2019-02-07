@@ -150,6 +150,7 @@ train_accs = []
 test_accs = []
 
 print (model.metrics())
+assert(False)
 
 for ii in range(EPOCHS):
     if args.opt == 'decay' or args.opt == 'gd':

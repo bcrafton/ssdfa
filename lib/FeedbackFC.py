@@ -8,6 +8,18 @@ from lib.Activation import Activation
 from lib.Activation import Sigmoid
 from lib.FeedbackMatrix import FeedbackMatrix
 
+from lib.Memory import Memory
+from lib.Memory import DRAM
+from lib.Memory import RRAM
+
+from lib.Compute import Compute
+from lib.Compute import CMOS
+from lib.Compute import RRAM
+
+from lib.Movement import Movement
+from lib.Movement import vonNeumann
+from lib.Movement import Neuromorphic
+
 np.set_printoptions(threshold=np.inf)
 
 class FeedbackFC(Layer):
@@ -19,6 +31,10 @@ class FeedbackFC(Layer):
         self.rank = rank
         self.input_size, self.output_size = self.size
         self.name = name
+
+        self.memory = DRAM()
+        self.compute = CMOS()
+        self.movement = vonNeumann()
 
         if load:
             weight_dict = np.load(load).item()
@@ -97,5 +113,37 @@ class FeedbackFC(Layer):
         
     ###################################################################  
         
+    def metrics(self, dfa=False, sparsity=0., examples=1, epochs=1):
+    
+        if not dfa:
+            return [0, 0, 0, 0, 0, 0]
+
+        total_examples = examples * epochs
+
+        size = (self.num_classes, self.output_size)
+        input_size = (total_examples, self.num_classes)
+        output_size = (total_examples, self.output_size)
+    
+        self.memory.read(size)
         
+        self.compute.matmult(input_size, size)
         
+        self.movement.receive(input_size)
+        self.movement.send(output_size)
+        
+        #############################
+    
+        read = self.memory.read_count
+        write = self.memory.write_count
+        
+        mac = self.compute.mac_count
+        add = self.compute.add_count
+        
+        send = self.movement.send_count
+        receive = self.movement.receive_count
+        
+        #############################
+        
+        return [read, write, mac, add, send, receive]
+        
+
