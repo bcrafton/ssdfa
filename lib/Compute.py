@@ -27,7 +27,7 @@ class CMOS(Compute):
         self.mac_count = 0
         self.add_count = 0
 
-    def mult(self, shape_X, shape_Y):
+    def matmult(self, shape_X, shape_Y):
         self.mac_count += shape_X[0] * shape_X[1] * shape_Y[1]
 
     def conv(self, shape_X, shape_Y):

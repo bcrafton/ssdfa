@@ -189,7 +189,38 @@ class FullyConnected(Layer):
         
     ###################################################################
         
-    def metrics(self):
+    def metrics(self, dfa=False, sparsity=0., batch_size=1):
+    
+        #############################
+    
+        # forward
+        self.memory.read(self.size)
+        self.memory.read(self.output_size)
+        
+        self.compute.matmult(self.size, self.input_size)
+        self.compute.add(self.output_size)
+        
+        self.movement.receive(self.input_size)
+        self.movement.send(self.output_size)
+        
+        # backward
+        self.memory.read(self.size)
+        
+        self.compute.matmult((self.input_size, self.output_size), self.output_size)
+        
+        self.movement.receive(self.output_size)
+        self.movement.send(self.input_size)
+
+        # update
+        # self.memory.read(self.size) # done in backward
+        self.memory.write(self.size)
+        
+        self.compute.mac((self.input_size, 1), (1, self.output_size))
+        
+        # self.movement.receive(self.output_size) # done in backward
+
+        #############################
+    
         read = self.memory.read_count
         write = self.memory.write_count
         
@@ -199,6 +230,12 @@ class FullyConnected(Layer):
         send = self.movement.send_count
         receive = self.movement.receive_count
         
+        #############################
+        
         return [read, write, mac, add, send, receive]
+        
+        
+        
+        
         
         
