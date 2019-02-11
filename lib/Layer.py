@@ -53,7 +53,7 @@ class Layer:
         
     ###################################################################   
     
-    def metrics(self, dfa=False, sparsity=0., examples=1, epochs=1):
+    def metrics(self, dfa=False, sparsity=0., memory=None, compute=None, movement=None, examples=1, epochs=1):
         return {}
     
     

@@ -60,23 +60,3 @@ class CMOS(Compute):
 
 ###################################################################           
 
-class RRAM(Compute):
-
-    def __init__(self):
-        self.mac_count = 0
-        self.add_count = 0
-
-    def matmult(self, W, X):
-        pass
-
-    def conv(self, W, X):
-        pass
-
-    def add(self, X):
-        pass
-
-    def total(self):
-        pass
-
-###################################################################           
-

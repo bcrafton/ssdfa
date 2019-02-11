@@ -15,7 +15,6 @@ from lib.Memory import RRAM
 
 from lib.Compute import Compute
 from lib.Compute import CMOS
-from lib.Compute import RRAM
 
 from lib.Movement import Movement
 from lib.Movement import vonNeumann
@@ -46,11 +45,7 @@ class Convolution(Layer):
 
         self.name = name
         self._train = train
-
-        self.memory = DRAM()
-        self.compute = CMOS()
-        self.movement = vonNeumann()
-
+        
         if load:
             print ("Loading Weights: " + self.name)
             weight_dict = np.load(load, encoding='latin1').item()
@@ -167,8 +162,11 @@ class Convolution(Layer):
         
     ################################################################### 
 
-    # for convolution we can just use conv_utils code.
-    def metrics(self, dfa=False, sparsity=0., examples=1, epochs=1):
+    def metrics(self, dfa=False, sparsity=0., memory=None, compute=None, movement=None, examples=1, epochs=1):
+
+        memory = DRAM() if memory is None else memory
+        compute = CMOS() if compute is None else compute
+        movement = vonNeumann() if movement is None else movement
         
         total_examples = examples * epochs
         
@@ -183,38 +181,38 @@ class Convolution(Layer):
         #############################
     
         # forward
-        self.memory.read(self.filter_sizes)
-        self.memory.read(self.fout)
+        memory.read(self.filter_sizes)
+        # memory.read(self.fout) # lets ignore bias
         
-        self.compute.conv(self.filter_sizes, input_size, self.padding, self.strides)
-        self.compute.add(self.fout)
+        compute.conv(self.filter_sizes, input_size, self.padding, self.strides)
+        # compute.add(self.fout) # lets ignore bias
         
-        self.movement.receive(input_size)
-        self.movement.send(output_size)
+        movement.receive(input_size)
+        movement.send(output_size)
         
         # backward
         if not dfa:
-            self.memory.read(self.filter_sizes)
+            memory.read(self.filter_sizes)
             
-            self.compute.conv(self.filter_sizes, output_size, "full", [1, 1, 1, 1])
+            compute.conv(self.filter_sizes, output_size, "full", [1, 1, 1, 1])
             
-            self.movement.receive(output_size)
-            self.movement.send(input_size)
+            movement.receive(output_size)
+            movement.send(input_size)
 
         # update
-        # self.memory.read(size) # done in backward
-        self.memory.write(self.filter_sizes)
+        # memory.read(size) # done in backward
+        memory.write(self.filter_sizes)
         
-        self.compute.conv(output_size, input_size, self.padding, self.strides)
+        compute.conv(output_size, input_size, self.padding, self.strides)
         
-        # self.movement.receive(output_size) # done in backward
+        # movement.receive(output_size) # done in backward
 
         #############################
     
         total = {}
-        total = add_dict(total, self.memory.total())
-        total = add_dict(total, self.compute.total())
-        total = add_dict(total, self.movement.total())
+        total = add_dict(total, memory.total())
+        total = add_dict(total, compute.total())
+        total = add_dict(total, movement.total())
 
         #############################
         

@@ -14,7 +14,6 @@ from lib.Memory import RRAM
 
 from lib.Compute import Compute
 from lib.Compute import CMOS
-from lib.Compute import RRAM
 
 from lib.Movement import Movement
 from lib.Movement import vonNeumann
@@ -32,10 +31,6 @@ class FeedbackConv(Layer):
         self.batch_size, self.h, self.w, self.f = self.size
         self.name = name
         self.num_output = self.h * self.w * self.f
-
-        self.memory = DRAM()
-        self.compute = CMOS()
-        self.movement = vonNeumann()
 
         if load:
             weight_dict = np.load(load).item()
@@ -110,10 +105,14 @@ class FeedbackConv(Layer):
         
     ###################################################################
         
-    def metrics(self, dfa=False, sparsity=0., examples=1, epochs=1):
+    def metrics(self, dfa=False, sparsity=0., memory=None, compute=None, movement=None, examples=1, epochs=1):
     
         if not dfa:
             return {}
+
+        memory = DRAM() if memory is None else memory
+        compute = CMOS() if compute is None else compute
+        movement = vonNeumann() if movement is None else movement
 
         total_examples = examples * epochs
 
@@ -121,19 +120,23 @@ class FeedbackConv(Layer):
         input_size = (total_examples, self.num_classes)
         output_size = (total_examples, self.num_output)
     
-        self.memory.read(size)
-        
-        self.compute.matmult(input_size, size)
-        
-        self.movement.receive(input_size)
-        self.movement.send(output_size)
+        if type(memory) in [DRAM]:
+            memory.read(size)
+            compute.matmult(input_size, size)
+        elif type(memory) in [RRAM]:
+            memory.matmult(input_size, size)
+        else:
+            assert(False)
+
+        movement.receive(input_size)
+        movement.send(output_size)
 
         #############################
     
         total = {}
-        total = add_dict(total, self.memory.total())
-        total = add_dict(total, self.compute.total())
-        total = add_dict(total, self.movement.total())
+        total = add_dict(total, memory.total())
+        total = add_dict(total, compute.total())
+        total = add_dict(total, movement.total())
 
         #############################
         

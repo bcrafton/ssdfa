@@ -330,13 +330,13 @@ class Model:
         
     ####################################################################
         
-    def metrics(self, dfa=False, sparsity=0., examples=1, epochs=1):
+    def metrics(self, dfa=False, sparsity=0., memory=None, compute=None, movement=None, examples=1, epochs=1):
         
         total = {}
         
         for ii in range(self.num_layers):
             l = self.layers[ii]
-            _total = l.metrics(dfa=dfa, sparsity=sparsity, examples=examples, epochs=epochs)
+            _total = l.metrics(dfa=dfa, sparsity=sparsity, memory=memory, compute=compute, movement=movement, examples=examples, epochs=epochs)
             total = add_dict(total, _total)
         
         return total

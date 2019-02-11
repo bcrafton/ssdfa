@@ -20,11 +20,12 @@ from lib.Movement import Neuromorphic
 
 from lib.add_dict import add_dict
 
-class FullyConnected(Layer):
+class Sparse(Layer):
 
-    def __init__(self, size, num_classes, init_weights, alpha, activation, bias, last_layer, l2=0., name=None, load=None, train=True):
+    def __init__(self, size, num_classes, init_weights, alpha, activation, bias, last_layer, l2=0., name=None, load=None, train=True, rate=1.):
         self.size = size
         self.last_layer = last_layer
+        self.rate = rate
         self.input_size, self.output_size = size
         self.num_classes = num_classes
         self.bias = tf.Variable(tf.ones(shape=[self.output_size]) * bias)
@@ -34,25 +35,34 @@ class FullyConnected(Layer):
         self.name = name
         self._train = train
         
-        if load:
-            print ("Loading Weights: " + self.name)
-            weight_dict = np.load(load).item()
-            self.weights = tf.Variable(weight_dict[self.name])
-            self.bias = tf.Variable(weight_dict[self.name + '_bias'])
+        #########################################################
+
+        mask = np.random.choice([0., -1., 1.], size=self.size, replace=True, p=[1.-rate, rate*(1.-sign), rate*sign])
+            
+        # total_connects = int(np.count_nonzero(mask))
+        # assert(total_connects == int(self.rate * self.output_size) * self.input_size)
+        
+        assert(not load)
+        if init_weights == "zero":
+            weights = np.zeros(shape=self.size)
+            
+        elif init_weights == "sqrt_fan_in":
+            sqrt_fan_in = math.sqrt(self.input_size)
+            weights = np.random.uniform(low=-1.0/sqrt_fan_in, high=1.0/sqrt_fan_in, size=self.size)
+            
+        elif init_weights == "alexnet":
+            weights = np.random.normal(loc=0.0, scale=0.01, size=self.size)
+            
         else:
-            if init_weights == "zero":
-                weights = np.zeros(shape=self.size)
-            elif init_weights == "sqrt_fan_in":
-                sqrt_fan_in = math.sqrt(self.input_size)
-                weights = np.random.uniform(low=-1.0/sqrt_fan_in, high=1.0/sqrt_fan_in, size=self.size)
-            elif init_weights == "alexnet":
-                weights = np.random.normal(loc=0.0, scale=0.01, size=self.size)
-            else:
-                # glorot
-                assert(False)
+            # Glorot
+            assert(False)
 
-        self.weights = tf.Variable(weights, dtype=tf.float32)
-
+        weights = mask * weights
+            
+        self.weights = tf.Variable(_weights, dtype=tf.float32)
+        self.mask = tf.Variable(_mask, dtype=tf.float32)
+        self.total_connects = tf.Variable(tf.count_nonzero(self.mask))
+        
     ###################################################################
         
     def get_weights(self):
@@ -84,11 +94,16 @@ class FullyConnected(Layer):
         
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DW = tf.matmul(tf.transpose(AI), DO) + self.l2 * self.weights
+        DW = tf.multiply(DW, self.mask)
         DB = tf.reduce_sum(DO, axis=0)
 
         return [(DW, self.weights), (DB, self.bias)]
 
     def train(self, AI, AO, DO):
+        # assert(tf.count_nonzero(self.weights) == self.total_connects)
+        # _assert = tf.assert_greater_equal(self.total_connects, tf.count_nonzero(self.weights))
+
+        # with tf.control_dependencies([_assert]):
         if not self._train:
             return []
 
@@ -97,6 +112,7 @@ class FullyConnected(Layer):
 
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DW = tf.matmul(tf.transpose(AI), DO) + self.l2 * self.weights
+        DW = tf.multiply(DW, self.mask)
         DB = tf.reduce_sum(DO, axis=0)
 
         self.weights = self.weights.assign(tf.subtract(self.weights, tf.scalar_mul(self.alpha, DW)))
@@ -117,11 +133,16 @@ class FullyConnected(Layer):
 
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DW = tf.matmul(tf.transpose(AI), DO) + self.l2 * self.weights
+        DW = tf.multiply(DW, self.mask) 
         DB = tf.reduce_sum(DO, axis=0)
         
         return [(DW, self.weights), (DB, self.bias)]
         
     def dfa(self, AI, AO, E, DO):
+        # assert(tf.count_nonzero(self.weights) == self.total_connects)
+        # _assert = tf.assert_greater_equal(self.total_connects, tf.count_nonzero(self.weights))
+
+        # with tf.control_dependencies([_assert]):
         if not self._train:
             return []
 
@@ -130,6 +151,7 @@ class FullyConnected(Layer):
 
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DW = tf.matmul(tf.transpose(AI), DO) + self.l2 * self.weights
+        DW = tf.multiply(DW, self.mask)
         DB = tf.reduce_sum(DO, axis=0)
 
         self.weights = self.weights.assign(tf.subtract(self.weights, tf.scalar_mul(self.alpha, DW)))
@@ -171,7 +193,7 @@ class FullyConnected(Layer):
         return [(DW, self.weights), (DB, self.bias)]
         
     ###################################################################
-        
+    
     def metrics(self, dfa=False, sparsity=0., memory=None, compute=None, movement=None, examples=1, epochs=1):
 
         memory = DRAM() if memory is None else memory
@@ -237,7 +259,4 @@ class FullyConnected(Layer):
         return total
         
         
-        
-        
-        
-        
+

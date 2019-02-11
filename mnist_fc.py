@@ -57,6 +57,17 @@ from lib.Activation import Softmax
 from lib.Activation import LeakyRelu
 from lib.Activation import Linear
 
+from lib.Memory import Memory
+from lib.Memory import DRAM
+from lib.Memory import RRAM
+
+from lib.Compute import Compute
+from lib.Compute import CMOS
+
+from lib.Movement import Movement
+from lib.Movement import vonNeumann
+from lib.Movement import Neuromorphic
+
 ##############################################
 
 mnist = tf.keras.datasets.mnist.load_data()
@@ -149,7 +160,7 @@ f.close()
 train_accs = []
 test_accs = []
 
-print (model.metrics(dfa=args.dfa))
+print (model.metrics(dfa=args.dfa, memory=RRAM()))
 assert(False)
 
 for ii in range(EPOCHS):

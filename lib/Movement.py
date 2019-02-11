@@ -24,6 +24,7 @@ class Movement:
 
 ###################################################################           
 
+# we should also be receiving W here. 
 
 class vonNeumann(Movement):
 
@@ -35,7 +36,7 @@ class vonNeumann(Movement):
         self.send_count += np.prod(shape_X)
 
     def receive(self, shape_X):
-        self.receive_count = np.prod(shape_X)
+        self.receive_count += np.prod(shape_X)
 
     def total(self):
         return {'send': self.send_count, 'receive': self.receive_count}
@@ -45,16 +46,17 @@ class vonNeumann(Movement):
 class Neuromorphic(Movement):
 
     def __init__(self):
-        super().__init__()
+        self.send_count = 0
+        self.receive_count = 0
 
     def send(self, shape_X):
-        pass
+        self.send_count += np.prod(shape_X)
 
     def receive(self, shape_X):
-        pass
+        self.receive_count += np.prod(shape_X)
         
     def total(self):
-        pass
+        return {'send': self.send_count, 'receive': self.receive_count}
         
 ###################################################################           
 
