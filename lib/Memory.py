@@ -13,10 +13,10 @@ class Memory:
     def __init__(self):
         super().__init__()
 
-    def read(self, shape_X):
+    def read(self, shape_X, sparsity_X=0.):
         pass
 
-    def write(self, shape_X):
+    def write(self, shape_X, sparsity_X=0.):
         pass
 
     def total(self):
@@ -30,11 +30,11 @@ class DRAM(Memory):
         self.read_count = 0
         self.write_count = 0
 
-    def read(self, shape_X):
-        self.read_count += np.prod(shape_X)
+    def read(self, shape_X, rate_X=1.):
+        self.read_count += np.prod(shape_X) * rate_X
 
-    def write(self, shape_X):
-        self.write_count += np.prod(shape_X)
+    def write(self, shape_X, rate_X=1.):
+        self.write_count += np.prod(shape_X) * rate_X
         
     def total(self):
         return {'read': self.read_count, 'write': self.write_count}
@@ -48,17 +48,18 @@ class RRAM(Memory):
         self.write_count = 0
         self.mac_count = 0
 
-    def read(self, shape_X):
-        self.read_count += np.prod(shape_X)
+    def read(self, shape_X, rate_X=1.):
+        self.read_count += np.prod(shape_X) * rate_X
 
-    def write(self, shape_X):
-        self.write_count += np.prod(shape_X)
+    def write(self, shape_X, rate_X=1.):
+        self.write_count += np.prod(shape_X) * rate_X
 
-    def matmult(self, shape_X, shape_Y):
+    def matmult(self, shape_X, shape_Y, rate_X=1., rate_Y=1.):
         assert(shape_X[1] == shape_Y[0])
-        self.mac_count += shape_X[0] * shape_X[1] * shape_Y[1]
+        self.mac_count += shape_X[0] * shape_X[1] * shape_Y[1] * rate_Y * rate_X
 
     def conv(self, shape_filters, shape_images, padding, strides):
+        assert(False)
         fh, fw, fin, fout = shape_filters
         batch_size, h, w, fin = shape_images
         

@@ -18,6 +18,7 @@ parser.add_argument('--bias', type=float, default=0.)
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--dfa', type=int, default=0)
 parser.add_argument('--sparse', type=int, default=0)
+parser.add_argument('--rate', type=float, default=1.0)
 parser.add_argument('--rank', type=int, default=0)
 parser.add_argument('--init', type=str, default="sqrt_fan_in")
 parser.add_argument('--opt', type=str, default="adam")
@@ -44,6 +45,7 @@ from lib.Model import Model
 from lib.Layer import Layer 
 from lib.ConvToFullyConnected import ConvToFullyConnected
 from lib.FullyConnected import FullyConnected
+from lib.SparseFC import SparseFC
 from lib.Convolution import Convolution
 from lib.MaxPool import MaxPool
 from lib.Dropout import Dropout
@@ -91,11 +93,11 @@ learning_rate = tf.placeholder(tf.float32, shape=())
 X = tf.placeholder(tf.float32, [None, 784])
 Y = tf.placeholder(tf.float32, [None, 10])
 
-l0 = FullyConnected(size=[784, 400], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Tanh(), bias=args.bias, l2=args.l2, last_layer=False, name="fc1")
+l0 = SparseFC(size=[784, 400], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Tanh(), bias=args.bias, l2=args.l2, last_layer=False, name="fc1", rate=args.rate)
 l1 = Dropout(rate=dropout_rate)
 l2 = FeedbackFC(size=[784, 400], num_classes=10, sparse=args.sparse, rank=args.rank, name="fc1_fb")
 
-l3 = FullyConnected(size=[400, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, l2=args.l2, last_layer=True, name="fc2")
+l3 = SparseFC(size=[400, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, l2=args.l2, last_layer=True, name="fc2", rate=args.rate)
 
 model = Model(layers=[l0, l1, l2, l3])
 
@@ -160,7 +162,11 @@ f.close()
 train_accs = []
 test_accs = []
 
-print (model.metrics(dfa=args.dfa, memory=RRAM()))
+metrics = model.metrics(dfa=args.dfa)
+for key in sorted(metrics.keys()):
+    print (key, metrics[key], end=" ")
+print ()
+
 assert(False)
 
 for ii in range(EPOCHS):

@@ -6,7 +6,6 @@ from lib.conv_utils import conv_input_length
 
 ###################################################################
 
-# TODO account for sparsity
 # DONT USE THE SAME NAME FOR THE CLASS METHOD AS THE COUNTER
 # >>> send(), send.
 
@@ -15,10 +14,10 @@ class Compute:
     def __init__(self):
         super().__init__()
 
-    def matmult(self, W, X):
+    def matmult(self, shape_X, shape_Y):
         pass
 
-    def conv(self, W, X):
+    def conv(self, shape_filters, shape_images, padding, strides):
         pass
 
     def add(self, X):
@@ -35,11 +34,12 @@ class CMOS(Compute):
         self.mac_count = 0
         self.add_count = 0
 
-    def matmult(self, shape_X, shape_Y):
+    def matmult(self, shape_X, shape_Y, rate_Y=1., rate_X=1.):
         assert(shape_X[1] == shape_Y[0])
-        self.mac_count += shape_X[0] * shape_X[1] * shape_Y[1]
+        self.mac_count += shape_X[0] * shape_X[1] * shape_Y[1] * rate_Y * rate_X
 
     def conv(self, shape_filters, shape_images, padding, strides):
+        assert(False)
         fh, fw, fin, fout = shape_filters
         batch_size, h, w, fin = shape_images
         

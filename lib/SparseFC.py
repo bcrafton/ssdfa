@@ -3,9 +3,9 @@ import tensorflow as tf
 import numpy as np
 import math
 
-from Layer import Layer 
-from Activation import Activation
-from Activation import Sigmoid
+from lib.Layer import Layer 
+from lib.Activation import Activation
+from lib.Activation import Sigmoid
 
 from lib.Memory import Memory
 from lib.Memory import DRAM
@@ -20,7 +20,7 @@ from lib.Movement import Neuromorphic
 
 from lib.add_dict import add_dict
 
-class Sparse(Layer):
+class SparseFC(Layer):
 
     def __init__(self, size, num_classes, init_weights, alpha, activation, bias, last_layer, l2=0., name=None, load=None, train=True, rate=1.):
         self.size = size
@@ -37,7 +37,7 @@ class Sparse(Layer):
         
         #########################################################
 
-        mask = np.random.choice([0., -1., 1.], size=self.size, replace=True, p=[1.-rate, rate*(1.-sign), rate*sign])
+        mask = np.random.choice([0., 1.], size=self.size, replace=True, p=[1.-rate, rate])
             
         # total_connects = int(np.count_nonzero(mask))
         # assert(total_connects == int(self.rate * self.output_size) * self.input_size)
@@ -59,8 +59,8 @@ class Sparse(Layer):
 
         weights = mask * weights
             
-        self.weights = tf.Variable(_weights, dtype=tf.float32)
-        self.mask = tf.Variable(_mask, dtype=tf.float32)
+        self.weights = tf.Variable(weights, dtype=tf.float32)
+        self.mask = tf.Variable(mask, dtype=tf.float32)
         self.total_connects = tf.Variable(tf.count_nonzero(self.mask))
         
     ###################################################################
@@ -194,7 +194,7 @@ class Sparse(Layer):
         
     ###################################################################
     
-    def metrics(self, dfa=False, sparsity=0., memory=None, compute=None, movement=None, examples=1, epochs=1):
+    def metrics(self, dfa=False, memory=None, compute=None, movement=None, examples=1, epochs=1):
 
         memory = DRAM() if memory is None else memory
         compute = CMOS() if compute is None else compute
@@ -210,16 +210,16 @@ class Sparse(Layer):
         
         output_size = (total_examples, self.output_size)
         output_size_T = (self.output_size, total_examples)
-    
+
         #############################
     
         # forward
         
         if type(memory) in [DRAM]:
-            memory.read(size)
-            compute.matmult(input_size, size)
+            memory.read(size, rate_X=self.rate)
+            compute.matmult(input_size, size, rate_Y=self.rate)
         elif type(memory) in [RRAM]:
-            memory.matmult(input_size, size)
+            memory.matmult(input_size, size, rate_Y=self.rate)
         else:
             assert(False)
         
@@ -229,10 +229,10 @@ class Sparse(Layer):
         # backward
         if not dfa:
             if type(memory) in [DRAM]:
-                memory.read(size)
-                compute.matmult(output_size, size_T)
+                memory.read(size, rate_X=self.rate)
+                compute.matmult(output_size, size_T, rate_Y=self.rate)
             elif type(memory) in [RRAM]:
-                memory.matmult(output_size, size_T)
+                memory.matmult(output_size, size_T, rate_Y=self.rate)
             else:
                 assert(False)
             
@@ -241,9 +241,9 @@ class Sparse(Layer):
 
         # update
         # memory.read(size) # done in backward
-        memory.write(size)
+        memory.write(size, rate_X=self.rate)
         
-        compute.matmult(input_size_T, output_size)
+        compute.matmult(input_size_T, output_size, rate_Y=self.rate)
         
         # movement.receive(output_size) # done in backward
 
@@ -253,7 +253,7 @@ class Sparse(Layer):
         total = add_dict(total, memory.total())
         total = add_dict(total, compute.total())
         total = add_dict(total, movement.total())
-
+        
         #############################
         
         return total

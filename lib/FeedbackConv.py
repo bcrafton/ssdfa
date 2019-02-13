@@ -105,7 +105,7 @@ class FeedbackConv(Layer):
         
     ###################################################################
         
-    def metrics(self, dfa=False, sparsity=0., memory=None, compute=None, movement=None, examples=1, epochs=1):
+    def metrics(self, dfa=False, memory=None, compute=None, movement=None, examples=1, epochs=1):
     
         if not dfa:
             return {}
@@ -119,12 +119,16 @@ class FeedbackConv(Layer):
         size = (self.num_classes, self.num_output)
         input_size = (total_examples, self.num_classes)
         output_size = (total_examples, self.num_output)
-    
+
+        rate = 1.0 - 1.0 * self.sparse / self.num_classes
+        
+        #############################
+
         if type(memory) in [DRAM]:
-            memory.read(size)
-            compute.matmult(input_size, size)
+            memory.read(size, rate_X=rate)
+            compute.matmult(input_size, size, rate_Y=rate)
         elif type(memory) in [RRAM]:
-            memory.matmult(input_size, size)
+            memory.matmult(input_size, size, rate_Y=rate)
         else:
             assert(False)
 
