@@ -113,9 +113,9 @@ weights = model.get_weights()
 
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay":
     if args.dfa:
-        grads_and_vars = model.dfa_gvs(X=X, Y=Y)
+        grads_and_vars, E  = model.dfa_gvs(X=X, Y=Y)
     else:
-        grads_and_vars = model.gvs(X=X, Y=Y)
+        grads_and_vars, E  = model.gvs(X=X, Y=Y)
         
     if args.opt == "adam":
         train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
@@ -143,8 +143,10 @@ tf.local_variables_initializer().run()
 
 (x_train, y_train), (x_test, y_test) = cifar100
 
-assert(np.shape(x_train) == (TRAIN_EXAMPLES, 32, 32, 3))
-assert(np.shape(x_test) == (TEST_EXAMPLES, 32, 32, 3))
+if np.shape(x_train) != (TRAIN_EXAMPLES, 32, 32, 3):
+    x_train = np.transpose(x_train, (0, 2, 3, 1))
+if np.shape(x_test) != (TEST_EXAMPLES, 32, 32, 3):
+    x_test = np.transpose(x_test, (0, 2, 3, 1))
 
 mean = np.mean(x_train, axis=(0, 1, 2), keepdims=True)
 std = np.std(x_train, axis=(0, 1, 2), keepdims=True)
@@ -185,16 +187,19 @@ for ii in range(EPOCHS):
     _count = 0
     _total_correct = 0
     
+    loss = []
     for jj in range(int(TRAIN_EXAMPLES / BATCH_SIZE)):
         xs = x_train[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
         ys = y_train[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
-        _correct, _ = sess.run([total_correct, train], feed_dict={batch_size: BATCH_SIZE, dropout_rate: args.dropout, learning_rate: lr, X: xs, Y: ys})
+        _correct, _E, _ = sess.run([total_correct, E, train], feed_dict={batch_size: BATCH_SIZE, dropout_rate: args.dropout, learning_rate: lr, X: xs, Y: ys})
+        loss.append(np.linalg.norm(_E))
         
         _total_correct += _correct
         _count += BATCH_SIZE
 
     train_acc = 1.0 * _total_correct / _count
     train_accs.append(train_acc)
+    print (np.average(loss))
 
     #############################
 

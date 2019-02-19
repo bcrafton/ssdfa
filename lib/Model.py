@@ -136,7 +136,7 @@ class Model:
             else:
                 A[ii] = l.forward(A[ii-1])
             
-        E = tf.nn.softmax(A[self.num_layers-1]) - Y
+        E = A[self.num_layers-1] - Y
         N = tf.shape(A[self.num_layers-1])[0]
         N = tf.cast(N, dtype=tf.float32)
         E = E / N
@@ -157,7 +157,7 @@ class Model:
                 gvs = l.gv(A[ii-1], A[ii], D[ii+1])
                 grads_and_vars.extend(gvs)
                 
-        return grads_and_vars
+        return grads_and_vars, E
     
     def dfa_gvs(self, X, Y):
         A = [None] * self.num_layers
@@ -171,7 +171,7 @@ class Model:
             else:
                 A[ii] = l.forward(A[ii-1])
             
-        E = tf.nn.softmax(A[self.num_layers-1]) - Y
+        E = A[self.num_layers-1] - Y
         N = tf.shape(A[self.num_layers-1])[0]
         N = tf.cast(N, dtype=tf.float32)
         E = E / N
@@ -192,7 +192,7 @@ class Model:
                 gvs = l.dfa_gv(A[ii-1], A[ii], E, D[ii+1])
                 grads_and_vars.extend(gvs)
                 
-        return grads_and_vars
+        return grads_and_vars, E
 
     def lel_gvs(self, X, Y):
         A = [None] * self.num_layers
