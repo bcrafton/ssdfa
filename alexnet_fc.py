@@ -13,7 +13,7 @@ parser.add_argument('--l2', type=float, default=0.)
 parser.add_argument('--decay', type=float, default=1.)
 parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--dropout', type=float, default=0.5)
-parser.add_argument('--act', type=str, default='relu')
+parser.add_argument('--act', type=str, default='tanh')
 parser.add_argument('--bias', type=float, default=1.)
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--dfa', type=int, default=0)
@@ -55,24 +55,24 @@ import numpy as np
 from PIL import Image
 import scipy.misc
 
-from Model import Model
+from lib.Model import Model
 
-from Layer import Layer 
-from ConvToFullyConnected import ConvToFullyConnected
-from FullyConnected import FullyConnected
-from Convolution import Convolution
-from MaxPool import MaxPool
-from Dropout import Dropout
-from FeedbackFC import FeedbackFC
-from FeedbackConv import FeedbackConv
+from lib.Layer import Layer 
+from lib.ConvToFullyConnected import ConvToFullyConnected
+from lib.FullyConnected import FullyConnected
+from lib.Convolution import Convolution
+from lib.MaxPool import MaxPool
+from lib.Dropout import Dropout
+from lib.FeedbackFC import FeedbackFC
+from lib.FeedbackConv import FeedbackConv
 
-from Activation import Activation
-from Activation import Sigmoid
-from Activation import Relu
-from Activation import Tanh
-from Activation import Softmax
-from Activation import LeakyRelu
-from Activation import Linear
+from lib.Activation import Activation
+from lib.Activation import Sigmoid
+from lib.Activation import Relu
+from lib.Activation import Tanh
+from lib.Activation import Softmax
+from lib.Activation import LeakyRelu
+from lib.Activation import Linear
 
 ##############################################
 
@@ -232,13 +232,13 @@ l20 = FullyConnected(size=[4096, num_classes], num_classes=num_classes, init_wei
 
 model = Model(layers=[l14, l15, l16, l17, l18, l19, l20])
 
-predict = tf.nn.softmax(model.predict(X=features))
+predict = model.predict(X=features)
 
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt == "momentum":
     if args.dfa:
-        grads_and_vars = model.dfa_gvs(X=features, Y=labels)
+        grads_and_vars, E = model.dfa_gvs(X=features, Y=labels)
     else:
-        grads_and_vars = model.gvs(X=features, Y=labels)
+        grads_and_vars, E = model.gvs(X=features, Y=labels)
         
     if args.opt == "adam":
         train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
@@ -308,11 +308,12 @@ for ii in range(0, epochs):
     train_correct = 0.0
     train_top5 = 0.0
     
+    loss = []
     # for j in range(0, batch_size * 10, batch_size):
     for j in range(0, len(train_filenames), batch_size):
-        print (j)
+        # print (j)
         
-        [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
+        [_total_correct, _E, _predict, _total_top5, _] = sess.run([total_correct, E, predict, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
         
         train_total += batch_size
         train_correct += _total_correct
@@ -320,15 +321,19 @@ for ii in range(0, epochs):
         
         train_acc = train_correct / train_total
         train_acc_top5 = train_top5 / train_total
-        
+
+        loss.append(np.linalg.norm(_E))        
+
         if (j % (100 * batch_size) == 0):
-            p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
+            p = "train accuracy: %f" % (train_acc)
             print (p)
             f = open(results_filename, "a")
             f.write(p + "\n")
             f.close()
+            print (np.average(loss))
+            # print (_predict[0])
 
-    p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
+    p = "train accuracy: %f" % (train_acc)
     print (p)
     f = open(results_filename, "a")
     f.write(p + "\n")
@@ -358,13 +363,13 @@ for ii in range(0, epochs):
         val_acc_top5 = val_top5 / val_total
         
         if (j % (100 * batch_size) == 0):
-            p = "val accuracy: %f %f" % (val_acc, val_acc_top5)
+            p = "val accuracy: %f" % (val_acc)
             print (p)
             f = open(results_filename, "a")
             f.write(p + "\n")
             f.close()
 
-    p = "val accuracy: %f %f" % (val_acc, val_acc_top5)
+    p = "val accuracy: %f" % (val_acc)
     print (p)
     f = open(results_filename, "a")
     f.write(p + "\n")
