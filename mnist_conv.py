@@ -145,7 +145,11 @@ total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
 
 ##############################################
 
-sess = tf.InteractiveSession()
+config = tf.ConfigProto()
+# config.gpu_options.allow_growth=True
+config.gpu_options.per_process_gpu_memory_fraction = 0.4
+sess = tf.InteractiveSession(config=config)
+
 tf.global_variables_initializer().run()
 tf.local_variables_initializer().run()
 
