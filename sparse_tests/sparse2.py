@@ -3,17 +3,38 @@
 
 import tensorflow as tf
 import numpy as np
-import math
-import scipy
+import time
+import itertools
+np.set_printoptions(threshold=np.inf)
 
-rate = 0.25
-shape = (5, 5)
-num = int(shape[0] * shape[1] * rate)
-sqrt_fan_in = math.sqrt(shape[0])
-mask = np.random.choice([0, 1], size=shape, p=[1.-rate, rate])
-mat1 = np.random.uniform(low=-1., high=1., size=shape) * mask
-mat2 = np.random.uniform(low=-1., high=1., size=shape)
-res = np.dot(mat1, mat2)
+rate = 0.05
+N = 1000
+itrs = 1000
+
+num = int(rate * N * N)
+
+combs = np.array(list(itertools.product(range(N), range(N))))
+choices = range(len(combs))
+_idxs = np.random.choice(a=choices, size=num, replace=False).tolist()
+_idxs = combs[_idxs]
+_idxs = _idxs.tolist()
+_idxs = sorted(_idxs)
+# print (_idxs)
+# print (np.shape(_idxs))
+_vals = np.float32(np.random.rand(num))
+_y = np.random.uniform(low=-1., high=1., size=(N, N))
+_z = np.random.uniform(low=-1., high=1., size=(N, N))
+
+################################################
+
+# supposed to use reorder.
+x = tf.SparseTensor(indices=_idxs, values=_vals, dense_shape=(N, N))
+y = tf.Variable(_y, dtype=tf.float32)
+z = tf.Variable(_z, dtype=tf.float32)
+
+ret = tf.sparse_tensor_dense_matmul(x, y)
+# ret = tf.sparse_tensor_dense_matmul(x, y, adjoint_a=False, adjoint_b=False)
+# ret = tf.matmul(z, y)
 
 ################################################
 
@@ -21,16 +42,11 @@ sess = tf.InteractiveSession()
 tf.global_variables_initializer().run()
 tf.local_variables_initializer().run()
 
-idx = tf.where(tf.abs(mat1) > 0)
-idx = tf.cast(idx, tf.int64)
-val = tf.gather_nd(mat1, idx)
-
-x = tf.SparseTensor(indices=idx, values=val, dense_shape=shape)
-z = tf.sparse_tensor_dense_matmul(x, mat2)
+start = time.time()
+for i in range(itrs):
+    print (i)
+    [_ret] = sess.run([ret], feed_dict={})
+print (time.time() - start)
 
 ################################################
 
-[_idx, _val, _z] = sess.run([idx, val, z], feed_dict={})
-print (_idx, _val)
-print (_z)
-print (res)
