@@ -55,24 +55,24 @@ import numpy as np
 from PIL import Image
 import scipy.misc
 
-from Model import Model
+from lib.Model import Model
 
-from Layer import Layer 
-from ConvToFullyConnected import ConvToFullyConnected
-from FullyConnected import FullyConnected
-from Convolution import Convolution
-from MaxPool import MaxPool
-from Dropout import Dropout
-from FeedbackFC import FeedbackFC
-from FeedbackConv import FeedbackConv
+from lib.Layer import Layer 
+from lib.ConvToFullyConnected import ConvToFullyConnected
+from lib.FullyConnected import FullyConnected
+from lib.Convolution import Convolution
+from lib.MaxPool import MaxPool
+from lib.Dropout import Dropout
+from lib.FeedbackFC import FeedbackFC
+from lib.FeedbackConv import FeedbackConv
 
-from Activation import Activation
-from Activation import Sigmoid
-from Activation import Relu
-from Activation import Tanh
-from Activation import Softmax
-from Activation import LeakyRelu
-from Activation import Linear
+from lib.Activation import Activation
+from lib.Activation import Sigmoid
+from lib.Activation import Relu
+from lib.Activation import Tanh
+from lib.Activation import Softmax
+from lib.Activation import LeakyRelu
+from lib.Activation import Linear
 
 ##############################################
 
@@ -148,9 +148,9 @@ def get_validation_dataset():
 
     print ("building validation dataset")
 
-    for subdir, dirs, files in os.walk('/home/bcrafton3/ILSVRC2012/val/'):
+    for subdir, dirs, files in os.walk('/home/bcrafton3/Data/ILSVRC2012/val/'):
         for file in files:
-            validation_images.append(os.path.join('/home/bcrafton3/ILSVRC2012/val/', file))
+            validation_images.append(os.path.join('/home/bcrafton3/Data/ILSVRC2012/val/', file))
     validation_images = sorted(validation_images)
 
     validation_labels_file = open('/home/bcrafton3/dfa/imagenet_labels/validation_labels.txt')
@@ -188,7 +188,7 @@ def get_train_dataset():
 
     print ("building dataset")
 
-    for subdir, dirs, files in os.walk('/home/bcrafton3/ILSVRC2012/train/'):
+    for subdir, dirs, files in os.walk('/home/bcrafton3/Data/ILSVRC2012/train/'):
         for folder in dirs:
             for folder_subdir, folder_dirs, folder_files in os.walk(os.path.join(subdir, folder)):
                 for file in folder_files:

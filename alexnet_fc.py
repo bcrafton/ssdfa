@@ -55,24 +55,24 @@ import numpy as np
 from PIL import Image
 import scipy.misc
 
-from Model import Model
+from lib.Model import Model
 
-from Layer import Layer 
-from ConvToFullyConnected import ConvToFullyConnected
-from FullyConnected import FullyConnected
-from Convolution import Convolution
-from MaxPool import MaxPool
-from Dropout import Dropout
-from FeedbackFC import FeedbackFC
-from FeedbackConv import FeedbackConv
+from lib.Layer import Layer 
+from lib.ConvToFullyConnected import ConvToFullyConnected
+from lib.FullyConnected import FullyConnected
+from lib.Convolution import Convolution
+from lib.MaxPool import MaxPool
+from lib.Dropout import Dropout
+from lib.FeedbackFC import FeedbackFC
+from lib.FeedbackConv import FeedbackConv
 
-from Activation import Activation
-from Activation import Sigmoid
-from Activation import Relu
-from Activation import Tanh
-from Activation import Softmax
-from Activation import LeakyRelu
-from Activation import Linear
+from lib.Activation import Activation
+from lib.Activation import Sigmoid
+from lib.Activation import Relu
+from lib.Activation import Tanh
+from lib.Activation import Softmax
+from lib.Activation import LeakyRelu
+from lib.Activation import Linear
 
 ##############################################
 
@@ -121,9 +121,9 @@ def get_val_filenames():
 
     print ("building validation dataset")
 
-    for subdir, dirs, files in os.walk('/home/bcrafton3/tfrecord/alexnet/test/'):
+    for subdir, dirs, files in os.walk('/home/bcrafton3/Data/tfrecord/alexnet/test/'):
         for file in files:
-            val_filenames.append(os.path.join('/home/bcrafton3/tfrecord/alexnet/test/', file))
+            val_filenames.append(os.path.join('/home/bcrafton3/Data/tfrecord/alexnet/test/', file))
 
     np.random.shuffle(val_filenames)    
 
@@ -134,9 +134,9 @@ def get_train_filenames():
 
     print ("building training dataset")
 
-    for subdir, dirs, files in os.walk('/home/bcrafton3/tfrecord/alexnet/train/'):
+    for subdir, dirs, files in os.walk('/home/bcrafton3/Data/tfrecord/alexnet/train/'):
         for file in files:
-            train_filenames.append(os.path.join('/home/bcrafton3/tfrecord/alexnet/train/', file))
+            train_filenames.append(os.path.join('/home/bcrafton3/Data/tfrecord/alexnet/train/', file))
     
     np.random.shuffle(train_filenames)
 
