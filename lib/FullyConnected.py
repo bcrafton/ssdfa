@@ -41,6 +41,9 @@ class FullyConnected(Layer):
 
         self.weights = tf.SparseTensor(indices=self.idx, values=self.val, dense_shape=self.size)
 
+        w = np.random.uniform(low=-1.0/sqrt_fan_in, high=1.0/sqrt_fan_in, size=self.size)
+        self.w = tf.Variable(w, dtype=tf.float32)
+
     ###################################################################
         
     def get_weights(self):
@@ -52,10 +55,12 @@ class FullyConnected(Layer):
         return weights_size + bias_size
 
     def forward(self, X):
-        # weights = tf.SparseTensor(indices=self.idx, values=self.val, dense_shape=self.size)
-        # Z = tf.matmul(X, weights) + self.bias
-        Z = tf.sparse_tensor_dense_matmul(tf.sparse_transpose(self.weights), tf.transpose(X))
-        Z = tf.transpose(Z) + self.bias
+        
+        Z = tf.matmul(X, self.w) + self.bias
+        
+        # Z = tf.sparse_tensor_dense_matmul(tf.sparse_transpose(self.weights), tf.transpose(X))
+        # Z = tf.transpose(Z) + self.bias
+        
         A = self.activation.forward(Z)
         return A
 
@@ -64,11 +69,10 @@ class FullyConnected(Layer):
     def backward(self, AI, AO, DO):
         DO = tf.multiply(DO, self.activation.gradient(AO))
     
-        # weights = tf.SparseTensor(indices=self.idx, values=self.val, dense_shape=self.size)
-        # DI = tf.matmul(DO, tf.transpose(self.weights))
+        DI = tf.matmul(DO, tf.transpose(self.w))
         
-        DI = tf.sparse_tensor_dense_matmul(self.weights, tf.transpose(DO))
-        DI = tf.transpose(DI)
+        # DI = tf.sparse_tensor_dense_matmul(self.weights, tf.transpose(DO))
+        # DI = tf.transpose(DI)
         
         return DI
         
@@ -79,7 +83,10 @@ class FullyConnected(Layer):
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DB = tf.reduce_sum(DO, axis=0)
         
-        # DW = tf.matmul(tf.transpose(AI), DO) 
+        DW = tf.matmul(tf.transpose(AI), DO) 
+        return [(DW, self.w), (DB, self.bias)]
+        
+        '''
         slice1 = tf.slice(self.idx, [0, 0], [self.num, 1])
         slice2 = tf.slice(self.idx, [0, 1], [self.num, 1])
         slice_AI = tf.gather_nd(tf.transpose(AI), slice1)
@@ -87,6 +94,9 @@ class FullyConnected(Layer):
         DW = tf.multiply(slice_AI, slice_DO)
         DW = tf.reduce_sum(DW, axis=1)
         return [(DW, self.val), (DB, self.bias)]
+        '''
+        
+        
         
     def train(self, AI, AO, DO):
         assert(False)

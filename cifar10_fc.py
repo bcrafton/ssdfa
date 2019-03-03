@@ -147,9 +147,11 @@ tf.local_variables_initializer().run()
 # x_test = np.transpose(x_test, (0, 1, 2, 3))
 # print (np.shape(x_train), np.shape(x_test))
 
-assert(np.shape(x_train) == (TRAIN_EXAMPLES, 32, 32, 3))
-assert(np.shape(x_test) == (TEST_EXAMPLES, 32, 32, 3))
-
+if (np.shape(x_train) != (TRAIN_EXAMPLES, 32, 32, 3)):
+    x_train = np.transpose(x_train, (0, 2, 3, 1))
+if (np.shape(x_test) != (TEST_EXAMPLES, 32, 32, 3)):
+    x_test = np.transpose(x_test, (0, 2, 3, 1))
+    
 mean = np.mean(x_train, axis=(0, 1, 2), keepdims=True)
 std = np.std(x_train, axis=(0, 1, 2), keepdims=True)
 
