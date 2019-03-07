@@ -1,6 +1,6 @@
 # Direct Feedback Alignment with Sparse Connections for Local Learning
 
-This is the github page for the results and code to reproduce the results for "Direct Feedback Alignment with Sparse Connections for Local Learning" (arxivs link). The main concept for this work is using Feedback Alignment (https://www.nature.com/articles/ncomms13276) and a extremely sparse matrix to reduce datamovement by orders of magnitude while enabling bio-plausible learning. 
+This is the github page for the results and code to reproduce the results for "Direct Feedback Alignment with Sparse Connections for Local Learning" (https://arxiv.org/abs/1903.02083). The main concept for this work is using Feedback Alignment (https://www.nature.com/articles/ncomms13276) and a extremely sparse matrix to reduce datamovement by orders of magnitude while enabling bio-plausible learning. 
 
 ## Getting Started
 
