@@ -1,6 +1,10 @@
 
 # https://www.programcreek.com/python/example/90557/tensorflow.SparseTensor
 
+import os
+# os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+# os.environ["CUDA_VISIBLE_DEVICES"]="-1"
+
 import tensorflow as tf
 import numpy as np
 import time
@@ -32,9 +36,9 @@ x = tf.SparseTensor(indices=_idxs, values=_vals, dense_shape=(N, N))
 y = tf.Variable(_y, dtype=tf.float32)
 z = tf.Variable(_z, dtype=tf.float32)
 
-ret = tf.sparse_tensor_dense_matmul(x, y)
+# ret = tf.sparse_tensor_dense_matmul(x, y)
 # ret = tf.sparse_tensor_dense_matmul(x, y, adjoint_a=False, adjoint_b=False)
-# ret = tf.matmul(z, y)
+ret = tf.matmul(z, y)
 
 ################################################
 
@@ -44,9 +48,11 @@ tf.local_variables_initializer().run()
 
 start = time.time()
 for i in range(itrs):
-    print (i)
+    # print (i)
     [_ret] = sess.run([ret], feed_dict={})
-print (time.time() - start)
+total = time.time() - start
+
+print (total / N)
 
 ################################################
 
