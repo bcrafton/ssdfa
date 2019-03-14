@@ -7,7 +7,7 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=100)
-parser.add_argument('--batch_size', type=int, default=128)
+parser.add_argument('--batch_size', type=int, default=100)
 parser.add_argument('--alpha', type=float, default=1e-4)
 parser.add_argument('--l2', type=float, default=0.)
 parser.add_argument('--decay', type=float, default=1.)
@@ -17,7 +17,6 @@ parser.add_argument('--act', type=str, default='relu')
 parser.add_argument('--bias', type=float, default=0.)
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--dfa', type=int, default=0)
-parser.add_argument('--fa', type=int, default=0)
 parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
 parser.add_argument('--init', type=str, default="sqrt_fan_in")
@@ -99,19 +98,19 @@ X = tf.placeholder(tf.float32, [None, 32, 32, 3])
 X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), X)
 Y = tf.placeholder(tf.float32, [None, 10])
 
-l0 = Convolution(input_sizes=[batch_size, 32, 32, 3], filter_sizes=[5, 5, 3, 16], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load=weights_conv, train=train_conv)
-l1 = MaxPool(size=[batch_size, 32, 32, 16], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
-l2 = ConvToFullyConnected(shape=[16, 16, 16])
-l3 = SparseFC(size=[16*16*16, 16*16*16], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='fc1', load=weights_fc, train=train_fc)
+l0 = Convolution(input_sizes=[batch_size, 32, 32, 3], filter_sizes=[5, 5, 3, 32], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load=weights_conv, train=train_conv)
+l1 = MaxPool(size=[batch_size, 32, 32, 32], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
+l2 = ConvToFullyConnected(shape=[16, 16, 32])
+l3 = SparseFC(size=[16*16*32, 16*16*32], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='fc1', load=weights_fc, train=train_fc)
 
-l4 = FullyConnectedToConv(shape_in=[16*16*16], shape_out=[16, 16, 16])
+l4 = FullyConnectedToConv(shape_in=[16*16*32], shape_out=[16, 16, 32])
 
-l5 = Convolution(input_sizes=[batch_size, 16, 16, 16], filter_sizes=[5, 5, 16, 32], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load=weights_conv, train=train_conv)
-l6 = MaxPool(size=[batch_size, 16, 16, 32], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
-l7 = ConvToFullyConnected(shape=[8, 8, 32])
-l8 = SparseFC(size=[8*8*32, 8*8*32], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='fc1', load=weights_fc, train=train_fc)
+l5 = Convolution(input_sizes=[batch_size, 16, 16, 32], filter_sizes=[5, 5, 32, 64], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load=weights_conv, train=train_conv)
+l6 = MaxPool(size=[batch_size, 16, 16, 64], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
+l7 = ConvToFullyConnected(shape=[8, 8, 64])
+l8 = SparseFC(size=[8*8*64, 8*8*64], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='fc1', load=weights_fc, train=train_fc)
 
-l9 = FullyConnected(size=[8*8*32, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name='fc3', load=weights_fc, train=train_fc)
+l9 = FullyConnected(size=[8*8*64, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name='fc3', load=weights_fc, train=train_fc)
 
 ##############################################
 

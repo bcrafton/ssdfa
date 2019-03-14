@@ -9,7 +9,7 @@ from lib.Activation import Sigmoid
 
 class Convolution(Layer):
 
-    def __init__(self, input_sizes, filter_sizes, num_classes, init_filters, strides, padding, alpha, activation: Activation, bias, last_layer, name=None, load=None, train=True):
+    def __init__(self, input_sizes, filter_sizes, num_classes, init_filters, strides, padding, alpha, activation: Activation, bias, last_layer, name=None, load=None, train=True, fa=False):
         self.input_sizes = input_sizes
         self.filter_sizes = filter_sizes
         self.num_classes = num_classes
@@ -30,12 +30,10 @@ class Convolution(Layer):
 
         self.name = name
         self._train = train
+        self.fa = fa
         
         if load:
-            print ("Loading Weights: " + self.name)
-            weight_dict = np.load(load, encoding='latin1').item()
-            self.filters = tf.Variable(weight_dict[self.name])
-            self.bias = tf.Variable(weight_dict[self.name + '_bias'])
+            assert(False)
         else:
             if init_filters == "zero":
                 filters = np.zeros(shape=self.filter_sizes)
@@ -47,8 +45,10 @@ class Convolution(Layer):
             else:
                 # glorot
                 assert(False)
-                
+
+        fb = np.copy(filters)
         self.filters = tf.Variable(filters, dtype=tf.float32)
+        self.fb = tf.Variable(fb, dtype=tf.float32)
 
     ###################################################################
 
@@ -63,13 +63,19 @@ class Convolution(Layer):
     def forward(self, X):
         Z = tf.add(tf.nn.conv2d(X, self.filters, self.strides, self.padding), tf.reshape(self.bias, [1, 1, self.fout]))
         A = self.activation.forward(Z)
+        # A = tf.Print(A, [tf.shape(A)], message='', summarize=100)
         return A
         
     ###################################################################           
         
-    def backward(self, AI, AO, DO):    
+    def backward(self, AI, AO, DO):
         DO = tf.multiply(DO, self.activation.gradient(AO))
-        DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_sizes, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+
+        if self.fa:
+            DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_sizes, filter=self.fb, out_backprop=DO, strides=self.strides, padding=self.padding)
+        else:
+            DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_sizes, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+
         return DI
 
     def gv(self, AI, AO, DO):    
@@ -79,6 +85,10 @@ class Convolution(Layer):
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
+
+        # DFB = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
+
+        # return [(DF, self.filters), (DFB, self.fb), (DB, self.bias)]
         return [(DF, self.filters), (DB, self.bias)]
         
     def train(self, AI, AO, DO): 

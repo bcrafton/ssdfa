@@ -197,6 +197,8 @@ for ii in range(EPOCHS):
     _total_correct = 0
     
     for jj in range(int(TRAIN_EXAMPLES / BATCH_SIZE)):
+        print (jj)
+
         xs = x_train[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
         ys = y_train[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
         _correct, _ = sess.run([total_correct, train], feed_dict={batch_size: BATCH_SIZE, dropout_rate: args.dropout, learning_rate: lr, X: xs, Y: ys})
