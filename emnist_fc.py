@@ -8,10 +8,10 @@ import sys
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--batch_size', type=int, default=32)
-parser.add_argument('--alpha', type=float, default=1e-2)
+parser.add_argument('--alpha', type=float, default=1e-4)
 parser.add_argument('--l2', type=float, default=0.)
 parser.add_argument('--decay', type=float, default=1.)
-parser.add_argument('--eps', type=float, default=1.)
+parser.add_argument('--eps', type=float, default=1e-5)
 parser.add_argument('--dropout', type=float, default=0.0)
 parser.add_argument('--act', type=str, default='relu')
 parser.add_argument('--bias', type=float, default=0.)
@@ -19,6 +19,7 @@ parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--dfa', type=int, default=0)
 parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
+parser.add_argument('--hidden', type=int, default=500)
 parser.add_argument('--init', type=str, default="sqrt_fan_in")
 parser.add_argument('--opt', type=str, default="adam")
 parser.add_argument('--save', type=int, default=0)
@@ -57,17 +58,43 @@ from lib.Activation import Softmax
 from lib.Activation import LeakyRelu
 from lib.Activation import Linear
 
+from mnist import MNIST
+
 ##############################################
 
-mnist = tf.keras.datasets.mnist.load_data()
+# mnist = tf.keras.datasets.mnist.load_data()
+# (x_train, y_train), (x_test, y_test) = mnist
+
+emnist_data = MNIST(path='./gzip/', return_type='numpy')
+emnist_data.select_emnist('balanced')
+x_train, y_train = emnist_data.load_training()
+x_test, y_test = emnist_data.load_testing()
+TRAIN_EXAMPLES = np.shape(x_train)[0]
+TEST_EXAMPLES = np.shape(x_test)[0]
+
+# so for letters they do not use 0 as a label (1:26) but for
+# balanced they do. so you gotta switch it up.
+# CLASSES = np.max(y_train)
+CLASSES = np.max(y_train) + 1
+
+# x_train = x_train.reshape(TRAIN_EXAMPLES, 784)
+x_train = x_train.astype('float32')
+x_train /= 255.
+# y_train -= 1
+y_train = keras.utils.to_categorical(y_train, CLASSES)
+
+# x_test = x_test.reshape(TEST_EXAMPLES, 784)
+x_test = x_test.astype('float32')
+x_test /= 255.
+# y_test -= 1
+y_test = keras.utils.to_categorical(y_test, CLASSES)
 
 ##############################################
 
 EPOCHS = args.epochs
-TRAIN_EXAMPLES = 60000
-TEST_EXAMPLES = 10000
+# TRAIN_EXAMPLES = 60000
+# TEST_EXAMPLES = 10000
 BATCH_SIZE = args.batch_size
-hidden = 100
 
 if args.act == 'tanh':
     act = Tanh()
@@ -76,14 +103,6 @@ elif args.act == 'relu':
 else:
     assert(False)
     
-def unit_vector(vector):
-    return vector / np.linalg.norm(vector)
-
-def angle_between(v1, v2):
-    v1_u = unit_vector(v1)
-    v2_u = unit_vector(v2)
-    return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
-
 ##############################################
 
 tf.set_random_seed(0)
@@ -94,17 +113,17 @@ dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 
 X = tf.placeholder(tf.float32, [None, 784])
-Y = tf.placeholder(tf.float32, [None, 10])
+Y = tf.placeholder(tf.float32, [None, CLASSES])
 
-l0 = FullyConnected(size=[784, hidden], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, l2=args.l2, last_layer=False, name="fc1")
+l0 = FullyConnected(size=[784, args.hidden], num_classes=CLASSES, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, l2=args.l2, last_layer=False, name="fc1")
 l1 = Dropout(rate=dropout_rate)
-l2 = FeedbackFC(size=[784, hidden], num_classes=10, sparse=args.sparse, rank=args.rank, name="fc1_fb")
-'''
-l3 = FullyConnected(size=[hidden, hidden], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, l2=args.l2, last_layer=False, name="fc2")
+l2 = FeedbackFC(size=[784, args.hidden], num_classes=CLASSES, sparse=args.sparse, rank=args.rank, name="fc1_fb")
+
+l3 = FullyConnected(size=[args.hidden, args.hidden], num_classes=CLASSES, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, l2=args.l2, last_layer=False, name="fc2")
 l4 = Dropout(rate=dropout_rate)
-l5 = FeedbackFC(size=[hidden, hidden], num_classes=10, sparse=args.sparse, rank=args.rank, name="fc2_fb")
-'''
-l6 = FullyConnected(size=[hidden, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, l2=args.l2, last_layer=True, name="fc2")
+l5 = FeedbackFC(size=[args.hidden, args.hidden], num_classes=CLASSES, sparse=args.sparse, rank=args.rank, name="fc2_fb")
+
+l6 = FullyConnected(size=[args.hidden, CLASSES], num_classes=CLASSES, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, l2=args.l2, last_layer=True, name="fc2")
 
 # model = Model(layers=[l0, l1, l2, l3, l4, l5, l6])
 model = Model(layers=[l0, l1, l2, l6])
@@ -145,18 +164,6 @@ sess = tf.InteractiveSession()
 tf.global_variables_initializer().run()
 tf.local_variables_initializer().run()
 
-(x_train, y_train), (x_test, y_test) = mnist
-
-x_train = x_train.reshape(TRAIN_EXAMPLES, 784)
-x_train = x_train.astype('float32')
-x_train /= 255.
-y_train = keras.utils.to_categorical(y_train, 10)
-
-x_test = x_test.reshape(TEST_EXAMPLES, 784)
-x_test = x_test.astype('float32')
-x_test /= 255.
-y_test = keras.utils.to_categorical(y_test, 10)
-
 ##############################################
 
 filename = args.name + '.results'
@@ -192,12 +199,6 @@ for ii in range(EPOCHS):
         _total_correct += _correct
         _count += BATCH_SIZE
 
-        [w] = sess.run([weights], feed_dict={})
-        w2 = np.reshape(w['fc2'], (-1))
-        fb = np.reshape(w['fc1_fb'].T, (-1))
-        # print (np.shape(w2), np.shape(fb))
-        # print (angle_between(w2, fb) * (180./np.pi))
-
     train_acc = 1.0 * _total_correct / _count
     train_accs.append(train_acc)
 
@@ -224,16 +225,6 @@ for ii in range(EPOCHS):
     f = open(filename, "a")
     f.write(str(test_acc) + "\n")
     f.close()
-
-    [w] = sess.run([weights], feed_dict={})
-    w1 = w['fc1']
-    w2 = np.reshape(w['fc2'], (-1))
-    fb = np.reshape(w['fc1_fb'].T, (-1))
-    # print (np.shape(w2), np.shape(fb))
-    # print (angle_between(w2, fb) * (180./np.pi))
-    
-    print (np.average(w1), np.average(np.absolute(w1)))
-    print (np.average(w2), np.average(np.absolute(w2)))
 
 ##############################################
 

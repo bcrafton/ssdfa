@@ -32,7 +32,7 @@ class Model:
         E = tf.nn.softmax(A[self.num_layers-1]) - Y
         N = tf.shape(A[self.num_layers-1])[0]
         N = tf.cast(N, dtype=tf.float32)
-        E = E / N
+        # E = E / N
 
         for ii in range(self.num_layers-1, -1, -1):
             l = self.layers[ii]
@@ -67,7 +67,7 @@ class Model:
         E = tf.nn.softmax(A[self.num_layers-1]) - Y
         N = tf.shape(A[self.num_layers-1])[0]
         N = tf.cast(N, dtype=tf.float32)
-        E = E / N
+        # E = E / N
 
         for ii in range(self.num_layers-1, -1, -1):
             l = self.layers[ii]
@@ -139,7 +139,7 @@ class Model:
         E = tf.nn.softmax(A[self.num_layers-1]) - Y
         N = tf.shape(A[self.num_layers-1])[0]
         N = tf.cast(N, dtype=tf.float32)
-        E = E / N
+        # E = E / N
             
         for ii in range(self.num_layers-1, -1, -1):
             l = self.layers[ii]
@@ -174,7 +174,7 @@ class Model:
         E = tf.nn.softmax(A[self.num_layers-1]) - Y
         N = tf.shape(A[self.num_layers-1])[0]
         N = tf.cast(N, dtype=tf.float32)
-        E = E / N
+        # E = E / N
             
         for ii in range(self.num_layers-1, -1, -1):
             l = self.layers[ii]
