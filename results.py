@@ -71,14 +71,22 @@ imagenet_vgg_sparse2 = {'benchmark':'vgg_fc.py', 'epochs':100, 'batch_size':32, 
 imagenet_vgg_sparse3 = {'benchmark':'vgg_fc.py', 'epochs':100, 'batch_size':32, 'alpha':[0.0001], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[1.], 'dropout':[0.25], 'dfa':1, 'sparse':1, 'rank':0, 'init':['zero'], 'opt':'adam', 'load':None}
 
 ################################################
+# EMNIST
+emnist_fc_bp = {'benchmark':'emnist_fc.py', 'epochs':100, 'batch_size':64, 'alpha':[3e-4, 1e-4, 3e-5], 'l2':[0.], 'eps':[1e-5], 'act':['relu'], 'bias':[0.0], 'dropout':[0.0], 'dfa':0, 'sparse':0, 'rank':0, 'init':'sqrt_fan_in', 'opt':'adam', 'load':None}
+
+emnist_fc_sparse = {'benchmark':'emnist_fc.py', 'epochs':100, 'batch_size':64, 'alpha':[3e-4, 1e-4, 3e-5], 'l2':[0.], 'eps':[1e-5], 'act':['relu'], 'bias':[0.1, 1.0], 'dropout':[0.0], 'dfa':1, 'sparse':1, 'rank':0, 'init':'zero', 'opt':'adam', 'load':None}
+
+################################################
 
 # params = [mnist_fc_bp, mnist_fc_dfa, mnist_fc_sparse]
 # params = [cifar10_fc_bp, cifar10_fc_dfa, cifar10_fc_sparse]
-params = [cifar100_fc_bp, cifar100_fc_dfa, cifar100_fc_sparse]
+# params = [cifar100_fc_bp, cifar100_fc_dfa, cifar100_fc_sparse]
 
 # params = [mnist_conv_bp, mnist_conv_dfa, mnist_conv_sparse]
 # params = [cifar10_conv_bp, cifar10_conv_dfa, cifar10_conv_sparse]
 # params = [cifar100_conv_bp, cifar100_conv_dfa, cifar100_conv_sparse]
+
+params = [emnist_fc_bp, emnist_fc_sparse]
 
 ################################################
 
