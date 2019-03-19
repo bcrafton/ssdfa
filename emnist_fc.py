@@ -65,7 +65,7 @@ from mnist import MNIST
 # mnist = tf.keras.datasets.mnist.load_data()
 # (x_train, y_train), (x_test, y_test) = mnist
 
-emnist_data = MNIST(path='./gzip/', return_type='numpy')
+emnist_data = MNIST(path='../gzip/', return_type='numpy')
 emnist_data.select_emnist('balanced')
 x_train, y_train = emnist_data.load_training()
 x_test, y_test = emnist_data.load_testing()
