@@ -16,6 +16,7 @@ parser.add_argument('--dropout', type=float, default=0.5)
 parser.add_argument('--act', type=str, default='tanh')
 parser.add_argument('--bias', type=float, default=0.)
 parser.add_argument('--gpu', type=int, default=0)
+parser.add_argument('--lel', type=int, default=0)
 parser.add_argument('--dfa', type=int, default=0)
 parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
@@ -129,7 +130,9 @@ predict = model.predict(X=X)
 weights = model.get_weights()
 
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay":
-    if args.dfa:
+    if args.lel:
+        grads_and_vars = model.lel_gvs(X=X, Y=Y)
+    elif args.dfa:
         grads_and_vars = model.dfa_gvs(X=X, Y=Y)
     else:
         grads_and_vars = model.gvs(X=X, Y=Y)
@@ -144,7 +147,9 @@ if args.opt == "adam" or args.opt == "rms" or args.opt == "decay":
         assert(False)
 
 else:
-    if args.dfa:
+    if args.lel:
+        train = model.lel(X=X, Y=Y)
+    elif args.dfa:
         train = model.dfa(X=X, Y=Y)
     else:
         train = model.train(X=X, Y=Y)
