@@ -34,8 +34,6 @@ class FeedbackFC(Layer):
             b = FeedbackMatrix(size=(self.num_classes, self.output_size), sparse=self.sparse, rank=self.rank)
             self.B = tf.cast(tf.Variable(b), tf.float32) 
 
-    ###################################################################
-
     def get_weights(self):
         return [(self.name, self.B)]
 
@@ -43,7 +41,7 @@ class FeedbackFC(Layer):
         return self.B
 
     def output_shape(self):
-        return [self.output_size]
+        assert(False)
 
     def num_params(self):
         return 0
@@ -65,13 +63,7 @@ class FeedbackFC(Layer):
     ###################################################################
 
     def dfa_backward(self, AI, AO, E, DO):
-        E = tf.matmul(E, self.B)
-        E = tf.multiply(E, DO)
-
-        # mean, var = tf.nn.moments(E, axes=[0, 1])
-        # E = tf.Print(E, [var], message="std: ")
-
-        return E
+        return DO
         
     def dfa_gv(self, AI, AO, E, DO):
         return []

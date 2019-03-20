@@ -15,6 +15,9 @@ class Dropout(Layer):
     def get_weights(self):
         return []
 
+    def output_shape(self):
+        assert(False)
+
     def num_params(self):
         return 0
 

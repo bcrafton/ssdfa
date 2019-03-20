@@ -97,33 +97,26 @@ X = tf.placeholder(tf.float32, [None, 32, 32, 3])
 X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), X)
 Y = tf.placeholder(tf.float32, [None, 10])
 
-l0 = Convolution(input_sizes=[batch_size, 32, 32, 3], filter_sizes=[5, 5, 3, 96], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load=weights_conv, train=train_conv)
-l1 = MaxPool(size=[batch_size, 32, 32, 96], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
-l2 = FeedbackConv(size=[batch_size, 16, 16, 96], num_classes=10, sparse=args.sparse, rank=args.rank, name='conv1_fb')
+l0 = Convolution(batch_size=batch_size, input_shape=[32, 32, 3], filter_sizes=[5, 5, 3, 96], init=args.init, strides=[1, 1], padding="SAME", activation=act, bias=args.bias, name='conv1', load=weights_conv, train=train_conv)
+l1 = MaxPool(batch_size=batch_size, input_shape=l0.output_shape(), ksize=[3, 3], strides=[2, 2], padding="SAME")
 
-l3 = Convolution(input_sizes=[batch_size, 16, 16, 96], filter_sizes=[5, 5, 96, 128], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv2', load=weights_conv, train=train_conv)
-l4 = MaxPool(size=[batch_size, 16, 16, 128], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
-l5 = FeedbackConv(size=[batch_size, 8, 8, 128], num_classes=10, sparse=args.sparse, rank=args.rank, name='conv2_fb')
+l2 = Convolution(batch_size=batch_size, input_shape=l1.output_shape(), filter_sizes=[5, 5, 96, 128], init=args.init, strides=[1, 1], padding="SAME", activation=act, bias=args.bias, name='conv2', load=weights_conv, train=train_conv)
+l3 = MaxPool(batch_size=batch_size, input_shape=l2.output_shape(), ksize=[3, 3], strides=[2, 2], padding="SAME")
 
-l6 = Convolution(input_sizes=[batch_size, 8, 8, 128], filter_sizes=[5, 5, 128, 256], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv3', load=weights_conv, train=train_conv)
-l7 = MaxPool(size=[batch_size, 8, 8, 256], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
-l8 = FeedbackConv(size=[batch_size, 4, 4, 256], num_classes=10, sparse=args.sparse, rank=args.rank, name='conv3_fb')
+l4 = Convolution(batch_size=batch_size, input_shape=l3.output_shape(), filter_sizes=[5, 5, 128, 256], init=args.init, strides=[1, 1], padding="SAME", activation=act, bias=args.bias, name='conv3', load=weights_conv, train=train_conv)
+l5 = MaxPool(batch_size=batch_size, input_shape=l4.output_shape(), ksize=[3, 3], strides=[2, 2], padding="SAME")
 
-l9 = ConvToFullyConnected(shape=[4, 4, 256])
+l6 = ConvToFullyConnected(input_shape=l5.output_shape())
 
-l10 = FullyConnected(size=[4*4*256, 2048], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='fc1', load=weights_fc, train=train_fc)
-l11 = Dropout(rate=dropout_rate)
-l12 = FeedbackFC(size=[4*4*256, 2048], num_classes=10, sparse=args.sparse, rank=args.rank, name='fc1_fb')
+l7 = FullyConnected(input_shape=l6.output_shape(), size=2048, init=args.init, activation=act, bias=args.bias, name='fc1', load=weights_fc, train=train_fc)
 
-l13 = FullyConnected(size=[2048, 2048], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='fc2', load=weights_fc, train=train_fc)
-l14 = Dropout(rate=dropout_rate)
-l15 = FeedbackFC(size=[2048, 2048], num_classes=10, sparse=args.sparse, rank=args.rank, name='fc2_fb')
+l8 = FullyConnected(input_shape=l7.output_shape(), size=2048, init=args.init, activation=act, bias=args.bias, name='fc2', load=weights_fc, train=train_fc)
 
-l16 = FullyConnected(size=[2048, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name='fc3', load=weights_fc, train=train_fc)
+l9 = FullyConnected(input_shape=l8.output_shape(), size=10, init=args.init, activation=Linear(), bias=args.bias, last_layer=True, name='fc3', load=weights_fc, train=train_fc)
 
 ##############################################
 
-model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16])
+model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9])
 
 predict = model.predict(X=X)
 
