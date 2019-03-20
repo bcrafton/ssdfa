@@ -9,7 +9,7 @@ from lib.Activation import Sigmoid
 
 class FullyConnected(Layer):
 
-    def __init__(self, size, num_classes, init_weights, alpha, activation, bias, last_layer, l2=0., name=None, load=None, train=True):
+    def __init__(self, size, num_classes, init_weights, alpha, activation, bias, last_layer, l2=0., name=None, load=None, train=True, fa=False):
         
         # TODO
         # check to make sure what we put in here is correct
@@ -34,25 +34,24 @@ class FullyConnected(Layer):
 
         self.name = name
         self._train = train
+        self.fa = fa
         
-        if load:
-            print ("Loading Weights: " + self.name)
-            weight_dict = np.load(load).item()
-            self.weights = tf.Variable(weight_dict[self.name])
-            self.bias = tf.Variable(weight_dict[self.name + '_bias'])
+        if init_weights == "zero":
+            weights = np.zeros(shape=self.size)
+        elif init_weights == "sqrt_fan_in":
+            sqrt_fan_in = math.sqrt(self.input_size)
+            weights = np.random.uniform(low=-1.0/sqrt_fan_in, high=1.0/sqrt_fan_in, size=self.size)
+        elif init_weights == "alexnet":
+            weights = np.random.normal(loc=0.0, scale=0.01, size=self.size)
         else:
-            if init_weights == "zero":
-                weights = np.zeros(shape=self.size)
-            elif init_weights == "sqrt_fan_in":
-                sqrt_fan_in = math.sqrt(self.input_size)
-                weights = np.random.uniform(low=-1.0/sqrt_fan_in, high=1.0/sqrt_fan_in, size=self.size)
-            elif init_weights == "alexnet":
-                weights = np.random.normal(loc=0.0, scale=0.01, size=self.size)
-            else:
-                # glorot
-                assert(False)
+            # glorot
+            assert(False)
+
+        weight_dict = np.load(load).item()
+        fb = weight_dict[self.name]
 
         self.weights = tf.Variable(weights, dtype=tf.float32)
+        self.fb = tf.Variable(fb, dtype=tf.float32)
 
     ###################################################################
         
@@ -67,13 +66,21 @@ class FullyConnected(Layer):
     def forward(self, X):
         Z = tf.matmul(X, self.weights) + self.bias
         A = self.activation.forward(Z)
+
+        # A = tf.Print(A, [tf.reduce_mean(tf.abs(A))], message='', summarize=1000)
+
         return A
 
     ###################################################################
             
     def backward(self, AI, AO, DO):
         DO = tf.multiply(DO, self.activation.gradient(AO))
-        DI = tf.matmul(DO, tf.transpose(self.weights))
+
+        if self.fa:
+            DI = tf.matmul(DO, tf.transpose(self.fb))
+        else:
+            DI = tf.matmul(DO, tf.transpose(self.weights))
+
         return DI
         
     def gv(self, AI, AO, DO):
@@ -102,6 +109,7 @@ class FullyConnected(Layer):
 
         self.weights = self.weights.assign(tf.subtract(self.weights, tf.scalar_mul(self.alpha, DW)))
         self.bias = self.bias.assign(tf.subtract(self.bias, tf.scalar_mul(self.alpha, DB)))
+
         return [(DW, self.weights), (DB, self.bias)]
         
     ###################################################################
@@ -152,7 +160,7 @@ class FullyConnected(Layer):
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DW = tf.matmul(tf.transpose(AI), DO) + self.l2 * self.weights
         DB = tf.reduce_sum(DO, axis=0)
-        
+
         return [(DW, self.weights), (DB, self.bias)]
         
     def lel(self, AI, AO, E, DO, Y):

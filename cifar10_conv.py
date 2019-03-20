@@ -7,16 +7,17 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=100)
-parser.add_argument('--batch_size', type=int, default=128)
-parser.add_argument('--alpha', type=float, default=1e-4)
+parser.add_argument('--batch_size', type=int, default=64)
+parser.add_argument('--alpha', type=float, default=0.005)
 parser.add_argument('--l2', type=float, default=0.)
 parser.add_argument('--decay', type=float, default=1.)
-parser.add_argument('--eps', type=float, default=1e-5)
-parser.add_argument('--dropout', type=float, default=0.5)
+parser.add_argument('--eps', type=float, default=1.)
+parser.add_argument('--dropout', type=float, default=0.0)
 parser.add_argument('--act', type=str, default='tanh')
 parser.add_argument('--bias', type=float, default=0.)
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--dfa', type=int, default=0)
+parser.add_argument('--fa', type=int, default=0)
 parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
 parser.add_argument('--init', type=str, default="sqrt_fan_in")
@@ -76,13 +77,9 @@ else:
     assert(False)
 
 train_fc=True
-if args.load:
-    train_conv=False
-else:
-    train_conv=True
-
-weights_fc=None
-weights_conv=args.load
+train_conv=True
+weights_fc='./transfer/cifar10_conv_weights.npy'
+weights_conv='./transfer/cifar10_conv_weights.npy'
 
 ##############################################
 
@@ -96,33 +93,29 @@ X = tf.placeholder(tf.float32, [None, 32, 32, 3])
 X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), X)
 Y = tf.placeholder(tf.float32, [None, 10])
 
-l0 = Convolution(input_sizes=[batch_size, 32, 32, 3], filter_sizes=[5, 5, 3, 96], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load=weights_conv, train=train_conv)
+l0 = Convolution(input_sizes=[batch_size, 32, 32, 3], filter_sizes=[5, 5, 3, 96], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load=weights_conv, train=train_conv, fa=args.fa)
 l1 = MaxPool(size=[batch_size, 32, 32, 96], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
-l2 = FeedbackConv(size=[batch_size, 16, 16, 96], num_classes=10, sparse=args.sparse, rank=args.rank, name='conv1_fb')
 
-l3 = Convolution(input_sizes=[batch_size, 16, 16, 96], filter_sizes=[5, 5, 96, 128], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv2', load=weights_conv, train=train_conv)
+l3 = Convolution(input_sizes=[batch_size, 16, 16, 96], filter_sizes=[5, 5, 96, 128], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv2', load=weights_conv, train=train_conv, fa=args.fa)
 l4 = MaxPool(size=[batch_size, 16, 16, 128], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
-l5 = FeedbackConv(size=[batch_size, 8, 8, 128], num_classes=10, sparse=args.sparse, rank=args.rank, name='conv2_fb')
 
-l6 = Convolution(input_sizes=[batch_size, 8, 8, 128], filter_sizes=[5, 5, 128, 256], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv3', load=weights_conv, train=train_conv)
+l6 = Convolution(input_sizes=[batch_size, 8, 8, 128], filter_sizes=[5, 5, 128, 256], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv3', load=weights_conv, train=train_conv, fa=args.fa)
 l7 = MaxPool(size=[batch_size, 8, 8, 256], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
-l8 = FeedbackConv(size=[batch_size, 4, 4, 256], num_classes=10, sparse=args.sparse, rank=args.rank, name='conv3_fb')
 
 l9 = ConvToFullyConnected(shape=[4, 4, 256])
 
-l10 = FullyConnected(size=[4*4*256, 2048], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='fc1', load=weights_fc, train=train_fc)
+l10 = FullyConnected(size=[4*4*256, 2048], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='fc1', load=weights_fc, train=train_fc, fa=args.fa)
 l11 = Dropout(rate=dropout_rate)
-l12 = FeedbackFC(size=[4*4*256, 2048], num_classes=10, sparse=args.sparse, rank=args.rank, name='fc1_fb')
 
-l13 = FullyConnected(size=[2048, 2048], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='fc2', load=weights_fc, train=train_fc)
+l13 = FullyConnected(size=[2048, 2048], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='fc2', load=weights_fc, train=train_fc, fa=args.fa)
 l14 = Dropout(rate=dropout_rate)
-l15 = FeedbackFC(size=[2048, 2048], num_classes=10, sparse=args.sparse, rank=args.rank, name='fc2_fb')
 
-l16 = FullyConnected(size=[2048, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name='fc3', load=weights_fc, train=train_fc)
+l16 = FullyConnected(size=[2048, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name='fc3', load=weights_fc, train=train_fc, fa=args.fa)
 
 ##############################################
 
-model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16])
+# model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16])
+model = Model(layers=[l0, l1, l3, l4, l6, l7, l9, l10, l11, l13, l14, l16])
 
 predict = model.predict(X=X)
 
@@ -196,10 +189,21 @@ for ii in range(EPOCHS):
     for jj in range(int(TRAIN_EXAMPLES / BATCH_SIZE)):
         xs = x_train[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
         ys = y_train[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
-        _correct, _ = sess.run([total_correct, train], feed_dict={batch_size: BATCH_SIZE, dropout_rate: args.dropout, learning_rate: lr, X: xs, Y: ys})
+        _correct, _, gvs = sess.run([total_correct, train, grads_and_vars], feed_dict={batch_size: BATCH_SIZE, dropout_rate: args.dropout, learning_rate: lr, X: xs, Y: ys})
         
         _total_correct += _correct
         _count += BATCH_SIZE
+        
+        # 6, 8, 10
+        '''
+        if ((jj + 1) % 100 == 0):
+            for kk in range(len(gvs)):
+                print (kk, np.shape(gvs[kk]))
+        '''
+        if (jj % 100 == 0):
+            print (np.std(gvs[0][0]), np.std(gvs[2][0]), np.std(gvs[4][0]), np.std(gvs[6][0]), np.std(gvs[8][0]), np.std(gvs[10][0]))
+            print (np.std(gvs[0][1]), np.std(gvs[2][1]), np.std(gvs[4][1]), np.std(gvs[6][1]), np.std(gvs[8][1]), np.std(gvs[10][1]))        
+            print ('----------')
 
     train_acc = 1.0 * _total_correct / _count
     train_accs.append(train_acc)
@@ -230,11 +234,11 @@ for ii in range(EPOCHS):
 
 ##############################################
 
-if args.save:
-    [w] = sess.run([weights], feed_dict={})
-    w['train_acc'] = train_accs
-    w['test_acc'] = test_accs
-    np.save(args.name, w)
+    if args.save:
+        [w] = sess.run([weights], feed_dict={})
+        w['train_acc'] = train_accs
+        w['test_acc'] = test_accs
+        np.save(args.name, w)
     
 ##############################################
 

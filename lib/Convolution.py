@@ -9,7 +9,7 @@ from lib.Activation import Sigmoid
 
 class Convolution(Layer):
 
-    def __init__(self, input_sizes, filter_sizes, num_classes, init_filters, strides, padding, alpha, activation: Activation, bias, last_layer, name=None, load=None, train=True):
+    def __init__(self, input_sizes, filter_sizes, num_classes, init_filters, strides, padding, alpha, activation: Activation, bias, last_layer, name=None, load=None, train=True, fa=False):
         self.input_sizes = input_sizes
         self.filter_sizes = filter_sizes
         self.num_classes = num_classes
@@ -30,30 +30,30 @@ class Convolution(Layer):
 
         self.name = name
         self._train = train
-        
-        if load:
-            print ("Loading Weights: " + self.name)
-            weight_dict = np.load(load, encoding='latin1').item()
-            self.filters = tf.Variable(weight_dict[self.name])
-            self.bias = tf.Variable(weight_dict[self.name + '_bias'])
+        self.fa = fa
+       
+        if init_filters == "zero":
+            filters = np.zeros(shape=self.filter_sizes)
+        elif init_filters == "sqrt_fan_in":
+            sqrt_fan_in = math.sqrt(self.h*self.w*self.fin)
+            filters = np.random.uniform(low=-1.0/sqrt_fan_in, high=1.0/sqrt_fan_in, size=self.filter_sizes)
+        elif init_filters == "alexnet":
+            filters = np.random.normal(loc=0.0, scale=0.01, size=self.filter_sizes)
         else:
-            if init_filters == "zero":
-                filters = np.zeros(shape=self.filter_sizes)
-            elif init_filters == "sqrt_fan_in":
-                sqrt_fan_in = math.sqrt(self.h*self.w*self.fin)
-                filters = np.random.uniform(low=-1.0/sqrt_fan_in, high=1.0/sqrt_fan_in, size=self.filter_sizes)
-            elif init_filters == "alexnet":
-                filters = np.random.normal(loc=0.0, scale=0.01, size=self.filter_sizes)
-            else:
-                # glorot
-                assert(False)
-                
+            # glorot
+            assert(False)
+
+        weight_dict = np.load(load).item()
+        fb = weight_dict[self.name]
+
         self.filters = tf.Variable(filters, dtype=tf.float32)
+        self.fb = tf.Variable(fb, dtype=tf.float32)
 
     ###################################################################
 
     def get_weights(self):
         return [(self.name, self.filters), (self.name + "_bias", self.bias)]
+        # return [(self.name, self.filters)]
 
     def num_params(self):
         filter_weights_size = self.fh * self.fw * self.fin * self.fout
@@ -62,14 +62,25 @@ class Convolution(Layer):
                 
     def forward(self, X):
         Z = tf.add(tf.nn.conv2d(X, self.filters, self.strides, self.padding), tf.reshape(self.bias, [1, 1, self.fout]))
+        # Z = tf.nn.conv2d(X, self.filters, self.strides, self.padding)
         A = self.activation.forward(Z)
+
+        # A = tf.Print(A, [tf.reduce_mean(tf.abs(A))], message='', summarize=1000)
+
         return A
         
     ###################################################################           
         
-    def backward(self, AI, AO, DO):    
+    def backward(self, AI, AO, DO):
         DO = tf.multiply(DO, self.activation.gradient(AO))
-        DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_sizes, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+        
+        if self.fa:
+            DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_sizes, filter=self.fb, out_backprop=DO, strides=self.strides, padding=self.padding)
+        else:
+            DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_sizes, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+        
+        # DI = tf.Print(DI, [tf.reduce_mean(tf.abs(DI))], message='', summarize=1000)
+
         return DI
 
     def gv(self, AI, AO, DO):    
@@ -79,8 +90,12 @@ class Convolution(Layer):
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
+
+        # DF = tf.Print(DF, [self.name, tf.reduce_mean(tf.abs(DF)), tf.reduce_mean(tf.abs(AI)), tf.reduce_mean(tf.abs(DO))], message='', summarize=1000)
+
         return [(DF, self.filters), (DB, self.bias)]
-        
+        # return [(DF, self.filters)]        
+
     def train(self, AI, AO, DO): 
         if not self._train:
             return []
