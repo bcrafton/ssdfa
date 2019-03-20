@@ -201,9 +201,10 @@ for ii in range(EPOCHS):
                 print (kk, np.shape(gvs[kk]))
         '''
         if (jj % 100 == 0):
-            print (np.std(gvs[0][0]), np.std(gvs[2][0]), np.std(gvs[4][0]), np.std(gvs[6][0]), np.std(gvs[8][0]), np.std(gvs[10][0]))
-            print (np.std(gvs[0][1]), np.std(gvs[2][1]), np.std(gvs[4][1]), np.std(gvs[6][1]), np.std(gvs[8][1]), np.std(gvs[10][1]))        
-            print ('----------')
+            pass
+            # print (np.std(gvs[0][0]), np.std(gvs[2][0]), np.std(gvs[4][0]), np.std(gvs[6][0]), np.std(gvs[8][0]), np.std(gvs[10][0]))
+            # print (np.std(gvs[0][1]), np.std(gvs[2][1]), np.std(gvs[4][1]), np.std(gvs[6][1]), np.std(gvs[8][1]), np.std(gvs[10][1]))        
+            # print ('----------')
 
     train_acc = 1.0 * _total_correct / _count
     train_accs.append(train_acc)

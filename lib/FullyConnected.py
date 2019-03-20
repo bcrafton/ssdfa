@@ -49,6 +49,7 @@ class FullyConnected(Layer):
 
         weight_dict = np.load(load).item()
         fb = weight_dict[self.name]
+        # fb = np.copy(weights)
 
         self.weights = tf.Variable(weights, dtype=tf.float32)
         self.fb = tf.Variable(fb, dtype=tf.float32)
@@ -64,9 +65,8 @@ class FullyConnected(Layer):
         return weights_size + bias_size
 
     def forward(self, X):
-        Z = tf.matmul(X, self.weights) + self.bias
+        Z = tf.matmul(X, self.weights) # + self.bias
         A = self.activation.forward(Z)
-
         # A = tf.Print(A, [tf.reduce_mean(tf.abs(A))], message='', summarize=1000)
 
         return A
