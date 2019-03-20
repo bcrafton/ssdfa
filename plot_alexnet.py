@@ -34,7 +34,7 @@ plt.imsave("cifar10_conv_weights.png", img, cmap="gray", dpi=300)
 
 ###
 
-weights = np.load('cifar10_conv_weights_fa.npy').item()
+weights = np.load('./transfer/cifar10_conv_weights_fa.npy').item()
 np.savetxt('fa_train.csv', weights['train_acc'], delimiter=',')
 np.savetxt('fa_test.csv', weights['test_acc'], delimiter=',')
 
