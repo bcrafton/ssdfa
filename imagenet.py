@@ -127,6 +127,8 @@ def train_preprocess(image, label):
     means = tf.reshape(tf.constant(IMAGENET_MEAN), [1, 1, 3])
     centered_image = flip_image - means                                     # (5)
 
+    # centered_image = centered_image / tf.keras.backend.std(centered_image)
+
     return centered_image, label
     
 
@@ -274,21 +276,21 @@ learning_rate = tf.placeholder(tf.float32, shape=())
 
 l0 = Convolution(batch_size=batch_size, input_shape=[227, 227, 3], filter_sizes=[11, 11, 3, 96], init=args.init, strides=[4, 4], padding="VALID", activation=Relu(), bias=0., name="conv1")
 l1 = MaxPool(batch_size=batch_size, input_shape=l0.output_shape(), ksize=[3, 3], strides=[2, 2], padding="VALID")
-l2 = LELConv(batch_size=batch_size, input_shape=l1.output_shape(), num_classes=1000, name='conv1_fb')
+l2 = LELConv(batch_size=batch_size, input_shape=l1.output_shape(), filter_sizes=[3, 3, 96, 96], num_classes=1000, name='conv1_fb')
 
 l3 = Convolution(batch_size=batch_size, input_shape=l2.output_shape(), filter_sizes=[5, 5, 96, 256], init=args.init, strides=[1, 1], padding="SAME", activation=Relu(), bias=1., name="conv2")
 l4 = MaxPool(batch_size=batch_size, input_shape=l3.output_shape(), ksize=[3, 3], strides=[2, 2], padding="VALID")
-l5 = LELConv(batch_size=batch_size, input_shape=l4.output_shape(), num_classes=1000, name='conv2_fb')
+l5 = LELConv(batch_size=batch_size, input_shape=l4.output_shape(), filter_sizes=[3, 3, 256, 256], num_classes=1000, name='conv2_fb')
 
 l6 = Convolution(batch_size=batch_size, input_shape=l5.output_shape(), filter_sizes=[3, 3, 256, 384], init=args.init, strides=[1, 1], padding="SAME", activation=Relu(), bias=0., name="conv3")
-l7 = LELConv(batch_size=batch_size, input_shape=l6.output_shape(), num_classes=1000, name='conv3_fb')
+l7 = LELConv(batch_size=batch_size, input_shape=l6.output_shape(), filter_sizes=[3, 3, 384, 384], num_classes=1000, name='conv3_fb')
 
 l8 = Convolution(batch_size=batch_size, input_shape=l7.output_shape(), filter_sizes=[3, 3, 384, 384], init=args.init, strides=[1, 1], padding="SAME", activation=Relu(), bias=1., name="conv4")
-l9 = LELConv(batch_size=batch_size, input_shape=l8.output_shape(), num_classes=1000, name='conv4_fb')
+l9 = LELConv(batch_size=batch_size, input_shape=l8.output_shape(), filter_sizes=[3, 3, 384, 384], num_classes=1000, name='conv4_fb')
 
 l10 = Convolution(batch_size=batch_size, input_shape=l9.output_shape(), filter_sizes=[3, 3, 384, 256], init=args.init, strides=[1, 1], padding="SAME", activation=Relu(), bias=1., name="conv5")
 l11 = MaxPool(batch_size=batch_size, input_shape=l10.output_shape(), ksize=[3, 3], strides=[2, 2], padding="VALID")
-l12 = LELConv(batch_size=batch_size, input_shape=l11.output_shape(), num_classes=1000, name='conv5_fb') 
+l12 = LELConv(batch_size=batch_size, input_shape=l11.output_shape(), filter_sizes=[3, 3, 256, 256], num_classes=1000, name='conv5_fb') 
 
 l13 = ConvToFullyConnected(input_shape=l11.output_shape())
 

@@ -101,15 +101,15 @@ Y = tf.placeholder(tf.float32, [None, 10])
 
 l0 = Convolution(batch_size=batch_size, input_shape=[32, 32, 3], filter_sizes=[5, 5, 3, 96], init=args.init, strides=[1, 1], padding="SAME", activation=act, bias=args.bias, name='conv1', load=weights_conv, train=train_conv)
 l1 = MaxPool(batch_size=batch_size, input_shape=l0.output_shape(), ksize=[3, 3], strides=[2, 2], padding="SAME")
-l2 = LELConv(batch_size=batch_size, input_shape=l1.output_shape(), num_classes=10, name='conv1_fb')
+l2 = LELConv(batch_size=batch_size, input_shape=l1.output_shape(), filter_sizes=[3, 3, 96, 96], num_classes=10, name='conv1_fb')
 
 l3 = Convolution(batch_size=batch_size, input_shape=l2.output_shape(), filter_sizes=[5, 5, 96, 128], init=args.init, strides=[1, 1], padding="SAME", activation=act, bias=args.bias, name='conv2', load=weights_conv, train=train_conv)
 l4 = MaxPool(batch_size=batch_size, input_shape=l3.output_shape(), ksize=[3, 3], strides=[2, 2], padding="SAME")
-l5 = LELConv(batch_size=batch_size, input_shape=l4.output_shape(), num_classes=10, name='conv2_fb')
+l5 = LELConv(batch_size=batch_size, input_shape=l4.output_shape(), filter_sizes=[3, 3, 128, 128], num_classes=10, name='conv2_fb')
 
 l6 = Convolution(batch_size=batch_size, input_shape=l5.output_shape(), filter_sizes=[5, 5, 128, 256], init=args.init, strides=[1, 1], padding="SAME", activation=act, bias=args.bias, name='conv3', load=weights_conv, train=train_conv)
 l7 = MaxPool(batch_size=batch_size, input_shape=l6.output_shape(), ksize=[3, 3], strides=[2, 2], padding="SAME")
-l8 = LELConv(batch_size=batch_size, input_shape=l7.output_shape(), num_classes=10, name='conv3_fb')
+l8 = LELConv(batch_size=batch_size, input_shape=l7.output_shape(), filter_sizes=[3, 3, 256, 256], num_classes=10, name='conv3_fb')
 
 l9 = ConvToFullyConnected(input_shape=l8.output_shape())
 

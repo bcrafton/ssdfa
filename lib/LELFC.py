@@ -38,10 +38,10 @@ class LELFC(Layer):
             self.B = tf.cast(tf.Variable(b), tf.float32) 
         '''
         
-        self.l0 = FullyConnected(input_shape=input_shape, size=self.num_classes, init='sqrt_fan_in', activation=Linear(), bias=0.)
+        self.l0 = FullyConnected(input_shape=input_shape, size=self.num_classes, init='sqrt_fan_in', activation=Linear(), bias=1., name=self.name)
         
     def get_weights(self):
-        return []
+        return self.l0.get_weights()
 
     def get_feedback(self):
         return self.B
@@ -99,7 +99,10 @@ class LELFC(Layer):
         return DO
 
     def lel_gv(self, AI, AO, E, DO, Y):
-        return []
+        S = self.l0.forward(AI)
+        ES = tf.subtract(tf.nn.softmax(S), Y)
+        gvs = self.l0.gv(AI, S, ES)
+        return gvs
         
     def lel(self, AI, AO, E, DO, Y): 
         return []

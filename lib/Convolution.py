@@ -86,6 +86,9 @@ class Convolution(Layer):
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.full_strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
+
+        # DF = tf.Print(DF, [tf.keras.backend.std(DF)], message="", summarize=1000)
+
         return [(DF, self.filters), (DB, self.bias)]
         
     def train(self, AI, AO, DO): 
@@ -138,6 +141,9 @@ class Convolution(Layer):
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.full_strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
+
+        # DF = tf.Print(DF, [tf.keras.backend.std(DF)], message="", summarize=1000)
+
         return [(DF, self.filters), (DB, self.bias)]
         
     def lel(self, AI, AO, E, DO, Y): 
@@ -152,6 +158,7 @@ class Convolution(Layer):
 
         self.filters = self.filters.assign(tf.subtract(self.filters, tf.scalar_mul(self.alpha, DF)))
         self.bias = self.bias.assign(tf.subtract(self.bias, tf.scalar_mul(self.alpha, DB)))
+
         return [(DF, self.filters), (DB, self.bias)]
         
     ################################################################### 
