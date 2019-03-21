@@ -392,8 +392,11 @@ for ii in range(0, epochs):
     
     for j in range(0, len(train_imgs), batch_size):
         print (j)
-        
-        _total_correct, _top5, _ = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: lr})
+
+        if (j % (100 * batch_size) == 0):
+            _total_correct, _top5, _, gvs = sess.run([total_correct, total_top5, train, grads_and_vars], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: lr})
+        else:
+            _total_correct, _top5, _ = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: lr})
         
         train_total += batch_size
         train_correct += _total_correct
@@ -403,6 +406,10 @@ for ii in range(0, epochs):
         train_acc_top5 = train_top5 / train_total
         
         if (j % (100 * batch_size) == 0):
+        
+            for gv in gvs:
+                print (np.std(gv))
+        
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
             print (p)
             f = open(results_filename, "a")
