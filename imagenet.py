@@ -56,24 +56,24 @@ import numpy as np
 from PIL import Image
 import scipy.misc
 
-from Model import Model
+from lib.Model import Model
 
-from Layer import Layer 
-from ConvToFullyConnected import ConvToFullyConnected
-from FullyConnected import FullyConnected
-from Convolution import Convolution
-from MaxPool import MaxPool
-from Dropout import Dropout
-from FeedbackFC import FeedbackFC
-from FeedbackConv import FeedbackConv
+from lib.Layer import Layer 
+from lib.ConvToFullyConnected import ConvToFullyConnected
+from lib.FullyConnected import FullyConnected
+from lib.Convolution import Convolution
+from lib.MaxPool import MaxPool
+from lib.Dropout import Dropout
+from lib.FeedbackFC import FeedbackFC
+from lib.FeedbackConv import FeedbackConv
 
-from Activation import Activation
-from Activation import Sigmoid
-from Activation import Relu
-from Activation import Tanh
-from Activation import Softmax
-from Activation import LeakyRelu
-from Activation import Linear
+from lib.Activation import Activation
+from lib.Activation import Sigmoid
+from lib.Activation import Relu
+from lib.Activation import Tanh
+from lib.Activation import Softmax
+from lib.Activation import LeakyRelu
+from lib.Activation import Linear
 
 ##############################################
 
@@ -149,9 +149,9 @@ def get_validation_dataset():
 
     print ("building validation dataset")
 
-    for subdir, dirs, files in os.walk('/home/bcrafton3/ILSVRC2012/val/'):
+    for subdir, dirs, files in os.walk('/home/bcrafton3/Data/ILSVRC2012/val/'):
         for file in files:
-            validation_images.append(os.path.join('/home/bcrafton3/ILSVRC2012/val/', file))
+            validation_images.append(os.path.join('/home/bcrafton3/Data/ILSVRC2012/val/', file))
     validation_images = sorted(validation_images)
 
     validation_labels_file = open('/home/bcrafton3/dfa/imagenet_labels/validation_labels.txt')
@@ -189,7 +189,7 @@ def get_train_dataset():
 
     print ("building dataset")
 
-    for subdir, dirs, files in os.walk('/home/bcrafton3/ILSVRC2012/train/'):
+    for subdir, dirs, files in os.walk('/home/bcrafton3/Data/ILSVRC2012/train/'):
         for folder in dirs:
             for folder_subdir, folder_dirs, folder_files in os.walk(os.path.join(subdir, folder)):
                 for file in folder_files:
@@ -275,7 +275,7 @@ l1 = MaxPool(batch_size=batch_size, input_shape=l0.output_shape(), ksize=[3, 3],
 # l2 = 
 
 l3 = Convolution(batch_size=batch_size, input_shape=l1.output_shape(), filter_sizes=[5, 5, 96, 256], init=args.init, strides=[1, 1], padding="SAME", activation=Relu(), bias=1., name="conv2")
-l4 = MaxPool(batch_size=batch_size, input_shape=l3.output_shape(), ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="VALID")
+l4 = MaxPool(batch_size=batch_size, input_shape=l3.output_shape(), ksize=[3, 3], strides=[2, 2], padding="VALID")
 # l5 = 
 
 l6 = Convolution(batch_size=batch_size, input_shape=l4.output_shape(), filter_sizes=[3, 3, 256, 384], init=args.init, strides=[1, 1], padding="SAME", activation=Relu(), bias=0., name="conv3")
@@ -285,7 +285,7 @@ l8 = Convolution(batch_size=batch_size, input_shape=l6.output_shape(), filter_si
 # l9 = 
 
 l10 = Convolution(batch_size=batch_size, input_shape=l8.output_shape(), filter_sizes=[3, 3, 384, 256], init=args.init, strides=[1, 1], padding="SAME", activation=Relu(), bias=1., name="conv5")
-l11 = MaxPool(batch_size=batch_size, input_shape=l10.output_shape(), ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="VALID")
+l11 = MaxPool(batch_size=batch_size, input_shape=l10.output_shape(), ksize=[3, 3], strides=[2, 2], padding="VALID")
 # l2 = 
 
 l13 = ConvToFullyConnected(input_shape=l11.output_shape())
@@ -303,18 +303,17 @@ l20 = FullyConnected(input_shape=l17.output_shape(), size=1000, init=args.init, 
 ###############################################################
 
 # model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16, l17, l18, l19, l20])
-# model = Model(layers=[l0, l1, l3, l4, l6, l8, l10, l11, l13, l14, l15, l17, l18, l20])
-model = Model(layers=[l0, l1, l3, l4, l6, l8, l10, l11, l13, l14, l15, l16, l17, l18, l19, l20])
+model = Model(layers=[l0, l1, l3, l4, l6, l8, l10, l11, l13, l14, l17, l20])
 
 predict = tf.nn.softmax(model.predict(X=features))
 
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt == "momentum":
     if args.lel:
-        grads_and_vars = model.lel_gvs(X=X, Y=Y)
+        grads_and_vars = model.lel_gvs(X=features, Y=labels)
     elif args.dfa:
-        grads_and_vars = model.dfa_gvs(X=X, Y=Y)
+        grads_and_vars = model.dfa_gvs(X=features, Y=labels)
     else:
-        grads_and_vars = model.gvs(X=X, Y=Y)
+        grads_and_vars = model.gvs(X=features, Y=labels)
         
     if args.opt == "adam":
         train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
@@ -329,11 +328,11 @@ if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt ==
 
 else:
     if args.lel:
-        train = model.lel(X=X, Y=Y)
+        train = model.lel(X=features, Y=labels)
     elif args.dfa:
-        train = model.dfa(X=X, Y=Y)
+        train = model.dfa(X=features, Y=labels)
     else:
-        train = model.train(X=X, Y=Y)
+        train = model.train(X=features, Y=labels)
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
