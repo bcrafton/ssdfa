@@ -66,6 +66,8 @@ from lib.MaxPool import MaxPool
 from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
+from lib.LELFC import LELFC
+from lib.LELConv import LELConv
 
 from lib.Activation import Activation
 from lib.Activation import Sigmoid
