@@ -270,35 +270,35 @@ else:
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 
-l0 = Convolution(input_sizes=[batch_size, 227, 227, 3], filter_sizes=[11, 11, 3, 96], num_classes=num_classes, init_filters=args.init, strides=[1, 4, 4, 1], padding="VALID", alpha=learning_rate, activation=Relu(), bias=bias, last_layer=False, name="conv1", load=weights_conv, train=train_conv)
-l1 = MaxPool(size=[batch_size, 55, 55, 96], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="VALID")
-# l2 = FeedbackConv(size=[batch_size, 27, 27, 96], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="conv1_fb")
+l0 = Convolution(batch_size=batch_size, input_shape=[227, 227, 3], filter_sizes=[11, 11, 3, 96], init=args.init, strides=[4, 4], padding="VALID", activation=Relu(), bias=0., name="conv1")
+l1 = MaxPool(batch_size=batch_size, input_shape=l0.output_shape(), ksize=[3, 3], strides=[2, 2], padding="VALID")
+# l2 = 
 
-l3 = Convolution(input_sizes=[batch_size, 27, 27, 96], filter_sizes=[5, 5, 96, 256], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=1., last_layer=False, name="conv2", load=weights_conv, train=train_conv)
-l4 = MaxPool(size=[batch_size, 27, 27, 256], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="VALID")
-# l5 = FeedbackConv(size=[batch_size, 13, 13, 256], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="conv2_fb")
+l3 = Convolution(batch_size=batch_size, input_shape=l1.output_shape(), filter_sizes=[5, 5, 96, 256], init=args.init, strides=[1, 1], padding="SAME", activation=Relu(), bias=1., name="conv2")
+l4 = MaxPool(batch_size=batch_size, input_shape=l3.output_shape(), ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="VALID")
+# l5 = 
 
-l6 = Convolution(input_sizes=[batch_size, 13, 13, 256], filter_sizes=[3, 3, 256, 384], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=bias, last_layer=False, name="conv3", load=weights_conv, train=train_conv)
-# l7 = FeedbackConv(size=[batch_size, 13, 13, 384], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="conv3_fb")
+l6 = Convolution(batch_size=batch_size, input_shape=l4.output_shape(), filter_sizes=[3, 3, 256, 384], init=args.init, strides=[1, 1], padding="SAME", activation=Relu(), bias=0., name="conv3")
+# l7 = 
 
-l8 = Convolution(input_sizes=[batch_size, 13, 13, 384], filter_sizes=[3, 3, 384, 384], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=1., last_layer=False, name="conv4", load=weights_conv, train=train_conv)
-# l9 = FeedbackConv(size=[batch_size, 13, 13, 384], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="conv4_fb")
+l8 = Convolution(batch_size=batch_size, input_shape=l6.output_shape(), filter_sizes=[3, 3, 384, 384], init=args.init, strides=[1, 1], padding="SAME", activation=Relu(), bias=1., name="conv4")
+# l9 = 
 
-l10 = Convolution(input_sizes=[batch_size, 13, 13, 384], filter_sizes=[3, 3, 384, 256], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=1., last_layer=False, name="conv5", load=weights_conv, train=train_conv)
-l11 = MaxPool(size=[batch_size, 13, 13, 256], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="VALID")
-# l12 = FeedbackConv(size=[batch_size, 6, 6, 256], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="conv5_fb")
+l10 = Convolution(batch_size=batch_size, input_shape=l8.output_shape(), filter_sizes=[3, 3, 384, 256], init=args.init, strides=[1, 1], padding="SAME", activation=Relu(), bias=1., name="conv5")
+l11 = MaxPool(batch_size=batch_size, input_shape=l10.output_shape(), ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="VALID")
+# l2 = 
 
-l13 = ConvToFullyConnected(shape=[6, 6, 256])
+l13 = ConvToFullyConnected(input_shape=l11.output_shape())
 
-l14 = FullyConnected(size=[6*6*256, 4096], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, l2=args.l2, name="fc1", load=weights_fc, train=train_fc)
-l15 = Dropout(rate=dropout_rate)
-l16 = FeedbackFC(size=[6*6*256, 4096], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="fc1_fb", std=0.01)
+l14 = FullyConnected(input_shape=l13.output_shape(), size=4096, init=args.init, activation=act, bias=1., name="fc1")
+# l15 = Dropout(rate=dropout_rate)
+# l16 = 
 
-l17 = FullyConnected(size=[4096, 4096], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, l2=args.l2, name="fc2", load=weights_fc, train=train_fc)
-l18 = Dropout(rate=dropout_rate)
-l19 = FeedbackFC(size=[4096, 4096], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="fc2_fb", std=0.01)
+l17 = FullyConnected(input_shape=l14.output_shape(), size=4096, init=args.init, activation=act, bias=1., name="fc2")
+# l18 = Dropout(rate=dropout_rate)
+# l19 = 
 
-l20 = FullyConnected(size=[4096, num_classes], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, l2=args.l2, name="fc3", load=weights_fc, train=train_fc)
+l20 = FullyConnected(input_shape=l17.output_shape(), size=1000, init=args.init, activation=act, bias=1., last_layer=True, name="fc2")
 
 ###############################################################
 
