@@ -124,6 +124,9 @@ l14 = FullyConnected(input_shape=l13.output_shape(), size=10, init=args.init, ac
 ##############################################
 
 model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14])
+# model =   Model(layers=[l0, l1,     l3, l4,     l6, l7,     l9, l10,      l12,      l14])
+# model =   Model(layers=[l9, l10, l12, l14])
+# model =   Model(layers=[l0, l3, l6, l9, l10, l12, l14])
 
 predict = model.predict(X=X)
 

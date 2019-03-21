@@ -11,6 +11,8 @@ class FullyConnected(Layer):
 
     def __init__(self, input_shape, size, init, activation, bias, alpha=0., last_layer=False, l2=0., name=None, load=None, train=True):
 
+        print (input_shape)
+
         self.last_layer = last_layer
         self.input_size = input_shape
         self.output_size = size
@@ -146,6 +148,8 @@ class FullyConnected(Layer):
         return [(DW, self.weights), (DB, self.bias)]
         
     def lel(self, AI, AO, E, DO, Y):
+        assert(False)        
+
         if not self._train:
             return []
 

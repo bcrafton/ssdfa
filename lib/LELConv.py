@@ -100,8 +100,6 @@ class LELConv(Layer):
         # (* activation.gradient) and (* AI) occur in the actual layer itself.
         return DO
         '''
-        # S = self.B.forward(AI)
-        # ES = tf.subtract(tf.nn.softmax(S), Y)
         DO = self.B.backwards(AI, Y)
         return DO
         

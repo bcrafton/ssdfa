@@ -14,6 +14,8 @@ from lib.conv_utils import conv_input_length
 
 class MaxPool(Layer):
     def __init__(self, batch_size, input_shape, ksize, strides, padding):
+        print (input_shape)
+
         self.input_shape = input_shape
         self.h, self.w, self.fin = self.input_shape
         self.batch_size = batch_size 

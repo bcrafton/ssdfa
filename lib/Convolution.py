@@ -13,28 +13,22 @@ from lib.conv_utils import conv_input_length
 class Convolution(Layer):
 
     def __init__(self, batch_size, input_shape, filter_sizes, init, strides, padding, activation, bias, alpha=0., last_layer=False, name=None, load=None, train=True):
+        print (input_shape) 
+
         self.input_shape = input_shape
         self.input_sizes = [batch_size] + self.input_shape
-        self.filter_sizes = filter_sizes
-        
-        # self.h and self.w only equal this for input sizes when padding = "SAME"...
+        self.filter_sizes = filter_sizes        
         self.batch_size = batch_size 
         self.h, self.w, self.fin = self.input_shape
         self.fh, self.fw, self.fin, self.fout = self.filter_sizes
-
         self.bias = tf.Variable(tf.ones(shape=self.fout) * bias)
-
         self.strides = strides
         self.sh, self.sw = self.strides
         self.full_strides = [1, self.sh, self.sw, 1]
-        
         self.padding = padding
-
         self.alpha = alpha
-
         self.activation = activation
         self.last_layer = last_layer
-
         self.name = name
         self._train = train
         
@@ -142,16 +136,18 @@ class Convolution(Layer):
             return []
     
         DO = tf.multiply(DO, self.activation.gradient(AO))
-        DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
+        DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.full_strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
         return [(DF, self.filters), (DB, self.bias)]
         
     def lel(self, AI, AO, E, DO, Y): 
+        assert(False)
+
         if not self._train:
             return []
 
         DO = tf.multiply(DO, self.activation.gradient(AO))
-        DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
+        DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.full_strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
 
         self.filters = self.filters.assign(tf.subtract(self.filters, tf.scalar_mul(self.alpha, DF)))
