@@ -8,34 +8,49 @@ from lib.Activation import Activation
 from lib.Activation import Sigmoid
 from lib.FeedbackMatrix import FeedbackMatrix
 
-class FeedbackConv(Layer):
+from lib.Model import Model
+from lib.Layer import Layer 
+from lib.ConvToFullyConnected import ConvToFullyConnected
+from lib.FullyConnected import FullyConnected
+from lib.Convolution import Convolution
+from lib.MaxPool import MaxPool
+from lib.Activation import Relu
+from lib.Activation import Linear
 
-    def __init__(self, size : tuple, num_classes : int, sparse : int, rank : int, name=None, load=None):
-        self.size = size
+class LELConv(Layer):
+
+    def __init__(self, batch_size, input_shape, num_classes, name=None):
+        self.input_shape = input_shape
+        self.h, self.w, self.fin = self.input_shape
+        self.batch_size = batch_size 
         self.num_classes = num_classes
-        self.sparse = sparse
-        self.rank = rank
-        self.batch_size, self.h, self.w, self.f = self.size
         self.name = name
-        self.num_output = self.h * self.w * self.f
 
+        '''
         if load:
             weight_dict = np.load(load).item()
             self.B = tf.cast(tf.Variable(weight_dict[self.name]), tf.float32)
         else:
             b = FeedbackMatrix(size=(self.num_classes, self.num_output), sparse=self.sparse, rank=self.rank)
             self.B = tf.cast(tf.Variable(b), tf.float32) 
-
+        '''
+        
+        l0 = Convolution(batch_size=batch_size, input_shape=self.input_shape, filter_sizes=[3, 3, self.fin, 64], init='sqrt_fan_in', strides=[1, 1], padding="SAME", activation=Relu(), bias=0.)
+        l1 = MaxPool(batch_size=batch_size, input_shape=l0.output_shape(), ksize=[2, 2], strides=[2, 2], padding="SAME")
+        l2 = ConvToFullyConnected(input_shape=l1.output_shape())
+        l3 = FullyConnected(input_shape=l2.output_shape(), size=self.num_classes, init='sqrt_fan_in', activation=Linear(), bias=0.)
+        self.B = Model(layers=[l0, l1, l2, l3])
+        
     ###################################################################
     
     def get_weights(self):
-        return [(self.name, self.B)]
+        return []
     
     def get_feedback(self):
         return self.B
         
     def output_shape(self):
-        assert(False)
+        return self.input_shape
 
     def num_params(self):
         return 0
@@ -71,6 +86,7 @@ class FeedbackConv(Layer):
     # > https://www.ics.uci.edu/~pjsadows/notes.pdf
     # > https://deepnotes.io/softmax-crossentropy
     def lel_backward(self, AI, AO, E, DO, Y):
+        '''
         shape = tf.shape(AO)
         N = shape[0]
         AO = tf.reshape(AO, (N, self.num_output))
@@ -82,6 +98,11 @@ class FeedbackConv(Layer):
         DO = tf.matmul(ES, self.B)
         DO = tf.reshape(DO, self.size)
         # (* activation.gradient) and (* AI) occur in the actual layer itself.
+        return DO
+        '''
+        # S = self.B.forward(AI)
+        # ES = tf.subtract(tf.nn.softmax(S), Y)
+        DO = self.B.backwards(AI, Y)
         return DO
         
     def lel_gv(self, AI, AO, E, DO, Y):

@@ -49,6 +49,8 @@ from lib.MaxPool import MaxPool
 from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
+from lib.LELFC import LELFC
+from lib.LELConv import LELConv
 
 from lib.Activation import Activation
 from lib.Activation import Sigmoid
@@ -99,24 +101,29 @@ Y = tf.placeholder(tf.float32, [None, 10])
 
 l0 = Convolution(batch_size=batch_size, input_shape=[32, 32, 3], filter_sizes=[5, 5, 3, 96], init=args.init, strides=[1, 1], padding="SAME", activation=act, bias=args.bias, name='conv1', load=weights_conv, train=train_conv)
 l1 = MaxPool(batch_size=batch_size, input_shape=l0.output_shape(), ksize=[3, 3], strides=[2, 2], padding="SAME")
+l2 = LELConv(batch_size=batch_size, input_shape=l1.output_shape(), num_classes=10, name='conv1_fb')
 
-l2 = Convolution(batch_size=batch_size, input_shape=l1.output_shape(), filter_sizes=[5, 5, 96, 128], init=args.init, strides=[1, 1], padding="SAME", activation=act, bias=args.bias, name='conv2', load=weights_conv, train=train_conv)
-l3 = MaxPool(batch_size=batch_size, input_shape=l2.output_shape(), ksize=[3, 3], strides=[2, 2], padding="SAME")
+l3 = Convolution(batch_size=batch_size, input_shape=l2.output_shape(), filter_sizes=[5, 5, 96, 128], init=args.init, strides=[1, 1], padding="SAME", activation=act, bias=args.bias, name='conv2', load=weights_conv, train=train_conv)
+l4 = MaxPool(batch_size=batch_size, input_shape=l3.output_shape(), ksize=[3, 3], strides=[2, 2], padding="SAME")
+l5 = LELConv(batch_size=batch_size, input_shape=l4.output_shape(), num_classes=10, name='conv2_fb')
 
-l4 = Convolution(batch_size=batch_size, input_shape=l3.output_shape(), filter_sizes=[5, 5, 128, 256], init=args.init, strides=[1, 1], padding="SAME", activation=act, bias=args.bias, name='conv3', load=weights_conv, train=train_conv)
-l5 = MaxPool(batch_size=batch_size, input_shape=l4.output_shape(), ksize=[3, 3], strides=[2, 2], padding="SAME")
+l6 = Convolution(batch_size=batch_size, input_shape=l5.output_shape(), filter_sizes=[5, 5, 128, 256], init=args.init, strides=[1, 1], padding="SAME", activation=act, bias=args.bias, name='conv3', load=weights_conv, train=train_conv)
+l7 = MaxPool(batch_size=batch_size, input_shape=l6.output_shape(), ksize=[3, 3], strides=[2, 2], padding="SAME")
+l8 = LELConv(batch_size=batch_size, input_shape=l7.output_shape(), num_classes=10, name='conv3_fb')
 
-l6 = ConvToFullyConnected(input_shape=l5.output_shape())
+l9 = ConvToFullyConnected(input_shape=l8.output_shape())
 
-l7 = FullyConnected(input_shape=l6.output_shape(), size=2048, init=args.init, activation=act, bias=args.bias, name='fc1', load=weights_fc, train=train_fc)
+l10 = FullyConnected(input_shape=l9.output_shape(), size=2048, init=args.init, activation=act, bias=args.bias, name='fc1')
+l11 = LELFC(input_shape=l10.output_shape(), num_classes=10, name='fc1_fb')
 
-l8 = FullyConnected(input_shape=l7.output_shape(), size=2048, init=args.init, activation=act, bias=args.bias, name='fc2', load=weights_fc, train=train_fc)
+l12 = FullyConnected(input_shape=l11.output_shape(), size=2048, init=args.init, activation=act, bias=args.bias, name='fc2')
+l13 = LELFC(input_shape=l12.output_shape(), num_classes=10, name='fc2_fb')
 
-l9 = FullyConnected(input_shape=l8.output_shape(), size=10, init=args.init, activation=Linear(), bias=args.bias, last_layer=True, name='fc3', load=weights_fc, train=train_fc)
+l14 = FullyConnected(input_shape=l13.output_shape(), size=10, init=args.init, activation=Linear(), bias=args.bias, last_layer=True, name='fc3')
 
 ##############################################
 
-model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9])
+model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14])
 
 predict = model.predict(X=X)
 
