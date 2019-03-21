@@ -204,8 +204,13 @@ for ii in range(EPOCHS):
     for jj in range(int(TRAIN_EXAMPLES / BATCH_SIZE)):
         xs = x_train[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
         ys = y_train[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
-        _correct, _ = sess.run([total_correct, train], feed_dict={batch_size: BATCH_SIZE, dropout_rate: args.dropout, learning_rate: lr, X: xs, Y: ys})
-        
+        _correct, _, gvs = sess.run([total_correct, train, grads_and_vars], feed_dict={batch_size: BATCH_SIZE, dropout_rate: args.dropout, learning_rate: lr, X: xs, Y: ys})
+
+        if jj == 0:
+            for gv in gvs:
+                pass
+                print (np.std(gv[0]), np.shape(gv[0]))        
+
         _total_correct += _correct
         _count += BATCH_SIZE
 

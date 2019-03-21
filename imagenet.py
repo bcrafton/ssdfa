@@ -128,6 +128,7 @@ def train_preprocess(image, label):
     centered_image = flip_image - means                                     # (5)
 
     # centered_image = centered_image / tf.keras.backend.std(centered_image)
+    # centered_image = centered_image / 255.
 
     return centered_image, label
     
@@ -298,16 +299,17 @@ l14 = FullyConnected(input_shape=l13.output_shape(), size=4096, init=args.init, 
 # l15 = Dropout(rate=dropout_rate)
 l16 = LELFC(input_shape=l14.output_shape(), num_classes=1000, name='fc1_fb')
 
-l17 = FullyConnected(input_shape=l14.output_shape(), size=4096, init=args.init, activation=act, bias=1., name="fc2")
+l17 = FullyConnected(input_shape=l16.output_shape(), size=4096, init=args.init, activation=act, bias=1., name="fc2")
 # l18 = Dropout(rate=dropout_rate)
-l18 = LELFC(input_shape=l17.output_shape(), num_classes=1000, name='fc2_fb')
+l19 = LELFC(input_shape=l17.output_shape(), num_classes=1000, name='fc2_fb')
 
-l20 = FullyConnected(input_shape=l17.output_shape(), size=1000, init=args.init, activation=act, bias=1., last_layer=True, name="fc2")
+l20 = FullyConnected(input_shape=l19.output_shape(), size=1000, init=args.init, activation=act, bias=1., last_layer=True, name="fc2")
 
 ###############################################################
 
 # model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16, l17, l18, l19, l20])
-model = Model(layers=[l0, l1, l3, l4, l6, l8, l10, l11, l13, l14, l17, l20])
+# model = Model(layers=[l0, l1, l3, l4, l6, l8, l10, l11, l13, l14, l17, l20])
+model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l16, l17, l19, l20])
 
 predict = tf.nn.softmax(model.predict(X=features))
 
@@ -331,6 +333,7 @@ if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt ==
         assert(False)
 
 else:
+    assert(False)
     if args.lel:
         train = model.lel(X=features, Y=labels)
     elif args.dfa:
@@ -408,7 +411,8 @@ for ii in range(0, epochs):
         if (j % (100 * batch_size) == 0):
         
             for gv in gvs:
-                print (np.std(gv))
+                pass
+                print (np.std(gv[0]), np.std(gv[1]), np.shape(gv[0]))
         
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
             print (p)

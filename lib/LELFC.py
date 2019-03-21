@@ -8,8 +8,12 @@ from lib.Activation import Activation
 from lib.Activation import Sigmoid
 from lib.FeedbackMatrix import FeedbackMatrix
 
-from lib.Layer import Layer 
+from lib.Model import Model
+from lib.Layer import Layer
+from lib.ConvToFullyConnected import ConvToFullyConnected
 from lib.FullyConnected import FullyConnected
+from lib.Convolution import Convolution
+from lib.MaxPool import MaxPool
 from lib.Activation import Relu
 from lib.Activation import Linear
 
@@ -38,10 +42,14 @@ class LELFC(Layer):
             self.B = tf.cast(tf.Variable(b), tf.float32) 
         '''
         
-        self.l0 = FullyConnected(input_shape=input_shape, size=self.num_classes, init='sqrt_fan_in', activation=Linear(), bias=1., name=self.name)
-        
+        l0 = FullyConnected(input_shape=input_shape, size=self.input_shape, init='alexnet', activation=Relu(), bias=0., name=self.name)
+        l1 = FullyConnected(input_shape=input_shape, size=self.num_classes, init='alexnet', activation=Linear(), bias=0., name=self.name)        
+
+        self.B = Model(layers=[l0, l1])
+
     def get_weights(self):
-        return self.l0.get_weights()
+        # return self.l0.get_weights()
+        return []
 
     def get_feedback(self):
         return self.B
@@ -93,19 +101,29 @@ class LELFC(Layer):
         # (* activation.gradient) and (* AI) occur in the actual layer itself.
         return DO
         '''
+        '''
         S = self.l0.forward(AI)
         ES = tf.subtract(tf.nn.softmax(S), Y)
-        DO = self.l0.backward(AI, S, E)
-        return DO
+        DI = self.l0.backward(AI, S, ES)
+        '''
+
+        DI = self.B.backwards(AI, Y)
+
+        return DI
 
     def lel_gv(self, AI, AO, E, DO, Y):
+        '''
         S = self.l0.forward(AI)
         ES = tf.subtract(tf.nn.softmax(S), Y)
         gvs = self.l0.gv(AI, S, ES)
+        '''
+
+        gvs = self.B.gvs(AI, Y)
+
         return gvs
         
     def lel(self, AI, AO, E, DO, Y): 
-        return []
+        assert(False)
         
     ###################################################################  
         

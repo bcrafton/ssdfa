@@ -57,7 +57,7 @@ class FullyConnected(Layer):
         return weights_size + bias_size
 
     def forward(self, X):
-        Z = tf.matmul(X, self.weights) + self.bias
+        Z = tf.matmul(X, self.weights) # + self.bias
         A = self.activation.forward(Z)
         return A
 
@@ -145,7 +145,8 @@ class FullyConnected(Layer):
         DW = tf.matmul(tf.transpose(AI), DO)
         DB = tf.reduce_sum(DO, axis=0)
         
-        return [(DW, self.weights), (DB, self.bias)]
+        return [(DW, self.weights)]
+        # return [(DW, self.weights), (DB, self.bias)]
         
     def lel(self, AI, AO, E, DO, Y):
         assert(False)        

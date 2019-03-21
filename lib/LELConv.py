@@ -37,18 +37,19 @@ class LELConv(Layer):
             self.B = tf.cast(tf.Variable(b), tf.float32) 
         '''
         
-        l0 = Convolution(batch_size=batch_size, input_shape=self.input_shape, filter_sizes=self.filter_sizes, init='sqrt_fan_in', strides=[1, 1], padding="SAME", activation=Relu(), bias=0., name=self.name)
+        l0 = Convolution(batch_size=batch_size, input_shape=self.input_shape, filter_sizes=self.filter_sizes, init='alexnet', strides=[1, 1], padding="SAME", activation=Relu(), bias=0., name=self.name)
         l1 = MaxPool(batch_size=batch_size, input_shape=l0.output_shape(), ksize=[2, 2], strides=[2, 2], padding="SAME")
         l2 = ConvToFullyConnected(input_shape=l1.output_shape())
         # print ("FC SIZE", l2.output_shape())
-        l3 = FullyConnected(input_shape=l2.output_shape(), size=self.num_classes, init='sqrt_fan_in', activation=Linear(), bias=1., name=self.name)
+        l3 = FullyConnected(input_shape=l2.output_shape(), size=self.num_classes, init='alexnet', activation=Linear(), bias=0., name=self.name)
         self.B = Model(layers=[l0, l1, l2, l3])
         
     ###################################################################
     
     def get_weights(self):
-        return self.B.get_weights()
-    
+        # return self.B.get_weights()
+        return []
+
     def get_feedback(self):
         return self.B
         
