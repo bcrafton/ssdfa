@@ -104,8 +104,9 @@ class LELConv(Layer):
         return DO
         
     def lel_gv(self, AI, AO, E, DO, Y):
-        return []
-        
+        gvs = self.B.gvs(AI, Y)
+        return gvs
+
     def lel(self, AI, AO, E, DO, Y): 
         return []
         
