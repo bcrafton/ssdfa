@@ -57,7 +57,7 @@ class FullyConnected(Layer):
         return weights_size + bias_size
 
     def forward(self, X):
-        Z = tf.matmul(X, self.weights) # + self.bias
+        Z = tf.matmul(X, self.weights) + self.bias
         A = self.activation.forward(Z)
         return A
 

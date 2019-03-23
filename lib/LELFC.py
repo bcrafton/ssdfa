@@ -41,9 +41,11 @@ class LELFC(Layer):
             b = FeedbackMatrix(size=(self.num_classes, self.output_size), sparse=self.sparse, rank=self.rank)
             self.B = tf.cast(tf.Variable(b), tf.float32) 
         '''
+
+        # THE PROBLEM WAS NEVER THE BIAS ... IT WAS THE FACT WE WERNT DIVIDING BY N
         
-        l0 = FullyConnected(input_shape=input_shape, size=self.input_shape, init='alexnet', activation=Relu(), bias=0., name=self.name)
-        l1 = FullyConnected(input_shape=input_shape, size=self.num_classes, init='alexnet', activation=Linear(), bias=0., name=self.name)        
+        l0 = FullyConnected(input_shape=input_shape, size=self.input_shape, init='alexnet', activation=Relu(), bias=1., name=self.name)
+        l1 = FullyConnected(input_shape=input_shape, size=self.num_classes, init='alexnet', activation=Linear(), bias=1., name=self.name)        
 
         self.B = Model(layers=[l0, l1])
 

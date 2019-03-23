@@ -16,7 +16,7 @@ cmd_args = parser.parse_args()
 ##############################################
 
 num_gpus = 4
-counter = 0
+counter = 2
 
 def run_command(param):
     global num_gpus, counter
@@ -27,14 +27,14 @@ def run_command(param):
         gpu = counter % num_gpus
         counter = counter + 1
     
-    name = '%s_%f_%f_%f_%s_%f_%f_%d_%d_%s_%s' % (param['benchmark'], param['alpha'], param['l2'], param['eps'], param['act'], param['bias'], param['dropout'], param['dfa'], param['sparse'], param['init'], param['opt'])
+    name = '%s_%f_%f_%f_%s_%f_%f_%d_%d_%d_%s_%s' % (param['benchmark'], param['alpha'], param['l2'], param['eps'], param['act'], param['bias'], param['dropout'], param['dfa'], param['lel'], param['sparse'], param['init'], param['opt'])
     if param['load']:
         name += '_transfer'
-        cmd = "python %s --gpu %d --epochs %d --batch_size %d --alpha %f --l2 %f --eps %f --act %s --bias %f --dropout %f --dfa %d --sparse %d --rank %d --init %s --opt %s --save %d --name %s --load %s" % \
-              (param['benchmark'], gpu, param['epochs'], param['batch_size'], param['alpha'], param['l2'], param['eps'], param['act'], param['bias'], param['dropout'], param['dfa'], param['sparse'], param['rank'], param['init'], param['opt'], 1, name, param['load'])
+        cmd = "python %s --gpu %d --epochs %d --batch_size %d --alpha %f --l2 %f --eps %f --act %s --bias %f --dropout %f --dfa %d --lel %d --sparse %d --rank %d --init %s --opt %s --save %d --name %s --load %s" % \
+              (param['benchmark'], gpu, param['epochs'], param['batch_size'], param['alpha'], param['l2'], param['eps'], param['act'], param['bias'], param['dropout'], param['dfa'], param['lel'], param['sparse'], param['rank'], param['init'], param['opt'], 1, name, param['load'])
     else:
-        cmd = "python %s --gpu %d --epochs %d --batch_size %d --alpha %f --l2 %f --eps %f --act %s --bias %f --dropout %f --dfa %d --sparse %d --rank %d --init %s --opt %s --save %d --name %s" % \
-              (param['benchmark'], gpu, param['epochs'], param['batch_size'], param['alpha'], param['l2'], param['eps'], param['act'], param['bias'], param['dropout'], param['dfa'], param['sparse'], param['rank'], param['init'], param['opt'], 1, name)
+        cmd = "python %s --gpu %d --epochs %d --batch_size %d --alpha %f --l2 %f --eps %f --act %s --bias %f --dropout %f --dfa %d --lel %d --sparse %d --rank %d --init %s --opt %s --save %d --name %s" % \
+              (param['benchmark'], gpu, param['epochs'], param['batch_size'], param['alpha'], param['l2'], param['eps'], param['act'], param['bias'], param['dropout'], param['dfa'], param['lel'], param['sparse'], param['rank'], param['init'], param['opt'], 1, name)
 
     if cmd_args.print:
         print (cmd)

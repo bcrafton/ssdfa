@@ -15,8 +15,8 @@ parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--dropout', type=float, default=0.5)
 parser.add_argument('--act', type=str, default='relu')
 parser.add_argument('--bias', type=float, default=0.)
-parser.add_argument('--gpu', type=int, default=0)
-parser.add_argument('--lel', type=int, default=0)
+parser.add_argument('--gpu', type=int, default=1)
+parser.add_argument('--lel', type=int, default=1)
 parser.add_argument('--dfa', type=int, default=0)
 parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
@@ -154,9 +154,9 @@ def get_validation_dataset():
 
     print ("building validation dataset")
 
-    for subdir, dirs, files in os.walk('/home/bcrafton3/Data/ILSVRC2012/val/'):
+    for subdir, dirs, files in os.walk('/home/bcrafton3/Data_SSD/ILSVRC2012/val/'):
         for file in files:
-            validation_images.append(os.path.join('/home/bcrafton3/Data/ILSVRC2012/val/', file))
+            validation_images.append(os.path.join('/home/bcrafton3/Data_SSD/ILSVRC2012/val/', file))
     validation_images = sorted(validation_images)
 
     validation_labels_file = open('/home/bcrafton3/dfa/imagenet_labels/validation_labels.txt')
@@ -194,7 +194,7 @@ def get_train_dataset():
 
     print ("building dataset")
 
-    for subdir, dirs, files in os.walk('/home/bcrafton3/Data/ILSVRC2012/train/'):
+    for subdir, dirs, files in os.walk('/home/bcrafton3/Data_SSD/ILSVRC2012/train/'):
         for folder in dirs:
             for folder_subdir, folder_dirs, folder_files in os.walk(os.path.join(subdir, folder)):
                 for file in folder_files:
@@ -295,21 +295,21 @@ l12 = LELConv(batch_size=batch_size, input_shape=l11.output_shape(), filter_size
 
 l13 = ConvToFullyConnected(input_shape=l11.output_shape())
 
-l14 = FullyConnected(input_shape=l13.output_shape(), size=4096, init=args.init, activation=act, bias=1., name="fc1")
-# l15 = Dropout(rate=dropout_rate)
+l14 = FullyConnected(input_shape=l13.output_shape(), size=4096, init=args.init, activation=Relu(), bias=1., name="fc1")
+l15 = Dropout(rate=dropout_rate)
 l16 = LELFC(input_shape=l14.output_shape(), num_classes=1000, name='fc1_fb')
 
-l17 = FullyConnected(input_shape=l16.output_shape(), size=4096, init=args.init, activation=act, bias=1., name="fc2")
-# l18 = Dropout(rate=dropout_rate)
+l17 = FullyConnected(input_shape=l16.output_shape(), size=4096, init=args.init, activation=Relu(), bias=1., name="fc2")
+l18 = Dropout(rate=dropout_rate)
 l19 = LELFC(input_shape=l17.output_shape(), num_classes=1000, name='fc2_fb')
 
-l20 = FullyConnected(input_shape=l19.output_shape(), size=1000, init=args.init, activation=act, bias=1., last_layer=True, name="fc2")
+l20 = FullyConnected(input_shape=l19.output_shape(), size=1000, init=args.init, activation=Linear(), bias=0., last_layer=True, name="fc3")
 
 ###############################################################
 
-# model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16, l17, l18, l19, l20])
+model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16, l17, l18, l19, l20])
 # model = Model(layers=[l0, l1, l3, l4, l6, l8, l10, l11, l13, l14, l17, l20])
-model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l16, l17, l19, l20])
+# model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l16, l17, l19, l20])
 
 predict = tf.nn.softmax(model.predict(X=features))
 
