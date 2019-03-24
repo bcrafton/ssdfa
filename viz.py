@@ -39,7 +39,7 @@ def viz(name, filters):
 
 ###############################################
 
-weights = np.load('cifar10_conv2_bp.npy').item()
+weights = np.load('cifar10_conv1.npy').item()
 
 conv1 = weights['conv1']
 viz('conv1', conv1)

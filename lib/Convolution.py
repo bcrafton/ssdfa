@@ -35,7 +35,7 @@ class Convolution(Layer):
             print ("Loading Weights: " + self.name)
             weight_dict = np.load(load, encoding='latin1').item()
             self.filters = tf.Variable(weight_dict[self.name])
-            self.bias = tf.Variable(weight_dict[self.name + '_bias'])
+            self.bias = tf.Variable(np.zeros(shape=self.fout), dtype=tf.float32)
         else:
             if init_filters == "zero":
                 filters = np.zeros(shape=self.filter_sizes)
@@ -61,8 +61,8 @@ class Convolution(Layer):
         return filter_weights_size + bias_weights_size
                 
     def forward(self, X):
-        # Z = tf.add(tf.nn.conv2d(X, self.filters, self.strides, self.padding), tf.reshape(self.bias, [1, 1, self.fout]))
-        Z = tf.nn.conv2d(X, self.filters, self.strides, self.padding)
+        Z = tf.add(tf.nn.conv2d(X, self.filters, self.strides, self.padding), tf.reshape(self.bias, [1, 1, self.fout]))
+        # Z = tf.nn.conv2d(X, self.filters, self.strides, self.padding)
         A = self.activation.forward(Z)
         return A
         
