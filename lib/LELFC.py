@@ -44,10 +44,10 @@ class LELFC(Layer):
 
         # THE PROBLEM WAS NEVER THE BIAS ... IT WAS THE FACT WE WERNT DIVIDING BY N
         
-        l0 = FullyConnected(input_shape=input_shape, size=self.input_shape, init='alexnet', activation=Relu(), bias=1., name=self.name)
-        l1 = FullyConnected(input_shape=input_shape, size=self.num_classes, init='alexnet', activation=Linear(), bias=1., name=self.name)        
+        # l0 = FullyConnected(input_shape=input_shape, size=self.input_shape, init='alexnet', activation=Relu(), bias=1., name=self.name)
+        self.l0 = FullyConnected(input_shape=input_shape, size=self.num_classes, init='alexnet', activation=Linear(), bias=1., name=self.name)        
 
-        self.B = Model(layers=[l0, l1])
+        # self.B = Model(layers=[l1])
 
     def get_weights(self):
         # return self.l0.get_weights()
@@ -103,24 +103,24 @@ class LELFC(Layer):
         # (* activation.gradient) and (* AI) occur in the actual layer itself.
         return DO
         '''
-        '''
+        # '''
         S = self.l0.forward(AI)
         ES = tf.subtract(tf.nn.softmax(S), Y)
         DI = self.l0.backward(AI, S, ES)
-        '''
+        # '''
 
-        DI = self.B.backwards(AI, Y)
+        # DI = self.B.backwards(AI, Y)
 
         return DI
 
     def lel_gv(self, AI, AO, E, DO, Y):
-        '''
+        # '''
         S = self.l0.forward(AI)
         ES = tf.subtract(tf.nn.softmax(S), Y)
         gvs = self.l0.gv(AI, S, ES)
-        '''
+        # '''
 
-        gvs = self.B.gvs(AI, Y)
+        # gvs = self.B.gvs(AI, Y)
 
         return gvs
         

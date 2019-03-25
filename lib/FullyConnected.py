@@ -76,7 +76,7 @@ class FullyConnected(Layer):
         N = tf.cast(N, dtype=tf.float32)
         
         DO = tf.multiply(DO, self.activation.gradient(AO))
-        DW = tf.matmul(tf.transpose(AI), DO) + self.l2 * self.weights
+        DW = tf.matmul(tf.transpose(AI), DO) 
         DB = tf.reduce_sum(DO, axis=0)
 
         return [(DW, self.weights), (DB, self.bias)]
@@ -89,7 +89,7 @@ class FullyConnected(Layer):
         N = tf.cast(N, dtype=tf.float32)
 
         DO = tf.multiply(DO, self.activation.gradient(AO))
-        DW = tf.matmul(tf.transpose(AI), DO) + self.l2 * self.weights
+        DW = tf.matmul(tf.transpose(AI), DO) 
         DB = tf.reduce_sum(DO, axis=0)
 
         self.weights = self.weights.assign(tf.subtract(self.weights, tf.scalar_mul(self.alpha, DW)))
@@ -109,7 +109,7 @@ class FullyConnected(Layer):
         N = tf.cast(N, dtype=tf.float32)
 
         DO = tf.multiply(DO, self.activation.gradient(AO))
-        DW = tf.matmul(tf.transpose(AI), DO) + self.l2 * self.weights
+        DW = tf.matmul(tf.transpose(AI), DO) 
         DB = tf.reduce_sum(DO, axis=0)
         
         return [(DW, self.weights), (DB, self.bias)]
@@ -122,7 +122,7 @@ class FullyConnected(Layer):
         N = tf.cast(N, dtype=tf.float32)
 
         DO = tf.multiply(DO, self.activation.gradient(AO))
-        DW = tf.matmul(tf.transpose(AI), DO) + self.l2 * self.weights
+        DW = tf.matmul(tf.transpose(AI), DO) 
         DB = tf.reduce_sum(DO, axis=0)
 
         self.weights = self.weights.assign(tf.subtract(self.weights, tf.scalar_mul(self.alpha, DW)))
