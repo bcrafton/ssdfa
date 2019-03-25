@@ -92,13 +92,13 @@ X = tf.placeholder(tf.float32, [None, 32, 32, 3])
 X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), X)
 Y = tf.placeholder(tf.float32, [None, 10])
 
-l0 = Convolution(input_sizes=[batch_size, 32, 32, 3], filter_sizes=[5, 5, 3, 96], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load=weights_conv, train=train_conv)
-l1 = MaxPool(size=[batch_size, 32, 32, 96], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
-l2 = FeedbackConv(size=[batch_size, 16, 16, 96], num_classes=10, sparse=args.sparse, rank=args.rank, name='conv1_fb')
+l0 = Convolution(batch_size=batch_size, input_shape=[32, 32, 3], filter_sizes=[5, 5, 3, 96], init=args.init, strides=[1, 1], padding="SAME", activation=act, bias=args.bias, name='conv1', load=weights_conv, train=train_conv)
+l1 = MaxPool(batch_size=batch_size, input_shape=l0.output_shape(), ksize=[3, 3], strides=[2, 2], padding="SAME")
+l2 = LELConv(batch_size=batch_size, input_shape=l1.output_shape(), filter_sizes=[3, 3, 96, 96], num_classes=10, name='conv1_fb')
 
-l3 = ConvToFullyConnected(shape=[16, 16, 96])
+l3 = ConvToFullyConnected(input_shape=l2.output_shape())
 
-l4 = FullyConnected(size=[16*16*96, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name='fc1', load=weights_fc, train=train_fc)
+l4 = FullyConnected(input_shape=l13.output_shape(), size=10, init=args.init, activation=Linear(), bias=args.bias, last_layer=True, name='fc3')
 
 ##############################################
 
