@@ -76,6 +76,19 @@ from Activation import Linear
 
 ##############################################
 
+def in_top_k(x, y, k):
+    x = tf.cast(x, dtype=tf.float32)
+    y = tf.cast(y, dtype=tf.int32)
+
+    _, topk = tf.nn.top_k(input=x, k=k)
+    topk = tf.transpose(topk)
+    correct = tf.equal(y, topk)
+    correct = tf.cast(correct, dtype=tf.int32)
+    correct = tf.reduce_sum(correct, axis=0)
+    return correct
+    
+##############################################
+
 batch_size = args.batch_size
 num_classes = 1000
 epochs = args.epochs
@@ -148,9 +161,9 @@ def get_validation_dataset():
 
     print ("building validation dataset")
 
-    for subdir, dirs, files in os.walk('/home/bcrafton3/ILSVRC2012/val/'):
+    for subdir, dirs, files in os.walk('/home/bcrafton3/Data_SSD/ILSVRC2012/val/'):
         for file in files:
-            validation_images.append(os.path.join('/home/bcrafton3/ILSVRC2012/val/', file))
+            validation_images.append(os.path.join('/home/bcrafton3/Data_SSD/ILSVRC2012/val/', file))
     validation_images = sorted(validation_images)
 
     validation_labels_file = open('/home/bcrafton3/dfa/imagenet_labels/validation_labels.txt')
@@ -188,7 +201,7 @@ def get_train_dataset():
 
     print ("building dataset")
 
-    for subdir, dirs, files in os.walk('/home/bcrafton3/ILSVRC2012/train/'):
+    for subdir, dirs, files in os.walk('/home/bcrafton3/Data_SSD/ILSVRC2012/train/'):
         for folder in dirs:
             for folder_subdir, folder_dirs, folder_files in os.walk(os.path.join(subdir, folder)):
                 for file in folder_files:
@@ -333,7 +346,8 @@ else:
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
 
-top5 = tf.nn.in_top_k(predictions=predict, targets=tf.argmax(labels,1), k=5)
+# top5 = tf.nn.in_top_k(predictions=predict, targets=tf.argmax(labels,1), k=5)
+top5 = in_top_k(predict, tf.argmax(labels,1), k=5)
 total_top5 = tf.reduce_sum(tf.cast(top5, tf.float32))
 
 weights = model.get_weights()
@@ -342,10 +356,14 @@ print (model.num_params())
 
 ###############################################################
 
-config = tf.ConfigProto()
+# config = tf.ConfigProto()
+config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)
 config.gpu_options.allow_growth=True
-sess = tf.InteractiveSession(config=config)
-tf.global_variables_initializer().run()
+
+# sess = tf.InteractiveSession(config=config)
+# tf.global_variables_initializer().run()
+sess = tf.Session(config=config)
+sess.run(tf.global_variables_initializer())
 
 train_handle = sess.run(train_iterator.string_handle())
 val_handle = sess.run(val_iterator.string_handle())
