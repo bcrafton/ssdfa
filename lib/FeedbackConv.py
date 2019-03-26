@@ -21,10 +21,16 @@ class FeedbackConv(Layer):
 
         if load:
             weight_dict = np.load(load).item()
-            self.B = tf.cast(tf.Variable(weight_dict[self.name]), tf.float32)
+            b = weight_dict[self.name]
+            self.B = tf.Variable(b, dtype=tf.float32)
         else:
-            b = FeedbackMatrix(size=(self.num_classes, self.num_output), sparse=self.sparse, rank=self.rank)
-            self.B = tf.cast(tf.Variable(b), tf.float32) 
+            b, mask = FeedbackMatrix(size=(self.num_classes, self.num_output), sparse=self.sparse, rank=self.rank)
+
+            # print (np.count_nonzero(b), np.prod(np.shape(b)))
+
+            self.B = tf.Variable(b, dtype=tf.float32) 
+            # self.Mask = tf.Variable(mask, dtype=tf.float32)
+
 
     ###################################################################
     
@@ -60,8 +66,11 @@ class FeedbackConv(Layer):
         return E
         
     def dfa_gv(self, AI, AO, E, DO):
+        # AI = tf.reshape(AI, (-1, self.num_output))
+        # DW = tf.matmul(tf.transpose(E), AI) # * self.Mask
+        # return [(DW, self.B)]
         return []
-        
+
     def dfa(self, AI, AO, E, DO): 
         return []
         
