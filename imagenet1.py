@@ -310,7 +310,7 @@ l17 = FullyConnected(size=[4096, 4096], num_classes=num_classes, init_weights=ar
 l18 = Dropout(rate=dropout_rate)
 l19 = FeedbackFC(size=[4096, 4096], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="fc2_fb", std=0.01)
 '''
-l20 = FullyConnected(size=[27*27*96, num_classes], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=1.0, last_layer=True, l2=args.l2, name="fc3", load=weights_fc, train=train_conv)
+l20 = FullyConnected(size=[27*27*96, num_classes], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, l2=args.l2, name="fc3", load=weights_fc, train=train_conv)
 
 ###############################################################
 

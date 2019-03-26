@@ -66,10 +66,10 @@ class FeedbackConv(Layer):
         return E
         
     def dfa_gv(self, AI, AO, E, DO):
-        # AI = tf.reshape(AI, (-1, self.num_output))
-        # DW = tf.matmul(tf.transpose(E), AI) # * self.Mask
-        # return [(DW, self.B)]
-        return []
+        AI = tf.reshape(AI, (-1, self.num_output))
+        DW = tf.matmul(tf.transpose(E), AI) # * self.Mask
+        return [(DW, self.B)]
+        # return []
 
     def dfa(self, AI, AO, E, DO): 
         return []
