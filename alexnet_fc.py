@@ -49,8 +49,8 @@ import numpy as np
 np.set_printoptions(threshold=1000)
 import time
 
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
+# import matplotlib.pyplot as plt
+# import matplotlib.image as mpimg
 import numpy as np
 from PIL import Image
 import scipy.misc
@@ -73,6 +73,19 @@ from Activation import Tanh
 from Activation import Softmax
 from Activation import LeakyRelu
 from Activation import Linear
+
+##############################################
+
+def in_top_k(x, y, k):
+    x = tf.cast(x, dtype=tf.float32)
+    y = tf.cast(y, dtype=tf.int32)
+
+    _, topk = tf.nn.top_k(input=x, k=k)
+    topk = tf.transpose(topk)
+    correct = tf.equal(y, topk)
+    correct = tf.cast(correct, dtype=tf.int32)
+    correct = tf.reduce_sum(correct, axis=0)
+    return correct
 
 ##############################################
 
@@ -121,9 +134,9 @@ def get_val_filenames():
 
     print ("building validation dataset")
 
-    for subdir, dirs, files in os.walk('/home/bcrafton3/tfrecord/alexnet/test/'):
+    for subdir, dirs, files in os.walk('/home/bcrafton3/Data_SSD/tfrecord/alexnet/test/'):
         for file in files:
-            val_filenames.append(os.path.join('/home/bcrafton3/tfrecord/alexnet/test/', file))
+            val_filenames.append(os.path.join('/home/bcrafton3/Data_SSD/tfrecord/alexnet/test/', file))
 
     np.random.shuffle(val_filenames)    
 
@@ -134,9 +147,9 @@ def get_train_filenames():
 
     print ("building training dataset")
 
-    for subdir, dirs, files in os.walk('/home/bcrafton3/tfrecord/alexnet/train/'):
+    for subdir, dirs, files in os.walk('/home/bcrafton3/Data_SSD/tfrecord/alexnet/train/'):
         for file in files:
-            train_filenames.append(os.path.join('/home/bcrafton3/tfrecord/alexnet/train/', file))
+            train_filenames.append(os.path.join('/home/bcrafton3/Data_SSD/tfrecord/alexnet/train/', file))
     
     np.random.shuffle(train_filenames)
 
@@ -260,7 +273,8 @@ else:
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
 
-top5 = tf.nn.in_top_k(predictions=predict, targets=tf.argmax(labels,1), k=5)
+# top5 = tf.nn.in_top_k(predictions=predict, targets=tf.argmax(labels,1), k=5)
+top5 = in_top_k(predict, tf.argmax(labels,1), k=5)
 total_top5 = tf.reduce_sum(tf.cast(top5, tf.float32))
 
 weights = model.get_weights()
@@ -269,10 +283,14 @@ print (model.num_params())
 
 ###############################################################
 
-config = tf.ConfigProto()
+# config = tf.ConfigProto()
+config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)
 config.gpu_options.allow_growth=True
-sess = tf.InteractiveSession(config=config)
-tf.global_variables_initializer().run()
+
+# sess = tf.InteractiveSession(config=config)
+# tf.global_variables_initializer().run()
+sess = tf.Session(config=config)
+sess.run(tf.global_variables_initializer())
 
 train_handle = sess.run(train_iterator.string_handle())
 val_handle = sess.run(val_iterator.string_handle())
