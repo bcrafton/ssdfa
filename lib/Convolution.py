@@ -35,6 +35,7 @@ class Convolution(Layer):
             print ("Loading Weights: " + self.name)
             weight_dict = np.load(load, encoding='latin1').item()
             self.filters = tf.Variable(weight_dict[self.name])
+            # load the bias or not ???
             self.bias = tf.Variable(weight_dict[self.name + '_bias'])
         else:
             if init_filters == "zero":
@@ -48,7 +49,7 @@ class Convolution(Layer):
                 # glorot
                 assert(False)
                 
-        self.filters = tf.Variable(filters, dtype=tf.float32)
+            self.filters = tf.Variable(filters, dtype=tf.float32)
 
     ###################################################################
 

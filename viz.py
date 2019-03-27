@@ -39,25 +39,22 @@ def viz(name, filters):
 
 ###############################################
 
-# weights = np.load('cifar10_conv_bp.npy').item()
-# weights = np.load('imagenet1.npy').item()
-# weights = np.load('imagenet.py_0.010000_0.000000_1.000000_relu_0.000000_0.500000_0_0_alexnet_adam.npy').item()
-weights = np.load('imagenet_dfa.npy').item()
-# weights = np.load('imagenet_dfa1.npy').item()
-
-print (weights.keys())
-
-conv1 = weights['conv1']
-viz('conv1', conv1)
-
-conv2 = weights['conv2']
-viz('conv2', conv2)
-
-conv3 = weights['conv3']
-viz('conv3', conv3)
-
-conv12 = weights['conv12']
-viz('conv12', conv12)
+def viz_conv(name, weight):
+    weights = np.load(name + '.npy').item()
+    conv1 = weights[weight]
+    viz(name + '_' + weight, conv1)
 
 ###############################################
+
+viz_conv('imagenet_bp1', 'conv1')
+viz_conv('imagenet_bp2', 'conv1')
+viz_conv('imagenet_dfa1', 'conv1')
+viz_conv('imagenet_dfa2', 'conv1')
+
+# viz_conv('imagenet_bp1', 'conv2')
+viz_conv('imagenet_bp2', 'conv2')
+# viz_conv('imagenet_dfa1', 'conv2')
+viz_conv('imagenet_dfa2', 'conv2')
+
+viz_conv('imagenet_dfa1_load', 'conv1')
 

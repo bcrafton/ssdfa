@@ -318,7 +318,7 @@ learning_rate = tf.placeholder(tf.float32, shape=())
 
 l0 = Convolution(input_sizes=[batch_size, 227, 227, 3], filter_sizes=[11, 11, 3, 96], num_classes=num_classes, init_filters=args.init, strides=[1, 4, 4, 1], padding="VALID", alpha=learning_rate, activation=Relu(), bias=1.0, last_layer=False, name="conv1", load=weights_conv, train=train_conv)
 l1 = MaxPool(size=[batch_size, 55, 55, 96], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="VALID")
-l2 = FeedbackConv(size=[batch_size, 27, 27, 96], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="conv1_fb")
+l2 = FeedbackConv(size=[batch_size, 27, 27, 96], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="conv1_fb", load='imagenet_bp1.npy')
 '''
 l3 = Convolution(input_sizes=[batch_size, 27, 27, 96], filter_sizes=[5, 5, 96, 256], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=1., last_layer=False, name="conv2", load=weights_conv, train=train_conv)
 l4 = MaxPool(size=[batch_size, 27, 27, 256], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="VALID")
