@@ -7,13 +7,13 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=100)
-parser.add_argument('--batch_size', type=int, default=64)
+parser.add_argument('--batch_size', type=int, default=128)
 parser.add_argument('--alpha', type=float, default=1e-2)
 parser.add_argument('--l2', type=float, default=0.)
 parser.add_argument('--decay', type=float, default=1.)
 parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--dropout', type=float, default=0.5)
-parser.add_argument('--act', type=str, default='tanh')
+parser.add_argument('--act', type=str, default='relu')
 parser.add_argument('--bias', type=float, default=0.)
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--dfa', type=int, default=0)
@@ -56,24 +56,24 @@ import numpy as np
 from PIL import Image
 import scipy.misc
 
-from Model import Model
+from lib.Model import Model
 
-from Layer import Layer 
-from ConvToFullyConnected import ConvToFullyConnected
-from FullyConnected import FullyConnected
-from Convolution import Convolution
-from MaxPool import MaxPool
-from Dropout import Dropout
-from FeedbackFC import FeedbackFC
-from FeedbackConv import FeedbackConv
+from lib.Layer import Layer 
+from lib.ConvToFullyConnected import ConvToFullyConnected
+from lib.FullyConnected import FullyConnected
+from lib.Convolution import Convolution
+from lib.MaxPool import MaxPool
+from lib.Dropout import Dropout
+from lib.FeedbackFC import FeedbackFC
+from lib.FeedbackConv import FeedbackConv
 
-from Activation import Activation
-from Activation import Sigmoid
-from Activation import Relu
-from Activation import Tanh
-from Activation import Softmax
-from Activation import LeakyRelu
-from Activation import Linear
+from lib.Activation import Activation
+from lib.Activation import Sigmoid
+from lib.Activation import Relu
+from lib.Activation import Tanh
+from lib.Activation import Softmax
+from lib.Activation import LeakyRelu
+from lib.Activation import Linear
 
 ##############################################
 
@@ -81,9 +81,6 @@ batch_size = args.batch_size
 num_classes = 1000
 epochs = args.epochs
 data_augmentation = False
-
-EPOCHS = args.epochs
-BATCH_SIZE = args.batch_size
 
 ##############################################
 
@@ -209,7 +206,9 @@ def extract_fn(record):
         'image_raw': tf.FixedLenFeature([], tf.string)
     }
     sample = tf.parse_single_example(record, _feature)
-    image = tf.decode_raw(sample['image_raw'], tf.float32)
+    image = tf.decode_raw(sample['image_raw'], tf.uint8)
+    # this was tricky ... stored as uint8, not float32.
+    image = tf.cast(image, dtype=tf.float32)
     image = tf.reshape(image, (1, -1))
     label = sample['label']
     return [image, label]
@@ -257,16 +256,26 @@ train_dataset = train_dataset.prefetch(8)
 handle = tf.placeholder(tf.string, shape=[])
 iterator = tf.data.Iterator.from_string_handle(handle, train_dataset.output_types, train_dataset.output_shapes)
 features, labels = iterator.get_next()
-features = tf.reshape(features, (-1, 64, 64, 3))
+
+# features = tf.Print(features, [tf.shape(features)], message='features shape1 ', summarize=1000)
+# labels = tf.Print(labels, [tf.shape(labels)], message='labels shape1 ', summarize=1000)
+
+features = tf.reshape(features, (args.batch_size, 64, 64, 3))
 labels = tf.one_hot(labels, depth=num_classes)
 
-# features = tf.Print(features, [tf.shape(features)], message='', summarize=1000)
-# labels = tf.Print(labels, [tf.shape(labels)], message='', summarize=1000)
+# features = tf.Print(features, [tf.shape(features)], message='features shape2 ', summarize=1000)
+# labels = tf.Print(labels, [tf.shape(labels)], message='labels shape2 ', summarize=1000)
 
 train_iterator = train_dataset.make_initializable_iterator()
 val_iterator = val_dataset.make_initializable_iterator()
 
 ###############################################################
+
+weights_conv = None
+weights_fc = None
+
+train_conv = True
+train_fc = True
 
 if args.act == 'tanh':
     act = Tanh()
@@ -296,15 +305,13 @@ l9 = Convolution(input_sizes=[batch_size, 8, 8, 256], filter_sizes=[3, 3, 256, 5
 l10 = Convolution(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 512, 512], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=0.0, last_layer=False, name="conv8", load=weights_conv, train=train_conv)
 l11 = MaxPool(size=[batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
-l14 = Convolution(input_sizes=[batch_size, 4, 4, 512], filter_sizes=[3, 3, 512, 512], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=0.0, last_layer=False, name="conv9", load=weights_conv, train=train_conv)
-l15 = Convolution(input_sizes=[batch_size, 4, 4, 512], filter_sizes=[3, 3, 512, 512], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=0.0, last_layer=False, name="conv10", load=weights_conv, train=train_conv)
-l17 = MaxPool(size=[batch_size, 4, 4, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
+l12 = ConvToFullyConnected(shape=[4, 4, 512])
 
-l18 = FullyConnected(size=[4*4*512, num_classes], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name="fc1", load=weights_fc, train=train_fc)
+l13 = FullyConnected(size=[4*4*512, num_classes], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name="fc1", load=weights_fc, train=train_fc)
 
 ###############################################################
 
-model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16, l17, l18])
+model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13])
 
 predict = tf.nn.softmax(model.predict(X=features))
 
@@ -345,7 +352,8 @@ print (model.num_params())
 ###############################################################
 
 # config = tf.ConfigProto()
-config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)
+# config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)
+config = tf.ConfigProto(allow_soft_placement=True)
 config.gpu_options.allow_growth=True
 
 # sess = tf.InteractiveSession(config=config)
