@@ -22,7 +22,7 @@ parser.add_argument('--rank', type=int, default=0)
 parser.add_argument('--init', type=str, default="alexnet")
 parser.add_argument('--opt', type=str, default="adam")
 parser.add_argument('--save', type=int, default=0)
-parser.add_argument('--name', type=str, default="imagenet_vgg")
+parser.add_argument('--name', type=str, default="vgg64x64")
 parser.add_argument('--load', type=str, default=None)
 args = parser.parse_args()
 
@@ -185,6 +185,9 @@ def get_val_filenames():
 
     np.random.shuffle(val_filenames)    
 
+    remainder = len(val_filenames) % batch_size
+    val_filenames = val_filenames[:(-remainder)]
+
     return val_filenames
     
 def get_train_filenames():
@@ -197,6 +200,9 @@ def get_train_filenames():
             train_filenames.append(os.path.join('/home/bcrafton3/Data_SSD/64x64/tfrecord/train/', file))
     
     np.random.shuffle(train_filenames)
+
+    remainder = len(train_filenames) % batch_size
+    train_filenames = train_filenames[:(-remainder)]
 
     return train_filenames
 
@@ -257,6 +263,7 @@ handle = tf.placeholder(tf.string, shape=[])
 iterator = tf.data.Iterator.from_string_handle(handle, train_dataset.output_types, train_dataset.output_shapes)
 features, labels = iterator.get_next()
 
+# features = tf.Print(features, [tf.keras.backend.std(features)], message='', summarize=1000)
 # features = tf.Print(features, [tf.shape(features)], message='features shape1 ', summarize=1000)
 # labels = tf.Print(labels, [tf.shape(labels)], message='labels shape1 ', summarize=1000)
 
