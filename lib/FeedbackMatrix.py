@@ -41,6 +41,8 @@ def FeedbackMatrix(size : tuple, sparse : int, rank : int):
     connects_per = (1.0 * sparse * rank / input_size)
     
     idxs = []
+
+    mask = np.ones(shape=size)
     
     if sparse and rank:
         assert(sparse * rank >= input_size)
@@ -109,7 +111,7 @@ def FeedbackMatrix(size : tuple, sparse : int, rank : int):
     else:
         fb = np.random.uniform(low, high, size=(input_size, output_size))
 
-    return fb
+    return fb, mask
 
 '''
 size = (10, 100)
