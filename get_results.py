@@ -33,7 +33,7 @@ for ii in range(num_runs):
         transfer = 0
     
     key = (param['benchmark'], param['dfa'], param['sparse'], transfer)
-    val = max(res['test_acc'])
+    val = max(res['val_acc'])
 
     print (name, val)
     
