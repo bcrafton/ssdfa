@@ -1,4 +1,7 @@
 
+# https://learningai.io/projects/2017/06/29/tiny-imagenet.html
+# not getting that great of acc
+
 import argparse
 import os
 import sys
@@ -324,24 +327,24 @@ l5 = MaxPool(size=[batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 
 l6 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 256], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv5", load=weights_conv, train=train_conv)
 l7 = Convolution(input_sizes=[batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 256], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv6", load=weights_conv, train=train_conv)
 l8 = MaxPool(size=[batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
-'''
+
 l9 = Convolution(input_sizes=[batch_size, 8, 8, 256], filter_sizes=[3, 3, 256, 512], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv7", load=weights_conv, train=train_conv)
 l10 = Convolution(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 512, 512], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv8", load=weights_conv, train=train_conv)
 l11 = MaxPool(size=[batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
-'''
-l12 = ConvToFullyConnected(shape=[8, 8, 256])
 
-l13 = FullyConnected(size=[8*8*256, 4096], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="fc1", load=weights_fc, train=train_fc)
+l12 = ConvToFullyConnected(shape=[4, 4, 512])
+
+l13 = FullyConnected(size=[4*4*512, 4096], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Relu(), bias=1.0, last_layer=False, name="fc1", load=weights_fc, train=train_fc)
 
 l14 = Dropout(rate=dropout_rate)
 
-l15 = FullyConnected(size=[4096, num_classes], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name="fc2", load=weights_fc, train=train_fc)
+l15 = FullyConnected(size=[4096, num_classes], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=1.0, last_layer=True, name="fc2", load=weights_fc, train=train_fc)
 
 ###############################################################
 
-# model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15])
+model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15])
 # model = Model(layers=[l0, l1, l2, l3, l4, l5, l12, l13, l14, l15])
-model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l12, l13, l14, l15])
+# model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l12, l13, l14, l15])
 
 predict = tf.nn.softmax(model.predict(X=features))
 
