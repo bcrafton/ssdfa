@@ -316,9 +316,9 @@ else:
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 
-l0 = FullyConnected(size=[64*64*3, 4096], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Relu(), bias=1.0, last_layer=False, name="fc1", load=weights_fc, train=train_fc)
+l0 = FullyConnected(size=[64*64*3, 4096], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="fc1", load=weights_fc, train=train_fc)
 l1 = Dropout(rate=dropout_rate)
-l2 = FullyConnected(size=[4096, num_classes], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=1.0, last_layer=True, name="fc2", load=weights_fc, train=train_fc)
+l2 = FullyConnected(size=[4096, num_classes], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name="fc2", load=weights_fc, train=train_fc)
 
 ###############################################################
 
