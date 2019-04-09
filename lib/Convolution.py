@@ -34,9 +34,16 @@ class Convolution(Layer):
         if load:
             print ("Loading Weights: " + self.name)
             weight_dict = np.load(load, encoding='latin1').item()
-            self.filters = tf.Variable(weight_dict[self.name])
-            self.bias = tf.Variable(weight_dict[self.name + '_bias'])
+            
+            filters = weight_dict[self.name]
+            shape = np.shape(filters)
+            filters = np.random.uniform(low=-0.1, high=0.1, size=shape)
+            
+            self.filters = tf.Variable(weight_dict[self.name], dtype=tf.float32)
+            # self.bias = tf.Variable(weight_dict[self.name + '_bias'])
+            
         else:
+            assert(False)
             if init_filters == "zero":
                 filters = np.zeros(shape=self.filter_sizes)
             elif init_filters == "sqrt_fan_in":
@@ -48,7 +55,7 @@ class Convolution(Layer):
                 # glorot
                 assert(False)
                 
-        self.filters = tf.Variable(filters, dtype=tf.float32)
+            self.filters = tf.Variable(filters, dtype=tf.float32)
 
     ###################################################################
 
@@ -61,7 +68,8 @@ class Convolution(Layer):
         return filter_weights_size + bias_weights_size
                 
     def forward(self, X):
-        Z = tf.add(tf.nn.conv2d(X, self.filters, self.strides, self.padding), tf.reshape(self.bias, [1, 1, self.fout]))
+        # Z = tf.add(tf.nn.conv2d(X, self.filters, self.strides, self.padding), tf.reshape(self.bias, [1, 1, self.fout]))
+        Z = tf.nn.conv2d(X, self.filters, self.strides, self.padding)
         A = self.activation.forward(Z)
         return A
         
