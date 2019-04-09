@@ -36,10 +36,16 @@ class Convolution(Layer):
             weight_dict = np.load(load, encoding='latin1').item()
             
             filters = weight_dict[self.name]
-            shape = np.shape(filters)
-            filters = np.random.uniform(low=-0.1, high=0.1, size=shape)
-            
-            self.filters = tf.Variable(weight_dict[self.name], dtype=tf.float32)
+            filters = filters / 50.
+
+            print (np.std(filters), np.mean(filters))
+
+            sqrt_fan_in = math.sqrt(self.h*self.w*self.fin)
+            filters = np.random.uniform(low=-1.0/sqrt_fan_in, high=1.0/sqrt_fan_in, size=self.filter_sizes)
+
+            print (np.std(filters), np.mean(filters))
+
+            self.filters = tf.Variable(filters, dtype=tf.float32)
             # self.bias = tf.Variable(weight_dict[self.name + '_bias'])
             
         else:
