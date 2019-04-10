@@ -30,12 +30,26 @@ class Convolution(Layer):
 
         self.name = name
         self._train = train
-        
+
+        var = 2.0 / (self.fin + self.fout)
+        std = np.sqrt(var)
+        connect = np.random.normal(loc=0., scale=std, size=(1, 1, self.fin, self.fout))
+        self.connect = tf.Variable(connect, dtype=tf.float32)
+
         if load:
             print ("Loading Weights: " + self.name)
             weight_dict = np.load(load, encoding='latin1').item()
-            self.filters = tf.Variable(weight_dict[self.name])
-            self.bias = tf.Variable(weight_dict[self.name + '_bias'])
+
+            filters = weight_dict[self.name]
+            bias = weight_dict[self.name + '_bias']
+
+            filters = np.reshape(filters, (self.fh, self.fw, self.fin * self.fout))
+            perm = np.random.permutation(self.fin * self.fout)
+            filters = filters[:, :, perm]
+            filters = np.reshape(filters, (self.fh, self.fw, self.fin, self.fout))
+
+            self.filters = tf.Variable(filters)
+            self.bias = tf.Variable(bias)
         else:
             if init_filters == "zero":
                 filters = np.zeros(shape=self.filter_sizes)
@@ -48,7 +62,7 @@ class Convolution(Layer):
                 # glorot
                 assert(False)
                 
-        self.filters = tf.Variable(filters, dtype=tf.float32)
+            self.filters = tf.Variable(filters, dtype=tf.float32)
 
     ###################################################################
 
@@ -61,7 +75,9 @@ class Convolution(Layer):
         return filter_weights_size + bias_weights_size
                 
     def forward(self, X):
-        Z = tf.add(tf.nn.conv2d(X, self.filters, self.strides, self.padding), tf.reshape(self.bias, [1, 1, self.fout]))
+        # Z = tf.add(tf.nn.conv2d(X, self.filters, self.strides, self.padding), tf.reshape(self.bias, [1, 1, self.fout]))
+        # Z = tf.nn.conv2d(X, self.filters, self.strides, self.padding)
+        Z = tf.nn.conv2d(X, self.filters * self.connect, self.strides, self.padding)
         A = self.activation.forward(Z)
         return A
         
@@ -77,9 +93,23 @@ class Convolution(Layer):
             return []
     
         DO = tf.multiply(DO, self.activation.gradient(AO))
-        DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
-        DB = tf.reduce_sum(DO, axis=[0, 1, 2])
-        return [(DF, self.filters), (DB, self.bias)]
+
+        # maybe want to use tf.reduce_mean() here ? 
+        A = tf.reduce_sum(AI, axis=[1, 2])
+        D = tf.reduce_sum(DO, axis=[1, 2])
+        DC = tf.matmul(tf.transpose(A), D)
+        DC = tf.reshape(DC, (1, 1, self.fin, self.fout))
+        DC = DC / tf.keras.backend.std(DC)
+
+        # MAY NOT BE ABLE TO SCRAMBLE THE FIN DIMENSION.
+
+        # DO = tf.Print(DO, [tf.keras.backend.std(DC)], message='', summarize=1000)
+
+        # DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
+        # DB = tf.reduce_sum(DO, axis=[0, 1, 2])
+        # return [(DF, self.filters), (DB, self.bias)]
+
+        return [(DC, self.connect)]
         
     def train(self, AI, AO, DO): 
         if not self._train:

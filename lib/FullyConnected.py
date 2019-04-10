@@ -52,7 +52,7 @@ class FullyConnected(Layer):
                 # glorot
                 assert(False)
 
-        self.weights = tf.Variable(weights, dtype=tf.float32)
+            self.weights = tf.Variable(weights, dtype=tf.float32)
 
     ###################################################################
         
