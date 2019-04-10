@@ -31,25 +31,26 @@ class Convolution(Layer):
         self.name = name
         self._train = train
         
+        var = 2.0 / (self.fin + self.fout)
+        std = np.sqrt(var)
+        connect = np.random.normal(loc=0., scale=std, size=(1, 1, self.fin, self.fout))
+        self.connect = tf.Variable(connect, dtype=tf.float32)
+        
         if load:
             print ("Loading Weights: " + self.name)
             weight_dict = np.load(load, encoding='latin1').item()
             
             filters = weight_dict[self.name]
-            filters = filters / 50.
-
-            print (np.std(filters), np.mean(filters))
 
             sqrt_fan_in = math.sqrt(self.h*self.w*self.fin)
-            filters = np.random.uniform(low=-1.0/sqrt_fan_in, high=1.0/sqrt_fan_in, size=self.filter_sizes)
+            _filters = np.random.uniform(low=-1.0/sqrt_fan_in, high=1.0/sqrt_fan_in, size=self.filter_sizes)
 
-            print (np.std(filters), np.mean(filters))
+            filters = filters * (np.std(_filters) / np.std(filters))
 
             self.filters = tf.Variable(filters, dtype=tf.float32)
             # self.bias = tf.Variable(weight_dict[self.name + '_bias'])
             
         else:
-            assert(False)
             if init_filters == "zero":
                 filters = np.zeros(shape=self.filter_sizes)
             elif init_filters == "sqrt_fan_in":
@@ -75,7 +76,7 @@ class Convolution(Layer):
                 
     def forward(self, X):
         # Z = tf.add(tf.nn.conv2d(X, self.filters, self.strides, self.padding), tf.reshape(self.bias, [1, 1, self.fout]))
-        Z = tf.nn.conv2d(X, self.filters, self.strides, self.padding)
+        Z = tf.nn.conv2d(X, self.filters * self.connect, self.strides, self.padding)
         A = self.activation.forward(Z)
         return A
         
@@ -91,9 +92,25 @@ class Convolution(Layer):
             return []
     
         DO = tf.multiply(DO, self.activation.gradient(AO))
+        
+        # if connect is its own layer ... which it shud be then this will have to output (N H W FOUT) NOT (N H W FIN)
+        DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_sizes, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+        
+        # N H W C
+        A = tf.reduce_sum(AI, axis=[1, 2])
+        # N H W C 
+        # has to be DO, DI has FIN channels...
+        D = tf.reduce_sum(DO, axis=[1, 2])
+        DC = tf.matmul(tf.transpose(A), D)
+        DC = tf.reshape(DC, (1, 1, self.fin, self.fout))
+        
+        # DO = tf.Print(DO, [tf.shape(A), tf.shape(D), tf.shape(DC), tf.shape(self.connect)], message='', summarize=1000)
+        
         DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
-        return [(DF, self.filters), (DB, self.bias)]
+        
+        # return [(DC, self.connect), (DF, self.filters), (DB, self.bias)]
+        return [(DC, self.connect)]
         
     def train(self, AI, AO, DO): 
         if not self._train:

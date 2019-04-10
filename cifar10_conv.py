@@ -7,13 +7,13 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=100)
-parser.add_argument('--batch_size', type=int, default=100)
+parser.add_argument('--batch_size', type=int, default=128)
 parser.add_argument('--alpha', type=float, default=1e-4)
 parser.add_argument('--l2', type=float, default=0.)
 parser.add_argument('--decay', type=float, default=1.)
-parser.add_argument('--eps', type=float, default=1e-4)
+parser.add_argument('--eps', type=float, default=1e-5)
 parser.add_argument('--dropout', type=float, default=0.5)
-parser.add_argument('--act', type=str, default='relu')
+parser.add_argument('--act', type=str, default='tanh')
 parser.add_argument('--bias', type=float, default=0.)
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--dfa', type=int, default=0)
@@ -76,10 +76,13 @@ else:
     assert(False)
 
 train_fc=True
-weights_fc=None
+if args.load:
+    train_conv=False
+else:
+    train_conv=True
 
-train_conv=True
-weights_conv='filters.npy'
+weights_fc=None
+weights_conv=args.load
 
 ##############################################
 
@@ -93,10 +96,12 @@ X = tf.placeholder(tf.float32, [None, 32, 32, 3])
 X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), X)
 Y = tf.placeholder(tf.float32, [None, 10])
 
-l0 = Convolution(input_sizes=[batch_size, 32, 32, 3], filter_sizes=[6, 6, 3, 128], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load=weights_conv, train=train_conv)
-l1 = MaxPool(size=[batch_size, 16, 16, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+l0 = Convolution(input_sizes=[batch_size, 32, 32, 3], filter_sizes=[6, 6, 3, 128], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load='filters.npy', train=train_conv)
+l1 = MaxPool(size=[batch_size, 32, 32, 128], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
+
 l2 = ConvToFullyConnected(shape=[16, 16, 128])
-l3 = FullyConnected(size=[16*16*128, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name='fc1', load=weights_fc, train=train_fc)
+
+l3 = FullyConnected(size=[16*16*128, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, last_layer=True, name='fc1', load=weights_fc, train=train_fc)
 
 ##############################################
 
