@@ -34,6 +34,7 @@ class Convolution(Layer):
         var = 2.0 / (self.fin + self.fout)
         std = np.sqrt(var)
         connect = np.random.normal(loc=0., scale=std, size=(1, 1, self.fin, self.fout))
+        # connect = np.ones(shape=(1, 1, self.fin, self.fout))
         self.connect = tf.Variable(connect, dtype=tf.float32)
 
         if load:
@@ -42,11 +43,18 @@ class Convolution(Layer):
 
             filters = weight_dict[self.name]
             bias = weight_dict[self.name + '_bias']
-
+            
+            filters = np.reshape(filters, (self.fh, self.fw, self.fin, self.fout))
+            perm = np.random.permutation(self.fout)
+            filters = filters[:, :, :, perm]
+            filters = np.reshape(filters, (self.fh, self.fw, self.fin, self.fout))
+            
+            '''
             filters = np.reshape(filters, (self.fh, self.fw, self.fin * self.fout))
             perm = np.random.permutation(self.fin * self.fout)
             filters = filters[:, :, perm]
             filters = np.reshape(filters, (self.fh, self.fw, self.fin, self.fout))
+            '''
 
             self.filters = tf.Variable(filters)
             self.bias = tf.Variable(bias)
@@ -85,7 +93,7 @@ class Convolution(Layer):
         
     def backward(self, AI, AO, DO):    
         DO = tf.multiply(DO, self.activation.gradient(AO))
-        DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_sizes, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+        DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_sizes, filter=self.filters * self.connect, out_backprop=DO, strides=self.strides, padding=self.padding)
         return DI
 
     def gv(self, AI, AO, DO):    
@@ -94,23 +102,28 @@ class Convolution(Layer):
     
         DO = tf.multiply(DO, self.activation.gradient(AO))
 
-        # maybe want to use tf.reduce_mean() here ? 
         A = tf.reduce_sum(AI, axis=[1, 2])
         D = tf.reduce_sum(DO, axis=[1, 2])
+        # A = tf.reduce_mean(AI, axis=[1, 2])
+        # D = tf.reduce_mean(DO, axis=[1, 2])
+
         DC = tf.matmul(tf.transpose(A), D)
         DC = tf.reshape(DC, (1, 1, self.fin, self.fout))
-        DC = DC / tf.keras.backend.std(DC)
 
-        # MAY NOT BE ABLE TO SCRAMBLE THE FIN DIMENSION.
+        # DC = DC / tf.keras.backend.std(DC)
+        # DC = DC / (self.fin * self.fout)
+        # DC = DC / (self.h * self.w)
 
-        # DO = tf.Print(DO, [tf.keras.backend.std(DC)], message='', summarize=1000)
+        DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
+        DB = tf.reduce_sum(DO, axis=[0, 1, 2])
 
-        # DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
-        # DB = tf.reduce_sum(DO, axis=[0, 1, 2])
-        # return [(DF, self.filters), (DB, self.bias)]
+        # DC = tf.Print(DC, [self.name, tf.keras.backend.std(DC), tf.keras.backend.std(DF)], message='', summarize=1000)
+        # DC = tf.Print(DC, [self.name, tf.keras.backend.std(self.connect), tf.reduce_max(self.connect), tf.reduce_min(tf.abs(self.connect))], message='', summarize=1000)
 
         return [(DC, self.connect)]
-        
+        # return [(DF, self.filters), (DB, self.bias)]
+        # return [(DC, self.connect), (DF, self.filters), (DB, self.bias)]
+
     def train(self, AI, AO, DO): 
         if not self._train:
             return []
