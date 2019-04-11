@@ -76,12 +76,6 @@ elif args.act == 'relu':
 else:
     assert(False)
 
-train_fc=True
-weights_fc=None
-
-train_conv=True
-weights_conv='filters.npy'
-
 ##############################################
 
 tf.set_random_seed(0)
@@ -94,17 +88,14 @@ X = tf.placeholder(tf.float32, [None, 32, 32, 3])
 # X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), X)
 Y = tf.placeholder(tf.float32, [None, 10])
 
-l0 = Convolution(input_sizes=[batch_size, 32, 32, 3], filter_sizes=[6, 6, 3, 96], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load=weights_conv, train=train_conv)
-l1 = MaxPool(size=[batch_size, 16, 16, 96], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+l0 = Convolution(input_sizes=[batch_size, 32, 32, 3], filter_sizes=[5, 5, 3, 96], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load='filters1.npy', train=False)
+l1 = MaxPool(size=[batch_size, 32, 32, 96], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
 ##############################################
-
 model = Model(layers=[l0, l1])
 predict = model.predict(X=X)
 weights = model.get_weights()
-
 ##############################################
-
 sess = tf.InteractiveSession()
 tf.global_variables_initializer().run()
 tf.local_variables_initializer().run()
@@ -119,13 +110,11 @@ y_test = keras.utils.to_categorical(y_test, 10)
 if np.shape(x_test) != (TEST_EXAMPLES, 32, 32, 3):
     x_test = np.transpose(x_test, (0, 2, 3, 1))
 
-'''
 x_train = whiten(X=x_train, method='zca')
 x_train = np.reshape(x_train, (TRAIN_EXAMPLES, 32, 32, 3))
 
 x_test = whiten(X=x_test, method='zca')
 x_test = np.reshape(x_test, (TEST_EXAMPLES, 32, 32, 3))
-'''
 ##############################################
 
 filename = args.name + '.results'
@@ -145,6 +134,7 @@ for jj in range(int(TRAIN_EXAMPLES / BATCH_SIZE)):
     xs = x_train[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
     ys = y_train[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
     _predict = sess.run(predict, feed_dict={batch_size: BATCH_SIZE, dropout_rate: 0.0, learning_rate: 0.0, X: xs, Y: ys})
+    print (np.shape(_predict), np.shape(train_features[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]))
     train_features[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE] = _predict
     
 #############################
@@ -153,6 +143,7 @@ for jj in range(int(TEST_EXAMPLES / BATCH_SIZE)):
     xs = x_test[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
     ys = y_test[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
     _predict = sess.run(predict, feed_dict={batch_size: BATCH_SIZE, dropout_rate: 0.0, learning_rate: 0.0, X: xs, Y: ys})
+    print (np.shape(_predict), np.shape(test_features[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]))
     test_features[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE] = _predict
 
 #############################
