@@ -17,6 +17,7 @@ parser.add_argument('--act', type=str, default='tanh')
 parser.add_argument('--bias', type=float, default=0.)
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--dfa', type=int, default=0)
+parser.add_argument('--fa', type=int, default=0)
 parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
 parser.add_argument('--init', type=str, default="alexnet")
@@ -55,25 +56,38 @@ import numpy as np
 from PIL import Image
 import scipy.misc
 
-from Model import Model
+from lib.Model import Model
 
-from Layer import Layer 
-from ConvToFullyConnected import ConvToFullyConnected
-from FullyConnected import FullyConnected
-from Convolution import Convolution
-from MaxPool import MaxPool
-from Dropout import Dropout
-from FeedbackFC import FeedbackFC
-from FeedbackConv import FeedbackConv
+from lib.Layer import Layer 
+from lib.ConvToFullyConnected import ConvToFullyConnected
+from lib.FullyConnected import FullyConnected
+from lib.Convolution import Convolution
+from lib.MaxPool import MaxPool
+from lib.Dropout import Dropout
+from lib.FeedbackFC import FeedbackFC
+from lib.FeedbackConv import FeedbackConv
 
-from Activation import Activation
-from Activation import Sigmoid
-from Activation import Relu
-from Activation import Tanh
-from Activation import Softmax
-from Activation import LeakyRelu
-from Activation import Linear
+from lib.Activation import Activation
+from lib.Activation import Sigmoid
+from lib.Activation import Relu
+from lib.Activation import Tanh
+from lib.Activation import Softmax
+from lib.Activation import LeakyRelu
+from lib.Activation import Linear
 
+##############################################
+
+def in_top_k(x, y, k):
+    x = tf.cast(x, dtype=tf.float32)
+    y = tf.cast(y, dtype=tf.int32)
+
+    _, topk = tf.nn.top_k(input=x, k=k)
+    topk = tf.transpose(topk)
+    correct = tf.equal(y, topk)
+    correct = tf.cast(correct, dtype=tf.int32)
+    correct = tf.reduce_sum(correct, axis=0)
+    return correct
+    
 ##############################################
 
 batch_size = args.batch_size
@@ -148,9 +162,9 @@ def get_validation_dataset():
 
     print ("building validation dataset")
 
-    for subdir, dirs, files in os.walk('/home/bcrafton3/ILSVRC2012/val/'):
+    for subdir, dirs, files in os.walk('/home/bcrafton3/Data_SSD/ILSVRC2012/val/'):
         for file in files:
-            validation_images.append(os.path.join('/home/bcrafton3/ILSVRC2012/val/', file))
+            validation_images.append(os.path.join('/home/bcrafton3/Data_SSD/ILSVRC2012/val/', file))
     validation_images = sorted(validation_images)
 
     validation_labels_file = open('/home/bcrafton3/dfa/imagenet_labels/validation_labels.txt')
@@ -188,7 +202,7 @@ def get_train_dataset():
 
     print ("building dataset")
 
-    for subdir, dirs, files in os.walk('/home/bcrafton3/ILSVRC2012/train/'):
+    for subdir, dirs, files in os.walk('/home/bcrafton3/Data_SSD/ILSVRC2012/train/'):
         for folder in dirs:
             for folder_subdir, folder_dirs, folder_files in os.walk(os.path.join(subdir, folder)):
                 for file in folder_files:
@@ -246,13 +260,9 @@ val_iterator = val_dataset.make_initializable_iterator()
 ###############################################################
 
 train_fc=True
-if args.load:
-    train_conv=False
-else:
-    train_conv=True
-
-weights_fc=None
-weights_conv=args.load
+train_conv=True
+weights_fc='./transfer/imagenet_weights.npy'
+weights_conv='./transfer/imagenet_weights.npy'
 
 bias = 0.0
 if args.act == 'tanh':
@@ -269,35 +279,35 @@ else:
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 
-l0 = Convolution(input_sizes=[batch_size, 227, 227, 3], filter_sizes=[11, 11, 3, 96], num_classes=num_classes, init_filters=args.init, strides=[1, 4, 4, 1], padding="VALID", alpha=learning_rate, activation=Relu(), bias=bias, last_layer=False, name="conv1", load=weights_conv, train=train_conv)
+l0 = Convolution(input_sizes=[batch_size, 227, 227, 3], filter_sizes=[11, 11, 3, 96], num_classes=num_classes, init_filters=args.init, strides=[1, 4, 4, 1], padding="VALID", alpha=learning_rate, activation=Relu(), bias=bias, last_layer=False, name="conv1", load=weights_conv, train=train_conv, fa=args.fa)
 l1 = MaxPool(size=[batch_size, 55, 55, 96], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="VALID")
 # l2 = FeedbackConv(size=[batch_size, 27, 27, 96], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="conv1_fb")
 
-l3 = Convolution(input_sizes=[batch_size, 27, 27, 96], filter_sizes=[5, 5, 96, 256], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=1., last_layer=False, name="conv2", load=weights_conv, train=train_conv)
+l3 = Convolution(input_sizes=[batch_size, 27, 27, 96], filter_sizes=[5, 5, 96, 256], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=1., last_layer=False, name="conv2", load=weights_conv, train=train_conv, fa=args.fa)
 l4 = MaxPool(size=[batch_size, 27, 27, 256], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="VALID")
 # l5 = FeedbackConv(size=[batch_size, 13, 13, 256], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="conv2_fb")
 
-l6 = Convolution(input_sizes=[batch_size, 13, 13, 256], filter_sizes=[3, 3, 256, 384], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=bias, last_layer=False, name="conv3", load=weights_conv, train=train_conv)
+l6 = Convolution(input_sizes=[batch_size, 13, 13, 256], filter_sizes=[3, 3, 256, 384], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=bias, last_layer=False, name="conv3", load=weights_conv, train=train_conv, fa=args.fa)
 # l7 = FeedbackConv(size=[batch_size, 13, 13, 384], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="conv3_fb")
 
-l8 = Convolution(input_sizes=[batch_size, 13, 13, 384], filter_sizes=[3, 3, 384, 384], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=1., last_layer=False, name="conv4", load=weights_conv, train=train_conv)
+l8 = Convolution(input_sizes=[batch_size, 13, 13, 384], filter_sizes=[3, 3, 384, 384], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=1., last_layer=False, name="conv4", load=weights_conv, train=train_conv, fa=args.fa)
 # l9 = FeedbackConv(size=[batch_size, 13, 13, 384], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="conv4_fb")
 
-l10 = Convolution(input_sizes=[batch_size, 13, 13, 384], filter_sizes=[3, 3, 384, 256], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=1., last_layer=False, name="conv5", load=weights_conv, train=train_conv)
+l10 = Convolution(input_sizes=[batch_size, 13, 13, 384], filter_sizes=[3, 3, 384, 256], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=1., last_layer=False, name="conv5", load=weights_conv, train=train_conv, fa=args.fa)
 l11 = MaxPool(size=[batch_size, 13, 13, 256], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="VALID")
 # l12 = FeedbackConv(size=[batch_size, 6, 6, 256], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="conv5_fb")
 
 l13 = ConvToFullyConnected(shape=[6, 6, 256])
 
-l14 = FullyConnected(size=[6*6*256, 4096], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, l2=args.l2, name="fc1", load=weights_fc, train=train_fc)
+l14 = FullyConnected(size=[6*6*256, 4096], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, l2=args.l2, name="fc1", load=weights_fc, train=train_fc, fa=args.fa)
 l15 = Dropout(rate=dropout_rate)
 l16 = FeedbackFC(size=[6*6*256, 4096], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="fc1_fb", std=0.01)
 
-l17 = FullyConnected(size=[4096, 4096], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, l2=args.l2, name="fc2", load=weights_fc, train=train_fc)
+l17 = FullyConnected(size=[4096, 4096], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, l2=args.l2, name="fc2", load=weights_fc, train=train_fc, fa=args.fa)
 l18 = Dropout(rate=dropout_rate)
 l19 = FeedbackFC(size=[4096, 4096], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="fc2_fb", std=0.01)
 
-l20 = FullyConnected(size=[4096, num_classes], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, l2=args.l2, name="fc3", load=weights_fc, train=train_fc)
+l20 = FullyConnected(size=[4096, num_classes], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, l2=args.l2, name="fc3", load=weights_fc, train=train_fc, fa=args.fa)
 
 ###############################################################
 
@@ -333,7 +343,8 @@ else:
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
 
-top5 = tf.nn.in_top_k(predictions=predict, targets=tf.argmax(labels,1), k=5)
+# top5 = tf.nn.in_top_k(predictions=predict, targets=tf.argmax(labels,1), k=5)
+top5 = in_top_k(predict, tf.argmax(labels,1), k=5)
 total_top5 = tf.reduce_sum(tf.cast(top5, tf.float32))
 
 weights = model.get_weights()
@@ -342,10 +353,14 @@ print (model.num_params())
 
 ###############################################################
 
-config = tf.ConfigProto()
+# config = tf.ConfigProto()
+config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)
 config.gpu_options.allow_growth=True
-sess = tf.InteractiveSession(config=config)
-tf.global_variables_initializer().run()
+
+# sess = tf.InteractiveSession(config=config)
+# tf.global_variables_initializer().run()
+sess = tf.Session(config=config)
+sess.run(tf.global_variables_initializer())
 
 train_handle = sess.run(train_iterator.string_handle())
 val_handle = sess.run(val_iterator.string_handle())

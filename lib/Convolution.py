@@ -43,9 +43,11 @@ class Convolution(Layer):
             # glorot
             assert(False)
 
-        weight_dict = np.load(load).item()
-        fb = weight_dict[self.name]
-        # fb = np.copy(filters)
+        if load is not None:
+            weight_dict = np.load(load).item()
+            fb = weight_dict[self.name]
+        else:
+            fb = np.copy(filters)
 
         self.filters = tf.Variable(filters, dtype=tf.float32)
         self.fb = tf.Variable(fb, dtype=tf.float32)

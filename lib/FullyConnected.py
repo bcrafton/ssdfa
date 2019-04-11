@@ -47,9 +47,11 @@ class FullyConnected(Layer):
             # glorot
             assert(False)
 
-        weight_dict = np.load(load).item()
-        fb = weight_dict[self.name]
-        # fb = np.copy(weights)
+        if load is not None:
+            weight_dict = np.load(load).item()
+            fb = weight_dict[self.name]
+        else:
+            fb = np.copy(weights)
 
         self.weights = tf.Variable(weights, dtype=tf.float32)
         self.fb = tf.Variable(fb, dtype=tf.float32)
