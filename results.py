@@ -85,7 +85,7 @@ vgg64_mlp = {'benchmark':'vgg64_mlp.py', 'epochs':100, 'batch_size':64, 'alpha':
 # params = [cifar10_conv_bp, cifar10_conv_dfa, cifar10_conv_sparse]
 # params = [cifar100_conv_bp, cifar100_conv_dfa, cifar100_conv_sparse]
 
-params = [vgg64]
+params = [vgg64, cifar10_conv_bp]
 # params = [vgg64_mlp]
 
 ################################################

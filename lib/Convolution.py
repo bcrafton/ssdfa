@@ -110,7 +110,8 @@ class Convolution(Layer):
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
         
         # return [(DC, self.connect), (DF, self.filters), (DB, self.bias)]
-        return [(DC, self.connect)]
+        return [(DF, self.filters), (DB, self.bias)]
+        # return [(DC, self.connect)]
         
     def train(self, AI, AO, DO): 
         if not self._train:
