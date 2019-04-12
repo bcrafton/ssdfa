@@ -89,7 +89,7 @@ X = tf.placeholder(tf.float32, [None, 32, 32, 3])
 Y = tf.placeholder(tf.float32, [None, 10])
 
 l0 = Convolution(input_sizes=[batch_size, 32, 32, 3], filter_sizes=[5, 5, 3, 96], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load='filters1.npy', train=False)
-l1 = MaxPool(size=[batch_size, 32, 32, 96], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+l1 = MaxPool(size=[batch_size, 32, 32, 96], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
 
 ##############################################
 model = Model(layers=[l0, l1])
