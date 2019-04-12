@@ -78,7 +78,9 @@ class Convolution3D(Layer):
             end = (ii + 1) * self.fout
             output_slice = slice(start, end)
 
-            DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_sizes, filter=self.filters[:, :, :, ii, :], out_backprop=DO[:, :, :, output_slice], strides=self.strides, padding=self.padding)
+            input_sizes = (self.batch_size, self.h, self.w, self.fc)
+
+            DI = tf.nn.conv2d_backprop_input(input_sizes=input_sizes, filter=self.filters[:, :, :, ii, :], out_backprop=DO[:, :, :, output_slice], strides=self.strides, padding=self.padding)
             DIs.append(DI)
 
         DI = tf.concat(DIs, axis=3)
@@ -107,10 +109,13 @@ class Convolution3D(Layer):
             DF = tf.reshape(DF, (self.fh, self.fw, self.fc, 1, self.fout))
             DFs.append(DF)
 
-        DF = tf.concat(DFs, axis=3)
+        # if 4 right ?
+        # [N fh fw fc fg fout]
+        # where N is the length of the list
+        DF = tf.concat(DFs, axis=4)
         DF = tf.reshape(DF, (self.fh, self.fw, self.fc, self.fg, self.fout))
         # DF = tf.Print(DF, [tf.shape(DF)], message=self.name + ': ', summarize=1000)
-        return [(DFs, self.filters)]
+        return [(DF, self.filters)]
 
     ################################################################### 
         
