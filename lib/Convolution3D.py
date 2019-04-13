@@ -28,8 +28,12 @@ class Convolution3D(Layer):
         if load:
             print ("Loading Weights: " + self.name)
             weight_dict = np.load(load, encoding='latin1').item()
-            self.filters = tf.Variable(weight_dict[self.name])
-            self.bias = tf.Variable(weight_dict[self.name + '_bias'])
+
+            filters = weight_dict[self.name]
+            print (np.shape(filters))
+            # bias = weight_dict[self.name + '_bias']
+
+            assert(np.shape(filters) == (self.fh, self.fw, self.fc, self.fg, self.fout))
         else:
             if init_filters == "zero":
                 filters = np.zeros(shape=self.filter_sizes)
@@ -42,7 +46,7 @@ class Convolution3D(Layer):
                 # glorot
                 assert(False)
                 
-            self.filters = tf.Variable(filters, dtype=tf.float32)
+        self.filters = tf.Variable(filters, dtype=tf.float32)
 
     ###################################################################
 
