@@ -45,6 +45,7 @@ from lib.Layer import Layer
 from lib.ConvToFullyConnected import ConvToFullyConnected
 from lib.FullyConnected import FullyConnected
 from lib.Convolution import Convolution
+from lib.Convolution3D import Convolution3D
 from lib.MaxPool import MaxPool
 from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
@@ -76,12 +77,6 @@ elif args.act == 'relu':
 else:
     assert(False)
 
-# train_fc=True
-# weights_fc=None
-
-# train_conv=True
-# weights_conv='filters.npy'
-
 ##############################################
 
 tf.set_random_seed(0)
@@ -94,14 +89,15 @@ X = tf.placeholder(tf.float32, [None, 32, 32, 3])
 X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), X)
 Y = tf.placeholder(tf.float32, [None, 10])
 
-l0 = Convolution(input_sizes=[batch_size, 32, 32, 3], filter_sizes=[5, 5, 3, 96], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load='filters1.npy', train=True)
+l0 = Convolution(input_sizes=[batch_size, 32, 32, 3], filter_sizes=[5, 5, 3, 96], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load='filters1.npy', train=False)
 l1 = MaxPool(size=[batch_size, 32, 32, 96], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l2 = Convolution(input_sizes=[batch_size, 16, 16, 96], filter_sizes=[5, 5, 96, 128], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv2', load='filters2.npy', train=True)
-l3 = MaxPool(size=[batch_size, 16, 16, 128], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
+l2 = Convolution3D(input_sizes=[batch_size, 16, 16, 96], filter_sizes=[5, 5, 16, 6, 32], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv2', load='filters2.npy', train=True)
+l3 = MaxPool(size=[batch_size, 16, 16, 6*32], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l4 = ConvToFullyConnected(shape=[8, 8, 128])
-l5 = FullyConnected(size=[8*8*128, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name='fc1', load=None, train=True)
+l4 = ConvToFullyConnected(shape=[8, 8, 6*32])
+
+l5 = FullyConnected(size=[8*8*6*32, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name='fc3', load=None, train=True)
 
 ##############################################
 

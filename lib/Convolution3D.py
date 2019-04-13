@@ -38,8 +38,12 @@ class Convolution3D(Layer):
             weight_dict = np.load(load, encoding='latin1').item()
 
             filters = weight_dict[self.name]
-            print (np.shape(filters))
+            # print (np.shape(filters))
             # bias = weight_dict[self.name + '_bias']
+
+            sqrt_fan_in = math.sqrt(self.h * self.w * self.fin)
+            _filters = np.random.uniform(low=-1.0/sqrt_fan_in, high=1.0/sqrt_fan_in, size=self.filter_sizes)
+            filters = filters * (np.std(_filters) / np.std(filters))
 
             assert(np.shape(filters) == (self.fh, self.fw, self.fc, self.fg, self.fout))
         else:
@@ -150,7 +154,7 @@ class Convolution3D(Layer):
 
         DC = tf.concat(DCs, axis=4)
         DC = tf.reshape(DC, (1, 1, self.fc, self.fg, self.fout))
-        DC = tf.Print(DC, [tf.shape(DC)], message=self.name + ': ', summarize=1000)
+        # DC = tf.Print(DC, [tf.shape(DC)], message=self.name + ': ', summarize=1000)
         return [(DC, self.connect)]
         
 
