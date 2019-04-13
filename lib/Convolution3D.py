@@ -24,7 +24,15 @@ class Convolution3D(Layer):
         self.last_layer = last_layer
         self.name = name
         self._train = train
-        
+
+        var = 2.0 / (self.fin + self.fout)
+        std = np.sqrt(var)
+        # connect = np.random.normal(loc=0., scale=std, size=(1, 1, self.fin, self.fout))
+        # connect = np.ones(shape=(1, 1, self.fin, self.fout))
+        # connect = np.random.normal(loc=1., scale=std, size=(1, 1, self.fin, self.fout))
+        connect = np.zeros(shape=(1, 1, self.fc, self.fg, self.fout))
+        self.connect = tf.Variable(connect, dtype=tf.float32)
+
         if load:
             print ("Loading Weights: " + self.name)
             weight_dict = np.load(load, encoding='latin1').item()
@@ -65,7 +73,7 @@ class Convolution3D(Layer):
             end = (ii + 1) * self.fc
             input_slice = slice(start, end)
  
-            Z = tf.nn.conv2d(X[:, :, :, input_slice], self.filters[:, :, :, ii, :], self.strides, self.padding)
+            Z = tf.nn.conv2d(X[:, :, :, input_slice], self.filters[:, :, :, ii, :] + self.connect[:, :, :, ii, :], self.strides, self.padding)
             A = self.activation.forward(Z)
             As.append(A)
 
@@ -84,7 +92,7 @@ class Convolution3D(Layer):
 
             input_sizes = (self.batch_size, self.h, self.w, self.fc)
 
-            DI = tf.nn.conv2d_backprop_input(input_sizes=input_sizes, filter=self.filters[:, :, :, ii, :], out_backprop=DO[:, :, :, output_slice], strides=self.strides, padding=self.padding)
+            DI = tf.nn.conv2d_backprop_input(input_sizes=input_sizes, filter=self.filters[:, :, :, ii, :] + self.connect[:, :, :, ii, :], out_backprop=DO[:, :, :, output_slice], strides=self.strides, padding=self.padding)
             DIs.append(DI)
 
         DI = tf.concat(DIs, axis=3)
@@ -97,6 +105,7 @@ class Convolution3D(Layer):
     
         DO = tf.multiply(DO, self.activation.gradient(AO))
 
+        ### Compute DF
         DFs = []
         for ii in range(self.fg): 
             start = ii * self.fc
@@ -119,7 +128,31 @@ class Convolution3D(Layer):
         DF = tf.concat(DFs, axis=4)
         DF = tf.reshape(DF, (self.fh, self.fw, self.fc, self.fg, self.fout))
         # DF = tf.Print(DF, [tf.shape(DF)], message=self.name + ': ', summarize=1000)
-        return [(DF, self.filters)]
+        # return [(DF, self.filters)]
+
+        ### Compute DC
+        DCs = []
+        for ii in range(self.fg): 
+            start = ii * self.fc
+            end = (ii + 1) * self.fc
+            input_slice = slice(start, end)
+
+            start = ii * self.fout
+            end = (ii + 1) * self.fout
+            output_slice = slice(start, end)
+
+            A = tf.reduce_sum(AI[:, :, :, input_slice], axis=[1, 2])
+            D = tf.reduce_sum(DO[:, :, :, output_slice], axis=[1, 2])
+            DC = tf.matmul(tf.transpose(A), D)
+            DC = tf.reshape(DC, (1, 1, self.fc, 1, self.fout))
+            DC = DC / (self.h * self.w)
+            DCs.append(DC)
+
+        DC = tf.concat(DCs, axis=4)
+        DC = tf.reshape(DC, (1, 1, self.fc, self.fg, self.fout))
+        DC = tf.Print(DC, [tf.shape(DC)], message=self.name + ': ', summarize=1000)
+        return [(DC, self.connect)]
+        
 
     ################################################################### 
         
