@@ -70,8 +70,8 @@ class Convolution(Layer):
 
     def forward1(self, X):
         N = tf.shape(X)[0]
+
         X = tf.pad(X, [[0, 0], [self.pad_h, self.pad_h], [self.pad_w, self.pad_w], [0, 0]])
-    
         xs = []
         for i in range(self.output_row):
             for j in range(self.output_col):
@@ -107,12 +107,11 @@ class Convolution(Layer):
 
     # in either (backward, gv) we have to account for that 90 degree rotation.
     def backward1(self, AI, AO, DO):
-    
         N = tf.shape(AI)[0]
-        
+
+        DO = tf.multiply(DO, self.activation.gradient(AO))
         [pad_w, pad_h] = get_pad('full', np.array([self.fh, self.fw]))
         DO = tf.pad(DO, [[0, 0], [pad_h, pad_h], [pad_w, pad_w], [0, 0]])
-        
         es = []
         for i in range(self.output_row):
             for j in range(self.output_col):
@@ -124,6 +123,10 @@ class Convolution(Layer):
         DO = tf.reshape(DO, (self.output_row * self.output_col * N, self.fh * self.fw * self.fout))
         
         filters = self.filters
+        filters = tf.reshape(filters, (self.fh, self.fw, self.fin * self.fout))
+        filters = tf.image.rot90(filters, k=2)
+        filters = tf.reshape(filters, (self.fh, self.fw, self.fin, self.fout))
+
         filters = tf.transpose(filters, (0, 1, 3, 2))
         filters = tf.reshape(filters, (self.fh * self.fw * self.fout, self.fin))
         
@@ -139,6 +142,9 @@ class Convolution(Layer):
         return DI
 
     def backward(self, AI, AO, DO):
+        
+        # return self.backward2(AI, AO, DO)
+
         if self.custom:
             return self.backward1(AI, AO, DO)
         else:
@@ -147,27 +153,29 @@ class Convolution(Layer):
     ###################################################################
 
     def gv1(self, AI, AO, DO): 
+        if not self._train:
+            return []
+
         N = tf.shape(AI)[0]
+
         AI = tf.pad(AI, [[0, 0], [self.pad_h, self.pad_h], [self.pad_w, self.pad_w], [0, 0]])
-        
         xs = []
         for i in range(self.output_row):
             for j in range(self.output_col):
                 slice_row = slice(i * self.stride_row, i * self.stride_row + self.fh)
                 slice_col = slice(j * self.stride_col, j * self.stride_col + self.fw)
-                xs.append(tf.reshape(AI[:, slice_row, slice_col, :], (1, N, self.fh * self.fw * self.fin)))
+                xs.append(tf.reshape(AI[:, slice_row, slice_col, :], (N, 1, self.fh * self.fw * self.fin)))
 
-        x_aggregate = tf.concat(xs, axis=0)
-        x_aggregate = tf.reshape(x_aggregate, (self.output_row * self.output_col * N, self.fh * self.fw * self.fin))
+        x_aggregate = tf.concat(xs, axis=1)
+        x_aggregate = tf.reshape(x_aggregate, (N * self.output_row * self.output_col, self.fh * self.fw * self.fin))
         x_aggregate = tf.transpose(x_aggregate)
-        
+
+        DO = tf.multiply(DO, self.activation.gradient(AO))
+
         # need to do this before we mess with DO
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
 
-        # DO = [N H W FOUT]
-        DO = tf.transpose(DO, (1, 2, 0, 3))
-        DO = tf.reshape(DO, (self.output_row * self.output_col * N, self.fout))
-        
+        DO = tf.reshape(DO, (N * self.output_row * self.output_col, self.fout))
         DF = tf.matmul(x_aggregate, DO)
         DF = tf.reshape(DF, (self.fh, self.fw, self.fin, self.fout))
 
@@ -183,6 +191,9 @@ class Convolution(Layer):
         return [(DF, self.filters), (DB, self.bias)]
     
     def gv(self, AI, AO, DO):
+        
+        # return self.gv2(AI, AO, DO)
+
         if self.custom:
             return self.gv1(AI, AO, DO)
         else:
@@ -190,6 +201,56 @@ class Convolution(Layer):
 
     ###################################################################
 
+    def train1(self, AI, AO, DO):
+        if not self._train:
+            return []
 
+        N = tf.shape(AI)[0]
+
+        AI = tf.pad(AI, [[0, 0], [self.pad_h, self.pad_h], [self.pad_w, self.pad_w], [0, 0]])
+        xs = []
+        for i in range(self.output_row):
+            for j in range(self.output_col):
+                slice_row = slice(i * self.stride_row, i * self.stride_row + self.fh)
+                slice_col = slice(j * self.stride_col, j * self.stride_col + self.fw)
+                xs.append(tf.reshape(AI[:, slice_row, slice_col, :], (N, 1, self.fh * self.fw * self.fin)))
+
+        x_aggregate = tf.concat(xs, axis=1)
+        x_aggregate = tf.reshape(x_aggregate, (N * self.output_row * self.output_col, self.fh * self.fw * self.fin))
+        x_aggregate = tf.transpose(x_aggregate)
+
+        DO = tf.multiply(DO, self.activation.gradient(AO))
+
+        # need to do this before we mess with DO
+        DB = tf.reduce_sum(DO, axis=[0, 1, 2])
+
+        DO = tf.reshape(DO, (N * self.output_row * self.output_col, self.fout))
+        DF = tf.matmul(x_aggregate, DO)
+        DF = tf.reshape(DF, (self.fh, self.fw, self.fin, self.fout))
+
+        self.filters = self.filters.assign(tf.subtract(self.filters, tf.scalar_mul(self.alpha, DF)))
+        self.bias = self.bias.assign(tf.subtract(self.bias, tf.scalar_mul(self.alpha, DB)))
+        return [(DF, self.filters), (DB, self.bias)]
+
+    def train2(self, AI, AO, DO):
+        if not self._train:
+            return []
+
+        DO = tf.multiply(DO, self.activation.gradient(AO))
+        DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
+        DB = tf.reduce_sum(DO, axis=[0, 1, 2])
+
+        self.filters = self.filters.assign(tf.subtract(self.filters, tf.scalar_mul(self.alpha, DF)))
+        self.bias = self.bias.assign(tf.subtract(self.bias, tf.scalar_mul(self.alpha, DB)))
+        return [(DF, self.filters), (DB, self.bias)]
+
+    def train(self, AI, AO, DO):
+
+        # return self.train2(AI, AO, DO)
+
+        if self.custom:
+            return self.train1(AI, AO, DO)
+        else:
+            return self.train2(AI, AO, DO)
 
 
