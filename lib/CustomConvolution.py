@@ -12,7 +12,7 @@ from lib.conv_utils import get_pad
 
 class Convolution(Layer):
 
-    def __init__(self, input_sizes, filter_sizes, init, strides, padding, alpha, activation, bias, name=None, load=None, train=True):
+    def __init__(self, input_sizes, filter_sizes, init, strides, padding, alpha, activation, bias, name=None, load=None, train=True, custom=True):
         self.input_sizes = input_sizes
         self.filter_sizes = filter_sizes
         self.strides = strides
@@ -27,6 +27,7 @@ class Convolution(Layer):
         self.activation = activation
         self.name = name
         self._train = train
+        self.custom = custom
         
         self.output_row = conv_output_length(self.h, self.fh, self.padding.lower(), self.strides[0])
         self.output_col = conv_output_length(self.w, self.fw, self.padding.lower(), self.strides[1])
@@ -67,7 +68,7 @@ class Convolution(Layer):
 
     ###################################################################
 
-    def forward(self, X):
+    def forward1(self, X):
         N = tf.shape(X)[0]
         X = tf.pad(X, [[0, 0], [self.pad_h, self.pad_h], [self.pad_w, self.pad_w], [0, 0]])
     
@@ -91,17 +92,21 @@ class Convolution(Layer):
         A = self.activation.forward(Z)
         return A
 
-    '''
-    def forward(self, X):
+    def forward2(self, X):
         Z = tf.add(tf.nn.conv2d(X, self.filters, self.strides, self.padding), tf.reshape(self.bias, [1, 1, self.fout]))
         A = self.activation.forward(Z)
         return A
-    '''
+
+    def forward(self, X):
+        if self.custom:
+            return self.forward1(X)
+        else:
+            return self.forward2(X)
 
     ###################################################################           
 
     # in either (backward, gv) we have to account for that 90 degree rotation.
-    def backward(self, AI, AO, DO):
+    def backward1(self, AI, AO, DO):
     
         N = tf.shape(AI)[0]
         
@@ -128,16 +133,20 @@ class Convolution(Layer):
         
         return DI
 
-    '''
-    def backward(self, AI, AO, DO):    
+    def backward2(self, AI, AO, DO):    
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_sizes, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
         return DI
-    '''
+
+    def backward(self, AI, AO, DO):
+        if self.custom:
+            return self.backward1(AI, AO, DO)
+        else:
+            return self.backward2(AI, AO, DO)
 
     ###################################################################
 
-    def gv(self, AI, AO, DO): 
+    def gv1(self, AI, AO, DO): 
         N = tf.shape(AI)[0]
         AI = tf.pad(AI, [[0, 0], [self.pad_h, self.pad_h], [self.pad_w, self.pad_w], [0, 0]])
         
@@ -152,17 +161,19 @@ class Convolution(Layer):
         x_aggregate = tf.reshape(x_aggregate, (self.output_row * self.output_col * N, self.fh * self.fw * self.fin))
         x_aggregate = tf.transpose(x_aggregate)
         
+        # need to do this before we mess with DO
+        DB = tf.reduce_sum(DO, axis=[0, 1, 2])
+
         # DO = [N H W FOUT]
         DO = tf.transpose(DO, (1, 2, 0, 3))
         DO = tf.reshape(DO, (self.output_row * self.output_col * N, self.fout))
         
         DF = tf.matmul(x_aggregate, DO)
-        DB = tf.reduce_sum(DO, axis=[0, 1])
+        DF = tf.reshape(DF, (self.fh, self.fw, self.fin, self.fout))
 
         return [(DF, self.filters), (DB, self.bias)]
 
-    '''
-    def gv(self, AI, AO, DO):    
+    def gv2(self, AI, AO, DO):    
         if not self._train:
             return []
     
@@ -170,8 +181,13 @@ class Convolution(Layer):
         DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
         return [(DF, self.filters), (DB, self.bias)]
-    '''
     
+    def gv(self, AI, AO, DO):
+        if self.custom:
+            return self.gv1(AI, AO, DO)
+        else:
+            return self.gv2(AI, AO, DO)
+
     ###################################################################
 
 
