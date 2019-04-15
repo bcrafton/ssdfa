@@ -40,6 +40,8 @@ class Convolution(Layer):
             filters = weight_dict[self.name]
             bias = weight_dict[self.name + '_bias']
         else:
+            assert(False)
+
             if init == "zero":
                 filters = np.zeros(shape=self.filter_sizes)
             elif init == "sqrt_fan_in":
@@ -77,17 +79,16 @@ class Convolution(Layer):
             for j in range(self.output_col):
                 slice_row = slice(i * self.stride_row, i * self.stride_row + self.fh)
                 slice_col = slice(j * self.stride_col, j * self.stride_col + self.fw)
-                xs.append(tf.reshape(X[:, slice_row, slice_col, :], (1, N, self.fh * self.fw * self.fin)))
+                xs.append(tf.reshape(X[:, slice_row, slice_col, :], (N, 1, self.fh * self.fw * self.fin)))
 
-        x_aggregate = tf.concat(xs, axis=0)
-        x_aggregate = tf.reshape(x_aggregate, (self.output_row * self.output_col * N, self.fh * self.fw * self.fin))
+        x_aggregate = tf.concat(xs, axis=1)
+        x_aggregate = tf.reshape(x_aggregate, (N * self.output_row * self.output_col, self.fh * self.fw * self.fin))
 
         filters = self.filters
         filters = tf.reshape(filters, (self.fh * self.fw * self.fin, self.fout))        
 
         Z = tf.matmul(x_aggregate, filters)
-        Z = tf.reshape(Z, (self.output_row, self.output_col, N, self.fout))
-        Z = tf.transpose(Z, (2, 0, 1, 3))
+        Z = tf.reshape(Z, (N, self.output_row, self.output_col, self.fout))
         
         A = self.activation.forward(Z)
         return A
@@ -123,9 +124,12 @@ class Convolution(Layer):
         DO = tf.reshape(DO, (self.output_row * self.output_col * N, self.fh * self.fw * self.fout))
         
         filters = self.filters
+        '''
         filters = tf.reshape(filters, (self.fh, self.fw, self.fin * self.fout))
         filters = tf.image.rot90(filters, k=2)
         filters = tf.reshape(filters, (self.fh, self.fw, self.fin, self.fout))
+        '''
+        filters = tf.reverse(filters, [0, 1])
 
         filters = tf.transpose(filters, (0, 1, 3, 2))
         filters = tf.reshape(filters, (self.fh * self.fw * self.fout, self.fin))
