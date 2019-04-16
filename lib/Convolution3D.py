@@ -9,11 +9,10 @@ from lib.Activation import Sigmoid
 
 class Convolution3D(Layer):
 
-    def __init__(self, input_sizes, filter_sizes, num_classes, init_filters, strides, padding, alpha, activation, bias, last_layer, name=None, load=None, train=True):
+    def __init__(self, input_sizes, filter_sizes, init, strides, padding, alpha, activation, bias, name=None, load=None, train=True, custom=0):
 
         self.input_sizes = input_sizes
         self.filter_sizes = filter_sizes
-        self.num_classes = num_classes
         self.batch_size, self.h, self.w, self.fin = self.input_sizes
         self.fh, self.fw, self.fc, self.fg, self.fout = self.filter_sizes
         self.bias = tf.Variable(tf.ones(shape=self.fout) * bias)
@@ -21,9 +20,9 @@ class Convolution3D(Layer):
         self.padding = padding
         self.alpha = alpha
         self.activation = activation
-        self.last_layer = last_layer
         self.name = name
         self._train = train
+        self.custom = custom
 
         var = 2.0 / (self.fin + self.fout)
         std = np.sqrt(var)
@@ -47,12 +46,12 @@ class Convolution3D(Layer):
 
             assert(np.shape(filters) == (self.fh, self.fw, self.fc, self.fg, self.fout))
         else:
-            if init_filters == "zero":
+            if init == "zero":
                 filters = np.zeros(shape=self.filter_sizes)
-            elif init_filters == "sqrt_fan_in":
+            elif init == "sqrt_fan_in":
                 sqrt_fan_in = math.sqrt(self.h*self.w*self.fin)
                 filters = np.random.uniform(low=-1.0/sqrt_fan_in, high=1.0/sqrt_fan_in, size=self.filter_sizes)
-            elif init_filters == "alexnet":
+            elif init == "alexnet":
                 filters = np.random.normal(loc=0.0, scale=0.01, size=self.filter_sizes)
             else:
                 # glorot
@@ -132,7 +131,7 @@ class Convolution3D(Layer):
         DF = tf.concat(DFs, axis=4)
         DF = tf.reshape(DF, (self.fh, self.fw, self.fc, self.fg, self.fout))
         # DF = tf.Print(DF, [tf.shape(DF)], message=self.name + ': ', summarize=1000)
-        # return [(DF, self.filters)]
+        return [(DF, self.filters)]
 
         ### Compute DC
         DCs = []
