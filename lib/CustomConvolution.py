@@ -40,7 +40,7 @@ class Convolution(Layer):
             filters = weight_dict[self.name]
             bias = weight_dict[self.name + '_bias']
         else:
-            assert(False)
+            # assert(False)
 
             if init == "zero":
                 filters = np.zeros(shape=self.filter_sizes)
