@@ -22,7 +22,7 @@ parser.add_argument('--rank', type=int, default=0)
 parser.add_argument('--init', type=str, default="sqrt_fan_in")
 parser.add_argument('--opt', type=str, default="adam")
 parser.add_argument('--save', type=int, default=0)
-parser.add_argument('--name', type=str, default="cifar10_conv")
+parser.add_argument('--name', type=str, default="autoencoder")
 parser.add_argument('--custom', type=int, default=0)
 parser.add_argument('--load', type=str, default=None)
 args = parser.parse_args()
@@ -39,7 +39,7 @@ import keras
 import math
 import numpy as np
 
-from lib.Model import Model
+from lib.ModelMSE import Model
 
 from lib.Layer import Layer 
 from lib.ConvToFullyConnected import ConvToFullyConnected
@@ -92,7 +92,7 @@ batch_size = tf.placeholder(tf.int32, shape=())
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 X = tf.placeholder(tf.float32, [None, 32, 32, 3])
-X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), X)
+# X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), X)
 
 l0 = Convolution(input_sizes=[batch_size, 32, 32, 3], filter_sizes=[5, 5, 3, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, name='conv1', load=weights_conv, train=train_conv, custom=args.custom)
 l1 = MaxPool(size=[batch_size, 32, 32, 128], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
@@ -100,13 +100,13 @@ l1 = MaxPool(size=[batch_size, 32, 32, 128], ksize=[1, 3, 3, 1], strides=[1, 2, 
 l2 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[5, 5, 128, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, name='conv2', load=weights_conv, train=train_conv, custom=args.custom)
 l3 = MaxPool(size=[batch_size, 16, 16, 128], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l4 = Convolution(input_sizes=[batch_size, 8, 8, 128], filter_sizes=[5, 5, 128, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, name='conv2', load=weights_conv, train=train_conv, custom=args.custom)
+l4 = Convolution(input_sizes=[batch_size, 8, 8, 128], filter_sizes=[5, 5, 128, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, name='conv3', load=weights_conv, train=train_conv, custom=args.custom)
 l5 = UpSample(size=[batch_size, 8, 8, 128], ksize=2)
 
-l6 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[5, 5, 128, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, name='conv2', load=weights_conv, train=train_conv, custom=args.custom)
+l6 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[5, 5, 128, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, name='conv4', load=weights_conv, train=train_conv, custom=args.custom)
 l7 = UpSample(size=[batch_size, 16, 16, 128], ksize=2)
 
-l8 = Convolution(input_sizes=[batch_size, 32, 32, 128], filter_sizes=[5, 5, 128, 3], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, name='conv2', load=weights_conv, train=train_conv, custom=args.custom)
+l8 = Convolution(input_sizes=[batch_size, 32, 32, 128], filter_sizes=[5, 5, 128, 3], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, name='conv5', load=weights_conv, train=train_conv, custom=args.custom)
 
 ##############################################
 
@@ -144,27 +144,11 @@ tf.local_variables_initializer().run()
 (x_train, y_train), (x_test, y_test) = cifar10
 
 x_train = x_train.reshape(TRAIN_EXAMPLES, 32, 32, 3)
-y_train = keras.utils.to_categorical(y_train, 10)
-
-x_test = x_test.reshape(TEST_EXAMPLES, 32, 32, 3)
-y_test = keras.utils.to_categorical(y_test, 10)
-
-'''
-dataset = {}
-dataset['x_train'] = x_train
-dataset['y_train'] = y_train
-dataset['x_test'] = x_test
-dataset['y_test'] = y_test
-np.save('dataset', dataset)
-'''
-
-'''
-dataset = np.load('dataset.npy').item()
-x_train = dataset['x_train']
-y_train = dataset['y_train']
-x_test = dataset['x_test']
-y_test = dataset['y_test']
-'''
+mean = np.mean(x_train, axis=(1, 2, 3), keepdims=True)
+std = np.std(x_train, axis=(1, 2, 3), ddof=1, keepdims=True)
+scale = std + 1.
+# x_train = x_train - mean
+x_train = x_train / scale
 
 ##############################################
 
@@ -190,8 +174,11 @@ for ii in range(EPOCHS):
     for jj in range(int(TRAIN_EXAMPLES / BATCH_SIZE)):
         xs = x_train[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
         ys = y_train[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
-        [_] = sess.run([train], feed_dict={batch_size: BATCH_SIZE, dropout_rate: args.dropout, learning_rate: lr, X: xs})
+        [_, _gvs] = sess.run([train, grads_and_vars], feed_dict={batch_size: BATCH_SIZE, dropout_rate: args.dropout, learning_rate: lr, X: xs})
     
+        #for gv in _gvs:
+        #    print (np.shape(gv[0]), np.std(gv[0]), np.std(gv[1]))
+
     #############################
 
     if args.save:

@@ -25,10 +25,11 @@ def viz(name, filters):
 
     for ii in range(nrows):
         for jj in range(ncols):
+            _filter = np.pad(filters[ii][jj], ((1, 1), (1, 1)), 'constant')
             if jj == 0:
-                row = filters[ii][jj]
+                row = _filter
             else:
-                row = np.concatenate((row, filters[ii][jj]), axis=1)
+                row = np.concatenate((row, _filter), axis=1)
                 
         if ii == 0:
             img = row
@@ -39,12 +40,6 @@ def viz(name, filters):
 
 ###############################################
 
-def viz_conv(name, weight):
-    weights = np.load(name + '.npy').item()
-    conv1 = weights[weight]
-    viz(name + '_' + weight, conv1)
-
-###############################################
-
-filters = np.load('filters2.npy').item()['conv2']
-viz('test.png', filters)
+filters = np.load('autoencoder.npy').item()
+filters = filters['conv2']
+viz('filters2.png', filters)

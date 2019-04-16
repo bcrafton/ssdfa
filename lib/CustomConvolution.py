@@ -157,12 +157,16 @@ class Convolution(Layer):
         DI = tf.reshape(DI, (N, self.output_row, self.output_col, self.fin))
         
         # DI = tf.Print(DI, [tf.shape(DI)], message='backward ' + self.name + ': ', summarize=1000)
+        # DI = tf.Print(DI, [tf.keras.backend.std(DI)], message='backward ' + self.name + ': ', summarize=1000)
 
         return DI
 
     def backward2(self, AI, AO, DO):    
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_sizes, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+        
+        # DI = tf.Print(DI, [tf.keras.backend.std(DI)], message='backward ' + self.name + ': ', summarize=1000)
+        
         return DI
 
     def backward(self, AI, AO, DO):
