@@ -147,7 +147,23 @@ y_train = keras.utils.to_categorical(y_train, 10)
 
 x_test = x_test.reshape(TEST_EXAMPLES, 32, 32, 3)
 y_test = keras.utils.to_categorical(y_test, 10)
-# print (y_test[0:50])
+
+'''
+dataset = {}
+dataset['x_train'] = x_train
+dataset['y_train'] = y_train
+dataset['x_test'] = x_test
+dataset['y_test'] = y_test
+np.save('dataset', dataset)
+'''
+
+'''
+dataset = np.load('dataset.npy').item()
+x_train = dataset['x_train']
+y_train = dataset['y_train']
+x_test = dataset['x_test']
+y_test = dataset['y_test']
+'''
 
 ##############################################
 
@@ -177,7 +193,7 @@ for ii in range(EPOCHS):
         xs = x_train[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
         ys = y_train[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
         _correct, _ = sess.run([total_correct, train], feed_dict={batch_size: BATCH_SIZE, dropout_rate: args.dropout, learning_rate: lr, X: xs, Y: ys})
-        
+
         _total_correct += _correct
         _count += BATCH_SIZE
 

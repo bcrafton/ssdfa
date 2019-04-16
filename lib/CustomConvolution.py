@@ -87,18 +87,25 @@ class Convolution(Layer):
         filters = self.filters
         filters = tf.reshape(filters, (self.fh * self.fw * self.fin, self.fout))        
 
+        # filters = tf.Print(filters, [tf.shape(x_aggregate), tf.shape(filters), tf.shape(X)], message='', summarize=1000)
+
         Z = tf.matmul(x_aggregate, filters)
         Z = tf.reshape(Z, (N, self.output_row, self.output_col, self.fout))
         
         A = self.activation.forward(Z)
+
+        # A = tf.Print(A, [tf.shape(A), tf.shape(X), i + self.fh, j + self.fw, self.pad_w, self.pad_h], message='forward ' + self.name + ': ', summarize=1000)
         return A
 
     def forward2(self, X):
-        Z = tf.add(tf.nn.conv2d(X, self.filters, self.strides, self.padding), tf.reshape(self.bias, [1, 1, self.fout]))
+        # Z = tf.add(tf.nn.conv2d(X, self.filters, self.strides, self.padding), tf.reshape(self.bias, [1, 1, self.fout]))
+        Z = tf.nn.conv2d(X, self.filters, self.strides, self.padding)
         A = self.activation.forward(Z)
         return A
 
     def forward(self, X):
+        # return self.forward2(X)
+
         if self.custom:
             return self.forward1(X)
         else:
@@ -106,22 +113,28 @@ class Convolution(Layer):
 
     ###################################################################           
 
+    # https://medium.com/@2017csm1006/forward-and-backpropagation-in-convolutional-neural-network-4dfa96d7b37e
+    # it does make sense why you have to rotate... just look at the equations... dont think about the rotation.
+
     # in either (backward, gv) we have to account for that 90 degree rotation.
     def backward1(self, AI, AO, DO):
         N = tf.shape(AI)[0]
 
         DO = tf.multiply(DO, self.activation.gradient(AO))
-        [pad_w, pad_h] = get_pad('full', np.array([self.fh, self.fw]))
+        [pad_h_full, pad_w_full] = get_pad('full', np.array([self.fh, self.fw]))
+        pad_h = pad_h_full - self.pad_h
+        pad_w = pad_w_full - self.pad_w
         DO = tf.pad(DO, [[0, 0], [pad_h, pad_h], [pad_w, pad_w], [0, 0]])
+
         es = []
         for i in range(self.output_row):
             for j in range(self.output_col):
                 slice_row = slice(i, i + self.fh)
                 slice_col = slice(j, j + self.fw)
-                es.append(tf.reshape(DO[:, slice_row, slice_col, :], (1, N, self.fh * self.fw * self.fout)))
+                es.append(tf.reshape(DO[:, slice_row, slice_col, :], (N, 1, self.fh * self.fw * self.fout)))
         
-        DO = tf.concat(es, axis=0)
-        DO = tf.reshape(DO, (self.output_row * self.output_col * N, self.fh * self.fw * self.fout))
+        e_aggregate = tf.concat(es, axis=1)
+        e_aggregate = tf.reshape(e_aggregate, (N * self.output_row * self.output_col, self.fh * self.fw * self.fout))
         
         filters = self.filters
         '''
@@ -129,15 +142,22 @@ class Convolution(Layer):
         filters = tf.image.rot90(filters, k=2)
         filters = tf.reshape(filters, (self.fh, self.fw, self.fin, self.fout))
         '''
-        filters = tf.reverse(filters, [0, 1])
+        # filters = tf.reverse(filters, [0, 1])
 
+        # think our issue definitely has to do with the fin/fout thing here. 
+        # we just transpose fout,fin bc that makes the matmul work
+        # actually idk feel like this shud work ... we just rotate to make x,y line up
         filters = tf.transpose(filters, (0, 1, 3, 2))
+        filters = tf.reverse(filters, [0, 1])
         filters = tf.reshape(filters, (self.fh * self.fw * self.fout, self.fin))
         
-        DI = tf.matmul(DO, filters)
-        DI = tf.reshape(DI, (self.output_row, self.output_col, N, self.fin))
-        DI = tf.transpose(DI, (2, 0, 1, 3))
+        # filters = tf.Print(filters, [tf.shape(e_aggregate), tf.shape(filters), tf.shape(AO), tf.shape(DO), i + self.fh, j + self.fw, pad_w, pad_h], message='', summarize=1000)
+
+        DI = tf.matmul(e_aggregate, filters)
+        DI = tf.reshape(DI, (N, self.output_row, self.output_col, self.fin))
         
+        # DI = tf.Print(DI, [tf.shape(DI)], message='backward ' + self.name + ': ', summarize=1000)
+
         return DI
 
     def backward2(self, AI, AO, DO):    
@@ -146,7 +166,6 @@ class Convolution(Layer):
         return DI
 
     def backward(self, AI, AO, DO):
-        
         # return self.backward2(AI, AO, DO)
 
         if self.custom:
@@ -155,7 +174,7 @@ class Convolution(Layer):
             return self.backward2(AI, AO, DO)
 
     ###################################################################
-
+    # not sure if this is right at all bc we are not doing patch extraction for DO, just AI
     def gv1(self, AI, AO, DO): 
         if not self._train:
             return []
@@ -195,7 +214,6 @@ class Convolution(Layer):
         return [(DF, self.filters), (DB, self.bias)]
     
     def gv(self, AI, AO, DO):
-        
         # return self.gv2(AI, AO, DO)
 
         if self.custom:
