@@ -91,36 +91,35 @@ class Convolution(Layer):
         DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_sizes, filter=self.filters + self.connect, out_backprop=DO, strides=self.strides, padding=self.padding)
         return DI
 
-    '''
-    def gv(self, AI, AO, DO):    
+    def gv(self, AI, AO, DO): 
         if not self._train:
             return []
-    
+
+        N = tf.shape(AI)[0]
+
+        AI = tf.pad(AI, [[0, 0], [self.pad_h, self.pad_h], [self.pad_w, self.pad_w], [0, 0]])
+        xs = []
+        for i in range(self.output_row):
+            for j in range(self.output_col):
+                slice_row = slice(i * self.stride_row, i * self.stride_row + self.fh)
+                slice_col = slice(j * self.stride_col, j * self.stride_col + self.fw)
+                xs.append(tf.reshape(AI[:, slice_row, slice_col, :], (N, 1, self.fh * self.fw * self.fin)))
+
+        x_aggregate = tf.concat(xs, axis=1)
+        x_aggregate = tf.reshape(x_aggregate, (N * self.output_row * self.output_col, self.fh * self.fw * self.fin))
+        x_aggregate = tf.transpose(x_aggregate)
+
         DO = tf.multiply(DO, self.activation.gradient(AO))
-        
-        # if connect is its own layer ... which it shud be then this will have to output (N H W FOUT) NOT (N H W FIN)
-        DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_sizes, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
-        
-        # N H W C
-        A = tf.reduce_sum(AI, axis=[1, 2])
-        # N H W C 
-        # has to be DO, DI has FIN channels...
-        D = tf.reduce_sum(DO, axis=[1, 2])
-        DC = tf.matmul(tf.transpose(A), D)
-        DC = tf.reshape(DC, (1, 1, self.fin, self.fout))
-        
-        DC = DC / (self.h * self.w)
 
-        # DO = tf.Print(DO, [tf.shape(A), tf.shape(D), tf.shape(DC), tf.shape(self.connect)], message='', summarize=1000)
-        
-        DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
-        DB = tf.reduce_sum(DO, axis=[0, 1, 2])
-        
-        # return [(DC, self.connect), (DF, self.filters), (DB, self.bias)]
-        # return [(DF, self.filters), (DB, self.bias)]
+        DO = tf.reshape(DO, (N * self.output_row * self.output_col, self.fout))
+        DF = tf.matmul(x_aggregate, DO)
+        DF = tf.reshape(DF, (self.fh, self.fw, self.fin, self.fout))
+
+        DC = tf.reduce_sum(DF, axis=[1, 2])
+
         return [(DC, self.connect)]
+    
     '''
-
     def gv(self, AI, AO, DO):    
         if not self._train:
             return []
@@ -148,6 +147,7 @@ class Convolution(Layer):
         return [(DC, self.connect)]
         # return [(DF, self.filters), (DB, self.bias)]
         # return [(DC, self.connect), (DF, self.filters), (DB, self.bias)]
+    '''
 
     def train(self, AI, AO, DO): 
         if not self._train:

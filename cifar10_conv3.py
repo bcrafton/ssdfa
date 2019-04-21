@@ -80,7 +80,7 @@ train_fc=True
 weights_fc=None
 
 train_conv=True
-# weights_conv='filters.npy'
+weights_conv='autoencoder.npy'
 
 ##############################################
 
@@ -94,14 +94,14 @@ X = tf.placeholder(tf.float32, [None, 32, 32, 3])
 X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), X)
 Y = tf.placeholder(tf.float32, [None, 10])
 
-l0 = Convolution(input_sizes=[batch_size, 32, 32, 3], filter_sizes=[6, 6, 3, 128], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load=None, train=train_conv)
-l1 = MaxPool(size=[batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+l0 = Convolution(input_sizes=[batch_size, 32, 32, 3], filter_sizes=[6, 6, 3, 96], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load=weights_conv, train=train_conv)
+l1 = MaxPool(size=[batch_size, 32, 32, 96], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l2 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[6, 6, 128, 256], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv2', load=None, train=train_conv)
-l3 = MaxPool(size=[batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+l2 = Convolution(input_sizes=[batch_size, 16, 16, 96], filter_sizes=[6, 6, 96, 128], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv2', load=weights_conv, train=train_conv)
+l3 = MaxPool(size=[batch_size, 16, 16, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l4 = ConvToFullyConnected(shape=[8, 8, 256])
-l5 = FullyConnected(size=[8*8*256, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name='fc1', load=weights_fc, train=train_fc)
+l4 = ConvToFullyConnected(shape=[8, 8, 128])
+l5 = FullyConnected(size=[8*8*128, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name='fc1', load=weights_fc, train=train_fc)
 
 ##############################################
 
