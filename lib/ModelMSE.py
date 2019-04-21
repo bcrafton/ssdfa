@@ -147,7 +147,7 @@ class Model:
         E = (A[self.num_layers-1] - Y) / N
         loss = tf.reduce_sum(tf.pow(E, 2)) 
 
-        # E = tf.Print(E, [tf.keras.backend.std(E), loss], message='', summarize=1000)
+        E = tf.Print(E, [tf.keras.backend.std(E), loss], message='', summarize=1000)
 
         for ii in range(self.num_layers-1, -1, -1):
             l = self.layers[ii]

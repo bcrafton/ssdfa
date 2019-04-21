@@ -6,8 +6,8 @@ import sys
 ##############################################
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--epochs', type=int, default=100)
-parser.add_argument('--batch_size', type=int, default=50)
+parser.add_argument('--epochs', type=int, default=10)
+parser.add_argument('--batch_size', type=int, default=400)
 parser.add_argument('--alpha', type=float, default=1e-4)
 parser.add_argument('--l2', type=float, default=0.)
 parser.add_argument('--decay', type=float, default=1.)
@@ -100,13 +100,13 @@ l1 = MaxPool(size=[batch_size, 32, 32, 128], ksize=[1, 3, 3, 1], strides=[1, 2, 
 l2 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[5, 5, 128, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, name='conv2', load=weights_conv, train=train_conv, custom=args.custom)
 l3 = MaxPool(size=[batch_size, 16, 16, 128], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l4 = Convolution(input_sizes=[batch_size, 8, 8, 128], filter_sizes=[5, 5, 128, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, name='conv3', load=weights_conv, train=train_conv, custom=args.custom)
+l4 = Convolution(input_sizes=[batch_size, 8, 8, 128], filter_sizes=[5, 5, 128, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Linear(), bias=args.bias, name='conv3', load=weights_conv, train=train_conv, custom=args.custom)
 l5 = UpSample(size=[batch_size, 8, 8, 128], ksize=2)
 
-l6 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[5, 5, 128, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, name='conv4', load=weights_conv, train=train_conv, custom=args.custom)
+l6 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[5, 5, 128, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Linear(), bias=args.bias, name='conv4', load=weights_conv, train=train_conv, custom=args.custom)
 l7 = UpSample(size=[batch_size, 16, 16, 128], ksize=2)
 
-l8 = Convolution(input_sizes=[batch_size, 32, 32, 128], filter_sizes=[5, 5, 128, 3], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, name='conv5', load=weights_conv, train=train_conv, custom=args.custom)
+l8 = Convolution(input_sizes=[batch_size, 32, 32, 128], filter_sizes=[5, 5, 128, 3], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Linear(), bias=args.bias, name='conv5', load=weights_conv, train=train_conv, custom=args.custom)
 
 ##############################################
 
@@ -147,7 +147,7 @@ x_train = x_train.reshape(TRAIN_EXAMPLES, 32, 32, 3)
 mean = np.mean(x_train, axis=(1, 2, 3), keepdims=True)
 std = np.std(x_train, axis=(1, 2, 3), ddof=1, keepdims=True)
 scale = std + 1.
-# x_train = x_train - mean
+x_train = x_train - mean
 x_train = x_train / scale
 
 ##############################################
