@@ -24,9 +24,6 @@ class Convolution3D(Layer):
         self._train = train
         self.custom = custom
 
-        var = 2.0 / (self.fin + self.fout)
-        std = np.sqrt(var)
-        # 
         connect = np.ones(shape=(1, 1, self.fc, self.fg, self.fout))
         # connect = np.zeros(shape=(1, 1, self.fc, self.fg, self.fout))
         self.connect = tf.Variable(connect, dtype=tf.float32)

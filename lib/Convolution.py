@@ -33,7 +33,6 @@ class Convolution(Layer):
         
         connect = np.ones(shape=(1, 1, self.fin, self.fout))
         # connect = np.zeros(shape=(1, 1, self.fin, self.fout))
-
         self.connect = tf.Variable(connect, dtype=tf.float32)
         
         if load:
@@ -86,36 +85,6 @@ class Convolution(Layer):
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_sizes, filter=self.filters * self.connect, out_backprop=DO, strides=self.strides, padding=self.padding)
         return DI
-
-    '''
-    def gv(self, AI, AO, DO): 
-        if not self._train:
-            return []
-
-        N = tf.shape(AI)[0]
-
-        AI = tf.pad(AI, [[0, 0], [self.pad_h, self.pad_h], [self.pad_w, self.pad_w], [0, 0]])
-        xs = []
-        for i in range(self.output_row):
-            for j in range(self.output_col):
-                slice_row = slice(i * self.stride_row, i * self.stride_row + self.fh)
-                slice_col = slice(j * self.stride_col, j * self.stride_col + self.fw)
-                xs.append(tf.reshape(AI[:, slice_row, slice_col, :], (N, 1, self.fh * self.fw * self.fin)))
-
-        x_aggregate = tf.concat(xs, axis=1)
-        x_aggregate = tf.reshape(x_aggregate, (N * self.output_row * self.output_col, self.fh * self.fw * self.fin))
-        x_aggregate = tf.transpose(x_aggregate)
-
-        DO = tf.multiply(DO, self.activation.gradient(AO))
-
-        DO = tf.reshape(DO, (N * self.output_row * self.output_col, self.fout))
-        DF = tf.matmul(x_aggregate, DO)
-        DF = tf.reshape(DF, (self.fh, self.fw, self.fin, self.fout))
-
-        DC = tf.reduce_sum(DF, axis=[1, 2])
-
-        return [(DC, self.connect)]
-    '''
 
     def gv(self, AI, AO, DO):    
         if not self._train:
