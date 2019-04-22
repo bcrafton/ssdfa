@@ -79,8 +79,15 @@ else:
 train_fc=True
 weights_fc=None
 
-train_conv=True
-weights_conv='autoencoder.npy'
+train_conv1=True
+# train_conv1=False
+train_conv2=True
+# train_conv2=False
+
+weights_conv1='autoencoder.npy'
+weights_conv2='autoencoder.npy'
+# weights_conv1 = None
+# weights_conv2 = None
 
 ##############################################
 
@@ -94,11 +101,11 @@ X = tf.placeholder(tf.float32, [None, 32, 32, 3])
 X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), X)
 Y = tf.placeholder(tf.float32, [None, 10])
 
-l0 = Convolution(input_sizes=[batch_size, 32, 32, 3], filter_sizes=[6, 6, 3, 96], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load=weights_conv, train=train_conv)
-l1 = MaxPool(size=[batch_size, 32, 32, 96], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+l0 = Convolution(input_sizes=[batch_size, 32, 32, 3], filter_sizes=[5, 5, 3, 96], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load=weights_conv1, train=train_conv1)
+l1 = MaxPool(size=[batch_size, 32, 32, 96], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l2 = Convolution(input_sizes=[batch_size, 16, 16, 96], filter_sizes=[6, 6, 96, 128], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv2', load=weights_conv, train=train_conv)
-l3 = MaxPool(size=[batch_size, 16, 16, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+l2 = Convolution(input_sizes=[batch_size, 16, 16, 96], filter_sizes=[5, 5, 96, 128], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv2', load=weights_conv2, train=train_conv2)
+l3 = MaxPool(size=[batch_size, 16, 16, 128], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
 
 l4 = ConvToFullyConnected(shape=[8, 8, 128])
 l5 = FullyConnected(size=[8*8*128, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name='fc1', load=weights_fc, train=train_fc)
@@ -156,6 +163,23 @@ x_train = np.reshape(x_train, (TRAIN_EXAMPLES, 32, 32, 3))
 x_test = whiten(X=x_test, method='zca')
 x_test = np.reshape(x_test, (TEST_EXAMPLES, 32, 32, 3))
 '''
+
+'''
+x_train = x_train.reshape(TRAIN_EXAMPLES, 32, 32, 3)
+mean = np.mean(x_train, axis=(1, 2, 3), keepdims=True)
+std = np.std(x_train, axis=(1, 2, 3), ddof=1, keepdims=True)
+scale = std + 1.
+x_train = x_train - mean
+x_train = x_train / scale
+
+x_test = x_test.reshape(TEST_EXAMPLES, 32, 32, 3)
+mean = np.mean(x_test, axis=(1, 2, 3), keepdims=True)
+std = np.std(x_test, axis=(1, 2, 3), ddof=1, keepdims=True)
+scale = std + 1.
+x_test = x_test - mean
+x_test = x_test / scale
+'''
+
 ##############################################
 
 filename = args.name + '.results'

@@ -59,7 +59,7 @@ import numpy as np
 from PIL import Image
 import scipy.misc
 
-from lib.Model import Model
+from lib.ModelMSE import Model
 
 from lib.Layer import Layer 
 from lib.ConvToFullyConnected import ConvToFullyConnected
@@ -234,6 +234,7 @@ def extract_fn(record):
 
     means = tf.reshape(tf.constant(MEAN), [1, 1, 1, 3])
     image = image - means
+    # image = image / 255.
 
     label = sample['label']
     return [image, label]
@@ -317,16 +318,16 @@ else:
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 
-l0 = Convolution(input_sizes=[batch_size, 64, 64, 3], filter_sizes=[3, 3, 3, 64], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv1", load=weights_conv, train=train_conv)
-l1 = Convolution(input_sizes=[batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 64], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv2", load=weights_conv, train=train_conv)
+l0 = Convolution(input_sizes=[batch_size, 64, 64, 3], filter_sizes=[5, 5, 3, 64], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv1", load=weights_conv, train=train_conv)
+l1 = Convolution(input_sizes=[batch_size, 64, 64, 64], filter_sizes=[5, 5, 64, 64], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv2", load=weights_conv, train=train_conv)
 l2 = MaxPool(size=[batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
-l3 = Convolution(input_sizes=[batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 128], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv3", load=weights_conv, train=train_conv)
-l4 = Convolution(input_sizes=[batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 128], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv4", load=weights_conv, train=train_conv)
+l3 = Convolution(input_sizes=[batch_size, 32, 32, 64], filter_sizes=[5, 5, 64, 128], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv3", load=weights_conv, train=train_conv)
+l4 = Convolution(input_sizes=[batch_size, 32, 32, 128], filter_sizes=[5, 5, 128, 128], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv4", load=weights_conv, train=train_conv)
 l5 = MaxPool(size=[batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
-l6 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 256], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv5", load=weights_conv, train=train_conv)
-l7 = Convolution(input_sizes=[batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 256], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv6", load=weights_conv, train=train_conv)
+l6 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[5, 5, 128, 256], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv5", load=weights_conv, train=train_conv)
+l7 = Convolution(input_sizes=[batch_size, 16, 16, 256], filter_sizes=[5, 5, 256, 256], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv6", load=weights_conv, train=train_conv)
 l8 = MaxPool(size=[batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
 '''
@@ -343,16 +344,16 @@ l14 = Dropout(rate=dropout_rate)
 l15 = FullyConnected(size=[4096, num_classes], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=1.0, last_layer=True, name="fc2", load=weights_fc, train=train_fc)
 '''
 
-l9 = Convolution(input_sizes=[batch_size, 8, 8, 256], filter_sizes=[3, 3, 256, 256], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=False, name="conv7", load=weights_conv, train=train_conv)
-l10 = Convolution(input_sizes=[batch_size, 8, 8, 256], filter_sizes=[3, 3, 256, 128], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=False, name="conv8", load=weights_conv, train=train_conv)
+l9 = Convolution(input_sizes=[batch_size, 8, 8, 256], filter_sizes=[5, 5, 256, 256], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=False, name="conv7", load=weights_conv, train=train_conv)
+l10 = Convolution(input_sizes=[batch_size, 8, 8, 256], filter_sizes=[5, 5, 256, 128], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=False, name="conv8", load=weights_conv, train=train_conv)
 l11 = UpSample(size=[batch_size, 8, 8, 128], ksize=2)
 
-l12 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 128], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=False, name="conv9", load=weights_conv, train=train_conv)
-l13 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 64], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=False, name="conv10", load=weights_conv, train=train_conv)
+l12 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[5, 5, 128, 128], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=False, name="conv9", load=weights_conv, train=train_conv)
+l13 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[5, 5, 128, 64], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=False, name="conv10", load=weights_conv, train=train_conv)
 l14 = UpSample(size=[batch_size, 16, 16, 64], ksize=2)
 
-l15 = Convolution(input_sizes=[batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 64], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=False, name="conv11", load=weights_conv, train=train_conv)
-l16 = Convolution(input_sizes=[batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 3], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=False, name="conv12", load=weights_conv, train=train_conv)
+l15 = Convolution(input_sizes=[batch_size, 32, 32, 64], filter_sizes=[5, 5, 64, 64], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=False, name="conv11", load=weights_conv, train=train_conv)
+l16 = Convolution(input_sizes=[batch_size, 32, 32, 64], filter_sizes=[5, 5, 64, 3], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=False, name="conv12", load=weights_conv, train=train_conv)
 l17 = UpSample(size=[batch_size, 32, 32, 3], ksize=2)
 
 ###############################################################
@@ -364,9 +365,9 @@ print (model.num_params())
 
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt == "momentum":
     if args.dfa:
-        grads_and_vars = model.dfa_gvs(X=features, Y=labels)
+        grads_and_vars = model.dfa_gvs(X=features, Y=features)
     else:
-        grads_and_vars = model.gvs(X=features, Y=labels)
+        grads_and_vars, loss = model.gvs(X=features, Y=features)
         
     if args.opt == "adam":
         train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
@@ -381,9 +382,9 @@ if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt ==
 
 else:
     if args.dfa:
-        train = model.dfa(X=features, Y=labels)
+        train = model.dfa(X=features, Y=features)
     else:
-        train = model.train(X=features, Y=labels)
+        train = model.train(X=features, Y=features)
 
 ###############################################################
 
@@ -415,15 +416,23 @@ alpha = args.alpha
 for ii in range(0, epochs):
 
     print('epoch {}/{}'.format(ii, epochs))
-    
+    print('problem is this blows up in the beginning and we cant be sure it dosnt have nans in it')
+
     ##################################################################
 
     sess.run(train_iterator.initializer, feed_dict={filename: train_filenames})
     
+    losses = []
     for j in range(0, len(train_filenames), batch_size):
-        print (j)
 
-        [_] = sess.run([train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
+        [_, gvs, _loss] = sess.run([train, grads_and_vars, loss], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
+        losses.append(_loss)
+        
+        if (j % (batch_size * 100) == 0):
+            print (np.average(losses))
+
+            #for gv in gvs:
+            #    print (np.std(gv[0]))
 
     ##################################################################
 

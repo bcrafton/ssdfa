@@ -136,18 +136,15 @@ class Model:
             else:
                 A[ii] = l.forward(A[ii-1])
 
+        
         N = tf.shape(A[self.num_layers-1])[0]
         N = tf.cast(N, dtype=tf.float32)
-
-        '''
-        E = tf.nn.softmax(A[self.num_layers-1]) - Y
-        E = E / N
-        '''
-
+        
+        # E = (tf.nn.softmax(A[self.num_layers-1]) - Y) / N
         E = (A[self.num_layers-1] - Y) / N
         loss = tf.reduce_sum(tf.pow(E, 2)) 
 
-        E = tf.Print(E, [tf.keras.backend.std(E), loss], message='', summarize=1000)
+        # E = tf.Print(E, [tf.keras.backend.std(E), tf.reduce_max(E), tf.reduce_min(E), loss], message='', summarize=1000)
 
         for ii in range(self.num_layers-1, -1, -1):
             l = self.layers[ii]
@@ -165,7 +162,7 @@ class Model:
                 gvs = l.gv(A[ii-1], A[ii], D[ii+1])
                 grads_and_vars.extend(gvs)
                 
-        return grads_and_vars
+        return grads_and_vars, loss
     
     def dfa_gvs(self, X, Y):
         A = [None] * self.num_layers

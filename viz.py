@@ -41,10 +41,15 @@ def viz(name, filters):
 ###############################################
 '''
 filters = np.load('autoencoder.npy').item()
+filters = filters['conv1']
+viz('filters1.png', filters)
+
+filters = np.load('autoencoder.npy').item()
 filters = filters['conv2']
 viz('filters2.png', filters)
 '''
 
+'''
 filters = np.load('autoencoder.npy').item()
 filters = filters['conv1']
 shape = np.shape(filters)
@@ -58,3 +63,14 @@ shape = np.shape(filters)
 print (shape)
 filters = np.reshape(filters, (shape[0], shape[1], shape[2], shape[3] * shape[4]))
 viz('filters2.png', filters)
+'''
+
+filters = np.load('vgg64x64.npy').item()
+filters = filters['conv1']
+viz('filters1.png', filters)
+
+filters = np.load('vgg64x64.npy').item()
+filters = filters['conv2']
+viz('filters2.png', filters)
+
+
