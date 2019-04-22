@@ -109,8 +109,8 @@ class Convolution(Layer):
         # DC = tf.Print(DC, [self.name, tf.keras.backend.std(DC), tf.keras.backend.std(DF)], message='', summarize=1000)
         # DC = tf.Print(DC, [self.name, tf.keras.backend.std(self.connect), tf.reduce_max(self.connect), tf.reduce_min(tf.abs(self.connect))], message='', summarize=1000)
 
-        return [(DC, self.connect)]
-        # return [(DF, self.filters), (DB, self.bias)]
+        # return [(DC, self.connect)]
+        return [(DF, self.filters), (DB, self.bias)]
         # return [(DC, self.connect), (DF, self.filters), (DB, self.bias)]
     
     def train(self, AI, AO, DO): 
