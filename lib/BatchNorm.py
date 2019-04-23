@@ -17,7 +17,7 @@ class BatchNorm(Layer):
         self.num_parameters = np.prod(self.size) * 2
         
         gamma = np.ones(shape=size)
-        beta = np.ones(shape=size)
+        beta = np.zeros(shape=size)
         
         self.gamma = tf.Variable(gamma, dtype=tf.float32)
         self.beta = tf.Variable(beta, dtype=tf.float32)
@@ -52,7 +52,7 @@ class BatchNorm(Layer):
         ####### 
         mean = (1./N) * tf.reduce_sum(X, axis=0)
         var = (1./N) * tf.reduce_sum((X - mean) ** 2, axis=0)
-        DI = (1. / N) * self.gamma * (var + self.eps) ** (-1. / 2.) * (N * DO - tf.reduce_sum(DO, axis=0) - (X - mean) * (var + self.eps) ** (-1.0) * tf.reduce_sum(DO * (X - mean), axis=0))
+        DI = (1./N) * self.gamma * ((var + self.eps) ** (-1. / 2.)) * (N * DO - tf.reduce_sum(DO, axis=0) - (X - mean) * ((var + self.eps) ** (-1.0)) * tf.reduce_sum(DO * (X - mean), axis=0))
         #######
         
         return DI
