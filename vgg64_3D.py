@@ -65,6 +65,7 @@ from lib.Layer import Layer
 from lib.ConvToFullyConnected import ConvToFullyConnected
 from lib.FullyConnected import FullyConnected
 from lib.Convolution import Convolution
+from lib.Convolution3D import Convolution3D
 from lib.MaxPool import MaxPool
 from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
@@ -298,7 +299,7 @@ val_iterator = val_dataset.make_initializable_iterator()
 
 ###############################################################
 
-weights_conv = 'vgg64x64.npy'
+weights_conv = None
 weights_fc = None
 
 train_conv = True
@@ -334,11 +335,11 @@ l11 = MaxPool(size=[batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2
 
 l12 = ConvToFullyConnected(shape=[4, 4, 512])
 
-l13 = FullyConnected(size=[4*4*512, 4096], init_weights=args.init, alpha=learning_rate, activation=Relu(), bias=1.0, last_layer=False, name="fc1", load=weights_fc, train=train_fc)
+l13 = FullyConnected(size=[4*4*512, 4096], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Relu(), bias=1.0, last_layer=False, name="fc1", load=weights_fc, train=train_fc)
 
 l14 = Dropout(rate=dropout_rate)
 
-l15 = FullyConnected(size=[4096, num_classes], init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=1.0, last_layer=True, name="fc2", load=weights_fc, train=train_fc)
+l15 = FullyConnected(size=[4096, num_classes], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=1.0, last_layer=True, name="fc2", load=weights_fc, train=train_fc)
 
 ###############################################################
 
@@ -427,8 +428,6 @@ for ii in range(0, epochs):
     
     # for j in range(0, batch_size * 10, batch_size):
     for j in range(0, len(train_filenames), batch_size):
-        print (j)
-        
         # [_X, _total_correct, _total_top5, _] = sess.run([features, total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
         [_total_correct, _total_top5, gvs, _] = sess.run([total_correct, total_top5, grads_and_vars, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
 
@@ -440,7 +439,7 @@ for ii in range(0, epochs):
         train_acc_top5 = train_top5 / train_total
         
         if (j % (100 * batch_size) == 0):
-            # plt.imsave('a.jpg', _X[0])
+            print (j)
 
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
             print (p)
