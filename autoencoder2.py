@@ -7,7 +7,7 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=10)
-parser.add_argument('--batch_size', type=int, default=400)
+parser.add_argument('--batch_size', type=int, default=50)
 parser.add_argument('--alpha', type=float, default=1e-4)
 parser.add_argument('--l2', type=float, default=0.)
 parser.add_argument('--decay', type=float, default=1.)
@@ -103,6 +103,8 @@ l3 = MaxPool(size=[batch_size, 16, 16, 128], ksize=[1, 3, 3, 1], strides=[1, 2, 
 l4 = Convolution(input_sizes=[batch_size, 8, 8, 128], filter_sizes=[5, 5, 128, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Linear(), bias=args.bias, name='conv3', load=weights_conv, train=train_conv, custom=args.custom)
 l5 = UpSample(size=[batch_size, 8, 8, 128], ksize=2)
 
+# NOT SURE IF WE SHUD END ON A UPSAMPLE OR A CONV.
+
 l6 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[5, 5, 128, 96], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Linear(), bias=args.bias, name='conv4', load=weights_conv, train=train_conv, custom=args.custom)
 l7 = UpSample(size=[batch_size, 16, 16, 96], ksize=2)
 
@@ -118,7 +120,7 @@ if args.opt == "adam" or args.opt == "rms" or args.opt == "decay":
     if args.dfa:
         grads_and_vars = model.dfa_gvs(X=X, Y=X)
     else:
-        grads_and_vars = model.gvs(X=X, Y=X)
+        grads_and_vars, loss = model.gvs(X=X, Y=X)
         
     if args.opt == "adam":
         train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)

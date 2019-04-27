@@ -92,6 +92,7 @@ class Convolution(Layer):
     
         DO = tf.multiply(DO, self.activation.gradient(AO))
 
+        # option  1 
         A = tf.reduce_sum(AI, axis=[1, 2])
         D = tf.reduce_sum(DO, axis=[1, 2])
         DC = tf.matmul(tf.transpose(A), D)
@@ -101,16 +102,20 @@ class Convolution(Layer):
         DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
 
-        DC = tf.reduce_sum(DF, axis=[0, 1])
+        # option 2 
+        DC = tf.reduce_sum(DF / self.filters, axis=[0, 1])
         DC = tf.reshape(DC, (1, 1, self.fin, self.fout))
-        # probably need to divide by something here.
         DC = DC / (self.fh * self.fw)
+
+        # option 3 
+        # Z = tf.nn.conv2d(X, tf.ones(shape=(self.fh, self.fw, self.fin, self.fout)) * self.connect, self.strides, self.padding)
+        # DC = tf.nn.conv2d_backprop_filter(input=C, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
 
         # DC = tf.Print(DC, [self.name, tf.keras.backend.std(DC), tf.keras.backend.std(DF)], message='', summarize=1000)
         # DC = tf.Print(DC, [self.name, tf.keras.backend.std(self.connect), tf.reduce_max(self.connect), tf.reduce_min(tf.abs(self.connect))], message='', summarize=1000)
 
-        return [(DC, self.connect)]
-        # return [(DF, self.filters), (DB, self.bias)]
+        # return [(DC, self.connect)]
+        return [(DF, self.filters), (DB, self.bias)]
         # return [(DC, self.connect), (DF, self.filters), (DB, self.bias)]
     
     def train(self, AI, AO, DO): 

@@ -49,6 +49,7 @@ from lib.MaxPool import MaxPool
 from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
+from lib.Connect import Connect
 
 from lib.Activation import Activation
 from lib.Activation import Sigmoid
@@ -79,9 +80,9 @@ else:
 train_fc=True
 weights_fc=None
 
-train_conv1=True
+train_conv1=False
 # train_conv1=False
-train_conv2=True
+train_conv2=False
 # train_conv2=False
 
 weights_conv1='autoencoder.npy'
@@ -103,16 +104,17 @@ Y = tf.placeholder(tf.float32, [None, 10])
 
 l0 = Convolution(input_sizes=[batch_size, 32, 32, 3], filter_sizes=[5, 5, 3, 96], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load=weights_conv1, train=train_conv1)
 l1 = MaxPool(size=[batch_size, 32, 32, 96], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
+l2 = Connect(input_sizes=[batch_size, 16, 16, 96])
 
-l2 = Convolution(input_sizes=[batch_size, 16, 16, 96], filter_sizes=[5, 5, 96, 128], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv2', load=weights_conv2, train=train_conv2)
-l3 = MaxPool(size=[batch_size, 16, 16, 128], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
+l3 = Convolution(input_sizes=[batch_size, 16, 16, 96], filter_sizes=[5, 5, 96, 128], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv2', load=weights_conv2, train=train_conv2)
+l4 = MaxPool(size=[batch_size, 16, 16, 128], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l4 = ConvToFullyConnected(shape=[8, 8, 128])
-l5 = FullyConnected(size=[8*8*128, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name='fc1', load=weights_fc, train=train_fc)
+l5 = ConvToFullyConnected(shape=[8, 8, 128])
+l6 = FullyConnected(size=[8*8*128, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name='fc1', load=weights_fc, train=train_fc)
 
 ##############################################
 
-model = Model(layers=[l0, l1, l2, l3, l4, l5])
+model = Model(layers=[l0, l1, l2, l3, l4, l5, l6])
 predict = model.predict(X=X)
 weights = model.get_weights()
 
