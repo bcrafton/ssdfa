@@ -46,12 +46,13 @@ class Convolution3D(Layer):
     ###################################################################
 
     def get_weights(self):
-        return [(self.name, self.filters), (self.name + "_bias", self.bias)]
+        # return [(self.name, self.filters), (self.name + "_bias", self.bias)]
+        return [(self.name, self.filters)]
 
     def num_params(self):
         filter_weights_size = self.fh * self.fw * self.fin * self.fout
-        bias_weights_size = self.fout
-        return filter_weights_size + bias_weights_size
+        # bias_weights_size = self.fout
+        return filter_weights_size # + bias_weights_size
                 
     def forward(self, X):
         As = []
