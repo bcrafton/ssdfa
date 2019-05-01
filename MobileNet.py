@@ -246,25 +246,25 @@ l42 = BatchNorm(size=[16, 16, 256])
 l43 = Convolution3D(input_sizes=[batch_size, 16, 16, 256], filter_sizes=[1, 1, 256, 1, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv3", load=weights_conv, train=train_conv)
 l44 = BatchNorm(size=[16, 16, 512])
 
-l51 = Convolution3D(input_sizes=[batch_size, 16, 16, 512], filter_sizes=[3, 3, 1, 512, 1], init=args.init, strides=[1, 2, 2, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv2", load=weights_conv, train=train_conv)
-l52 = BatchNorm(size=[8, 8, 512])
-l53 = Convolution3D(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[1, 1, 512, 1, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv3", load=weights_conv, train=train_conv)
-l54 = BatchNorm(size=[8, 8, 512])
+l5_1 = Convolution3D(input_sizes=[batch_size, 16, 16, 512], filter_sizes=[3, 3, 1, 512, 1], init=args.init, strides=[1, 2, 2, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv2", load=weights_conv, train=train_conv)
+l5_2 = BatchNorm(size=[8, 8, 512])
+l5_3 = Convolution3D(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[1, 1, 512, 1, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv3", load=weights_conv, train=train_conv)
+l5_4 = BatchNorm(size=[8, 8, 512])
 
-l61 = Convolution3D(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 1, 512, 1], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv2", load=weights_conv, train=train_conv)
-l62 = BatchNorm(size=[8, 8, 512])
-l63 = Convolution3D(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[1, 1, 512, 1, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv3", load=weights_conv, train=train_conv)
-l64 = BatchNorm(size=[8, 8, 512])
+l6_1 = Convolution3D(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 1, 512, 1], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv2", load=weights_conv, train=train_conv)
+l6_2 = BatchNorm(size=[8, 8, 512])
+l6_3 = Convolution3D(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[1, 1, 512, 1, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv3", load=weights_conv, train=train_conv)
+l6_4 = BatchNorm(size=[8, 8, 512])
 
-l71 = Convolution3D(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 1, 512, 1], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv2", load=weights_conv, train=train_conv)
-l72 = BatchNorm(size=[8, 8, 512])
-l73 = Convolution3D(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[1, 1, 512, 1, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv3", load=weights_conv, train=train_conv)
-l74 = BatchNorm(size=[8, 8, 512])
+l7_1 = Convolution3D(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 1, 512, 1], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv2", load=weights_conv, train=train_conv)
+l7_2 = BatchNorm(size=[8, 8, 512])
+l7_3 = Convolution3D(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[1, 1, 512, 1, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv3", load=weights_conv, train=train_conv)
+l7_4 = BatchNorm(size=[8, 8, 512])
 
-l81 = Convolution3D(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 1, 512, 1], init=args.init, strides=[1, 2, 2, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv2", load=weights_conv, train=train_conv)
-l82 = BatchNorm(size=[4, 4, 512])
-l83 = Convolution3D(input_sizes=[batch_size, 4, 4, 512], filter_sizes=[1, 1, 512, 1, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv3", load=weights_conv, train=train_conv)
-l84 = BatchNorm(size=[4, 4, 512])
+l8_1 = Convolution3D(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 1, 512, 1], init=args.init, strides=[1, 2, 2, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv2", load=weights_conv, train=train_conv)
+l8_2 = BatchNorm(size=[4, 4, 512])
+l8_3 = Convolution3D(input_sizes=[batch_size, 4, 4, 512], filter_sizes=[1, 1, 512, 1, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv3", load=weights_conv, train=train_conv)
+l8_4 = BatchNorm(size=[4, 4, 512])
 
 l9 = ConvToFullyConnected(shape=[4, 4, 512])
 
@@ -272,22 +272,22 @@ l10 = FullyConnected(size=[4*4*512, 2048], num_classes=num_classes, init_weights
 
 l11 = Dropout(rate=dropout_rate)
 
-l12 = FullyConnected(size=[2048, num_classes], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=1.0, last_layer=True, name="fc2", load=weights_fc, train=train_fc)
+l12 = FullyConnected(size=[2048, 1000], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=1.0, last_layer=True, name="fc2", load=weights_fc, train=train_fc)
 
 ###############################################################
 
-model = Model(layers=[l0,                 \
-                      l11, l12, l13, l14, \
-                      l21, l22, l23, l24, \
-                      l31, l32, l33, l34, \
-                      l41, l42, l43, l44, \
-                      l51, l52, l53, l54, \
-                      l61, l62, l63, l64, \
-                      l71, l72, l73, l74, \
-                      l81, l82, l83, l84, \
-                      l9,                 \
-                      l10,                \
-                      l11,                \
+model = Model(layers=[l0,                     \
+                      l1_1, l1_2, l1_3, l1_4, \
+                      l2_1, l2_2, l2_3, l2_4, \
+                      l3_1, l3_2, l3_3, l3_4, \
+                      l4_1, l4_2, l4_3, l4_4, \
+                      l5_1, l5_2, l5_3, l5_4, \
+                      l6_1, l6_2, l6_3, l6_4, \
+                      l7_1, l7_2, l7_3, l7_4, \
+                      l8_1, l8_2, l8_3, l8_4, \
+                      l9,                     \
+                      l10,                    \
+                      l11,                    \
                       l12])
 
 predict = tf.nn.softmax(model.predict(X=features))
