@@ -3,9 +3,7 @@ import tensorflow as tf
 import numpy as np
 import math
 
-from lib.Layer import Layer 
-from lib.Activation import Activation
-from lib.Activation import Sigmoid
+from lib.Layer import Layer
 
 class ConvolutionDW(Layer):
 
@@ -13,12 +11,10 @@ class ConvolutionDW(Layer):
 
         self.input_sizes = input_sizes
         self.batch_size, self.h, self.w, self.fin = self.input_sizes
-        
-        self.fh, self.fw, self.fc, self.fg, self.fout = filter_sizes
-        assert(self.fc == 1)
-        self.filter_sizes = [self.fh, self.fw, self.]
-        
-        # self.bias = tf.Variable(tf.ones(shape=self.fout) * bias)
+        self.filter_sizes = filter_sizes
+        self.fh, self.fw, self.fin, self.mult = filter_sizes
+        self.fout = self.fin * self.mult
+        self.bias = np.ones(shape=self.fout) * bias
         self.strides = strides
         self.padding = padding
         self.alpha = alpha
@@ -33,7 +29,7 @@ class ConvolutionDW(Layer):
             weight_dict = np.load(load, encoding='latin1').item()
 
             filters = weight_dict[self.name]
-            # bias = weight_dict[self.name + '_bias']
+            bias = weight_dict[self.name + '_bias']
         else:
             if init == "zero":
                 filters = np.zeros(shape=self.filter_sizes)
@@ -51,43 +47,21 @@ class ConvolutionDW(Layer):
     ###################################################################
 
     def get_weights(self):
-        # return [(self.name, self.filters), (self.name + "_bias", self.bias)]
-        return [(self.name, self.filters)]
+        return [(self.name, self.filters), (self.name + "_bias", self.bias)]
 
     def num_params(self):
-        filter_weights_size = self.fh * self.fw * self.fin * self.fout
-        # bias_weights_size = self.fout
-        return filter_weights_size # + bias_weights_size
+        filter_weights_size = self.fh * self.fw * self.fin * self.mult
+        bias_weights_size = self.fout
+        return filter_weights_size + bias_weights_size
                 
     def forward(self, X):
-        As = []
-        for ii in range(self.fg): 
-            start = ii * self.fc
-            end = (ii + 1) * self.fc
-            input_slice = slice(start, end)
- 
-            Z = tf.nn.conv2d(X[:, :, :, input_slice], self.filters[:, :, :, ii, :], self.strides, self.padding)
-            A = self.activation.forward(Z)
-            As.append(A)
-
-        A = tf.concat(As, axis=3)
+        Z = tf.nn.depthwise_conv2d(X, self.filters, self.strides, self.padding) + tf.reshape(self.bias, [1, 1, self.fout])
+        A = self.activation.forward(Z)
         return A
         
     def backward(self, AI, AO, DO): 
         DO = tf.multiply(DO, self.activation.gradient(AO))
-
-        DIs = []
-        for ii in range(self.fg): 
-            start = ii * self.fout
-            end = (ii + 1) * self.fout
-            output_slice = slice(start, end)
-
-            input_sizes = (self.batch_size, self.h, self.w, self.fc)
-
-            DI = tf.nn.conv2d_backprop_input(input_sizes=input_sizes, filter=self.filters[:, :, :, ii, :], out_backprop=DO[:, :, :, output_slice], strides=self.strides, padding=self.padding)
-            DIs.append(DI)
-
-        DI = tf.concat(DIs, axis=3)
+        DI = tf.nn.nn.depthwise_conv2d_native_backprop_input(input_sizes=self.input_sizes, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
         return DI
 
     def gv(self, AI, AO, DO):
@@ -95,29 +69,9 @@ class ConvolutionDW(Layer):
             return []
     
         DO = tf.multiply(DO, self.activation.gradient(AO))
-
-        DFs = []
-        for ii in range(self.fg): 
-            start = ii * self.fc
-            end = (ii + 1) * self.fc
-            input_slice = slice(start, end)
-
-            start = ii * self.fout
-            end = (ii + 1) * self.fout
-            output_slice = slice(start, end)
-
-            filter_sizes = (self.fh, self.fw, self.fc, self.fout)
-
-            DF = tf.nn.conv2d_backprop_filter(input=AI[:, :, :, input_slice], filter_sizes=filter_sizes, out_backprop=DO[:, :, :, output_slice], strides=self.strides, padding=self.padding)
-            DF = tf.reshape(DF, (self.fh, self.fw, self.fc, 1, self.fout))
-            DFs.append(DF)
-
-        # if 4 right ?
-        # [N fh fw fc fg fout]
-        # where N is the length of the list
-        DF = tf.concat(DFs, axis=4)
-        DF = tf.reshape(DF, (self.fh, self.fw, self.fc, self.fg, self.fout))
-        return [(DF, self.filters)]        
+        DF = tf.nn.depthwise_conv2d_native_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
+        DB = tf.reduce_sum(DO, axis=[0, 1, 2])
+        return [(DF, self.filters), (DB, self.bias)]     
 
     ################################################################### 
         
