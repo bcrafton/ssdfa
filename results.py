@@ -70,6 +70,13 @@ imagenet_vgg_sparse1 = {'benchmark':'vgg_fc.py', 'epochs':100, 'batch_size':64, 
 imagenet_vgg_sparse2 = {'benchmark':'vgg_fc.py', 'epochs':100, 'batch_size':32, 'alpha':[0.0001], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[1.], 'dropout':[0.1], 'dfa':1, 'sparse':1, 'rank':0, 'init':['zero'], 'opt':'adam', 'load':None}
 imagenet_vgg_sparse3 = {'benchmark':'vgg_fc.py', 'epochs':100, 'batch_size':32, 'alpha':[0.0001], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[1.], 'dropout':[0.25], 'dfa':1, 'sparse':1, 'rank':0, 'init':['zero'], 'opt':'adam', 'load':None}
 
+
+################################################
+# MobileNet
+################################################
+
+mobile_net = {'benchmark':'MobileNetDW.py', 'epochs':100, 'batch_size':128, 'alpha':[1e-2, 3e-3, 1e-3], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':0, 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':None}
+
 ################################################
 
 vgg64 = {'benchmark':'vgg64.py', 'epochs':100, 'batch_size':64, 'alpha':[0.01], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':0, 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':None}
@@ -85,8 +92,10 @@ vgg64_mlp = {'benchmark':'vgg64_mlp.py', 'epochs':100, 'batch_size':64, 'alpha':
 # params = [cifar10_conv_bp, cifar10_conv_dfa, cifar10_conv_sparse]
 # params = [cifar100_conv_bp, cifar100_conv_dfa, cifar100_conv_sparse]
 
-params = [vgg64]
+# params = [vgg64]
 # params = [vgg64_mlp]
+
+params = [mobile_net]
 
 ################################################
 

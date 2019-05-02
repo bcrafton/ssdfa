@@ -341,7 +341,7 @@ l2_4 = BatchNorm(size=[56, 56, 128])
 l3_1 = ConvolutionDW(input_sizes=[batch_size, 56, 56, 128], filter_sizes=[3, 3, 128, 1], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv2", load=weights_conv, train=train_conv)
 l3_2 = BatchNorm(size=[56, 56, 128])
 l3_3 = Convolution2D(input_sizes=[batch_size, 56, 56, 128], filter_sizes=[1, 1, 128, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv3", load=weights_conv, train=train_conv)
-l3_4 = BatchNorm(size=[56, 56, 256])
+l3_4 = BatchNorm(size=[56, 56, 128])
 
 l4_1 = ConvolutionDW(input_sizes=[batch_size, 56, 56, 128], filter_sizes=[3, 3, 128, 1], init=args.init, strides=[1, 2, 2, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv2", load=weights_conv, train=train_conv)
 l4_2 = BatchNorm(size=[28, 28, 128])
@@ -354,7 +354,7 @@ l5_3 = Convolution2D(input_sizes=[batch_size, 28, 28, 256], filter_sizes=[1, 1, 
 l5_4 = BatchNorm(size=[28, 28, 256])
 
 l6_1 = ConvolutionDW(input_sizes=[batch_size, 28, 28, 256], filter_sizes=[3, 3, 256, 1], init=args.init, strides=[1, 2, 2, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv2", load=weights_conv, train=train_conv)
-l6_2 = BatchNorm(size=[28, 28, 256])
+l6_2 = BatchNorm(size=[14, 14, 256])
 l6_3 = Convolution2D(input_sizes=[batch_size, 14, 14, 256], filter_sizes=[1, 1, 256, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv3", load=weights_conv, train=train_conv)
 l6_4 = BatchNorm(size=[14, 14, 512])
 
@@ -435,7 +435,6 @@ model = Model(layers=[l0,                             \
 
 ###############################################################
 
-model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16, l17, l18, l19, l20])
 predict = tf.nn.softmax(model.predict(X=features))
 
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt == "momentum":
@@ -474,8 +473,7 @@ print (model.num_params())
 
 ###############################################################
 
-# config = tf.ConfigProto()
-config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)
+config = tf.ConfigProto(allow_soft_placement=True)
 config.gpu_options.allow_growth=True
 
 # sess = tf.InteractiveSession(config=config)

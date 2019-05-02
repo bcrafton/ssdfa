@@ -31,7 +31,7 @@ class AvgPool(Layer):
     ###################################################################           
         
     def backward(self, AI, AO, DO):    
-        grad = gen_nn_ops.avg_pool_grad(orig_input_shape=AI, grad=DO, ksize=self.ksize, strides=self.strides, padding=self.padding)
+        grad = gen_nn_ops.avg_pool_grad(orig_input_shape=self.size, grad=DO, ksize=self.ksize, strides=self.strides, padding=self.padding)
         return grad
 
     def gv(self, AI, AO, DO):    
@@ -43,7 +43,7 @@ class AvgPool(Layer):
     ###################################################################
 
     def dfa_backward(self, AI, AO, E, DO):
-        grad = gen_nn_ops.avg_pool_grad(orig_input_shape=AI, grad=DO, ksize=self.ksize, strides=self.strides, padding=self.padding)
+        grad = gen_nn_ops.avg_pool_grad(orig_input_shape=self.size, grad=DO, ksize=self.ksize, strides=self.strides, padding=self.padding)
         return grad
         
     def dfa_gv(self, AI, AO, E, DO):
@@ -55,7 +55,7 @@ class AvgPool(Layer):
     ###################################################################   
     
     def lel_backward(self, AI, AO, E, DO, Y):
-        grad = gen_nn_ops.avg_pool_grad(orig_input_shape=AI, grad=DO, ksize=self.ksize, strides=self.strides, padding=self.padding)
+        grad = gen_nn_ops.avg_pool_grad(orig_input_shape=self.size, grad=DO, ksize=self.ksize, strides=self.strides, padding=self.padding)
         return grad
         
     def lel_gv(self, AI, AO, E, DO, Y):
