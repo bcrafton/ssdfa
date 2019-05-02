@@ -6,6 +6,9 @@ from tensorflow.python.ops import gen_nn_ops
 
 from lib.Layer import Layer 
 
+# /home/brian/environments/py3/lib/python3.5/site-packages/tensorflow/python/ops/gen_nn_ops.py
+# def avg_pool_grad(orig_input_shape, grad, ksize, strides, padding, data_format="NHWC", name=None):
+
 class AvgPool(Layer):
     def __init__(self, size, ksize, strides, padding):
         self.size = size
@@ -28,7 +31,7 @@ class AvgPool(Layer):
     ###################################################################           
         
     def backward(self, AI, AO, DO):    
-        grad = gen_nn_ops.avg_pool_grad(grad=DO, orig_input=AI, orig_output=AO, ksize=self.ksize, strides=self.strides, padding=self.padding)
+        grad = gen_nn_ops.avg_pool_grad(orig_input_shape=AI, grad=DO, ksize=self.ksize, strides=self.strides, padding=self.padding)
         return grad
 
     def gv(self, AI, AO, DO):    
@@ -40,7 +43,7 @@ class AvgPool(Layer):
     ###################################################################
 
     def dfa_backward(self, AI, AO, E, DO):
-        grad = gen_nn_ops.avg_pool_grad(grad=DO, orig_input=AI, orig_output=AO, ksize=self.ksize, strides=self.strides, padding=self.padding)
+        grad = gen_nn_ops.avg_pool_grad(orig_input_shape=AI, grad=DO, ksize=self.ksize, strides=self.strides, padding=self.padding)
         return grad
         
     def dfa_gv(self, AI, AO, E, DO):
@@ -52,8 +55,7 @@ class AvgPool(Layer):
     ###################################################################   
     
     def lel_backward(self, AI, AO, E, DO, Y):
-        grad = gen_nn_ops.max_pool_grad(grad=DO, orig_input=AI, orig_output=AO, ksize=self.ksize, strides=self.strides, padding=self.padding)
-        # grad = tf.Print(grad, [tf.shape(grad), tf.count_nonzero(tf.equal(grad, 1)), tf.count_nonzero(tf.equal(grad, 2)), tf.count_nonzero(tf.equal(grad, 3)), tf.count_nonzero(tf.equal(grad, 4)), tf.count_nonzero(tf.equal(grad, 5))], message="", summarize=1000)
+        grad = gen_nn_ops.avg_pool_grad(orig_input_shape=AI, grad=DO, ksize=self.ksize, strides=self.strides, padding=self.padding)
         return grad
         
     def lel_gv(self, AI, AO, E, DO, Y):
