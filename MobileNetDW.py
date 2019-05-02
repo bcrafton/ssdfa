@@ -207,10 +207,18 @@ val_iterator = val_dataset.make_initializable_iterator()
 ###############################################################
 
 weights_conv = None
-weights_fc = None
-
 train_conv = True
+
+weights_conv_dw = None
+train_conv_dw = True
+
+weights_conv_1x1 = None
+train_conv_1x1 = True
+
+weights_fc = None
 train_fc = True
+
+###############################################################
 
 if args.act == 'tanh':
     act = Tanh()
@@ -226,44 +234,44 @@ learning_rate = tf.placeholder(tf.float32, shape=())
 
 l0 = Convolution2D(input_sizes=[batch_size, 64, 64, 3], filter_sizes=[3, 3, 3, 32], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv1", load=weights_conv, train=train_conv)
 
-l1_1 = ConvolutionDW(input_sizes=[batch_size, 64, 64, 32], filter_sizes=[3, 3, 32, 1], init=args.init, strides=[1, 2, 2, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv2", load=weights_conv, train=train_conv)
+l1_1 = ConvolutionDW(input_sizes=[batch_size, 64, 64, 32], filter_sizes=[3, 3, 32, 1], init=args.init, strides=[1, 2, 2, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv2", load=weights_conv_dw, train=train_conv_dw)
 l1_2 = BatchNorm(size=[32, 32, 32])
-l1_3 = Convolution2D(input_sizes=[batch_size, 32, 32, 32], filter_sizes=[1, 1, 32, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv3", load=weights_conv, train=train_conv)
+l1_3 = Convolution2D(input_sizes=[batch_size, 32, 32, 32], filter_sizes=[1, 1, 32, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv3", load=weights_conv_1x1, train=train_conv_1x1)
 l1_4 = BatchNorm(size=[32, 32, 64])
 
-l2_1 = ConvolutionDW(input_sizes=[batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 1], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv4", load=weights_conv, train=train_conv)
+l2_1 = ConvolutionDW(input_sizes=[batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 1], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv4", load=weights_conv_dw, train=train_conv_dw)
 l2_2 = BatchNorm(size=[32, 32, 64])
-l2_3 = Convolution2D(input_sizes=[batch_size, 32, 32, 64], filter_sizes=[1, 1, 64, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv5", load=weights_conv, train=train_conv)
+l2_3 = Convolution2D(input_sizes=[batch_size, 32, 32, 64], filter_sizes=[1, 1, 64, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv5", load=weights_conv_1x1, train=train_conv_1x1)
 l2_4 = BatchNorm(size=[32, 32, 128])
 
-l3_1 = ConvolutionDW(input_sizes=[batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 1], init=args.init, strides=[1, 2, 2, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv6", load=weights_conv, train=train_conv)
+l3_1 = ConvolutionDW(input_sizes=[batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 1], init=args.init, strides=[1, 2, 2, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv6", load=weights_conv_dw, train=train_conv_dw)
 l3_2 = BatchNorm(size=[16, 16, 128])
-l3_3 = Convolution2D(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[1, 1, 128, 256], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv7", load=weights_conv, train=train_conv)
+l3_3 = Convolution2D(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[1, 1, 128, 256], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv7", load=weights_conv_1x1, train=train_conv_1x1)
 l3_4 = BatchNorm(size=[16, 16, 256])
 
-l4_1 = ConvolutionDW(input_sizes=[batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 1], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv8", load=weights_conv, train=train_conv)
+l4_1 = ConvolutionDW(input_sizes=[batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 1], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv8", load=weights_conv_dw, train=train_conv_dw)
 l4_2 = BatchNorm(size=[16, 16, 256])
-l4_3 = Convolution2D(input_sizes=[batch_size, 16, 16, 256], filter_sizes=[1, 1, 256, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv9", load=weights_conv, train=train_conv)
+l4_3 = Convolution2D(input_sizes=[batch_size, 16, 16, 256], filter_sizes=[1, 1, 256, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv9", load=weights_conv_1x1, train=train_conv_1x1)
 l4_4 = BatchNorm(size=[16, 16, 512])
 
-l5_1 = ConvolutionDW(input_sizes=[batch_size, 16, 16, 512], filter_sizes=[3, 3, 512, 1], init=args.init, strides=[1, 2, 2, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv10", load=weights_conv, train=train_conv)
+l5_1 = ConvolutionDW(input_sizes=[batch_size, 16, 16, 512], filter_sizes=[3, 3, 512, 1], init=args.init, strides=[1, 2, 2, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv10", load=weights_conv_dw, train=train_conv_dw)
 l5_2 = BatchNorm(size=[8, 8, 512])
-l5_3 = Convolution2D(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[1, 1, 512, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv11", load=weights_conv, train=train_conv)
+l5_3 = Convolution2D(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[1, 1, 512, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv11", load=weights_conv_1x1, train=train_conv_1x1)
 l5_4 = BatchNorm(size=[8, 8, 512])
 
-l6_1 = ConvolutionDW(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 512, 1], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv12", load=weights_conv, train=train_conv)
+l6_1 = ConvolutionDW(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 512, 1], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv12", load=weights_conv_dw, train=train_conv_dw)
 l6_2 = BatchNorm(size=[8, 8, 512])
-l6_3 = Convolution2D(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[1, 1, 512, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv13", load=weights_conv, train=train_conv)
+l6_3 = Convolution2D(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[1, 1, 512, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv13", load=weights_conv_1x1, train=train_conv_1x1)
 l6_4 = BatchNorm(size=[8, 8, 512])
 
-l7_1 = ConvolutionDW(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 512, 1], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv14", load=weights_conv, train=train_conv)
+l7_1 = ConvolutionDW(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 512, 1], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv14", load=weights_conv_dw, train=train_conv_dw)
 l7_2 = BatchNorm(size=[8, 8, 512])
-l7_3 = Convolution2D(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[1, 1, 512, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv15", load=weights_conv, train=train_conv)
+l7_3 = Convolution2D(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[1, 1, 512, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv15", load=weights_conv_1x1, train=train_conv_1x1)
 l7_4 = BatchNorm(size=[8, 8, 512])
 
-l8_1 = ConvolutionDW(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 512, 1], init=args.init, strides=[1, 2, 2, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv16", load=weights_conv, train=train_conv)
+l8_1 = ConvolutionDW(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 512, 1], init=args.init, strides=[1, 2, 2, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv16", load=weights_conv_dw, train=train_conv_dw)
 l8_2 = BatchNorm(size=[4, 4, 512])
-l8_3 = Convolution2D(input_sizes=[batch_size, 4, 4, 512], filter_sizes=[1, 1, 512, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv17", load=weights_conv, train=train_conv)
+l8_3 = Convolution2D(input_sizes=[batch_size, 4, 4, 512], filter_sizes=[1, 1, 512, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv17", load=weights_conv_1x1, train=train_conv_1x1)
 l8_4 = BatchNorm(size=[4, 4, 512])
 
 l9 = ConvToFullyConnected(shape=[4, 4, 512])
