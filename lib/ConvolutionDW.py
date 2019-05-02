@@ -14,7 +14,9 @@ class ConvolutionDW(Layer):
         self.filter_sizes = filter_sizes
         self.fh, self.fw, self.fin, self.mult = filter_sizes
         self.fout = self.fin * self.mult
-        self.bias = np.ones(shape=self.fout) * bias
+        
+        bias = np.ones(shape=self.fout) * bias
+        
         self.strides = strides
         self.padding = padding
         self.alpha = alpha
@@ -43,6 +45,7 @@ class ConvolutionDW(Layer):
                 assert(False)
                 
         self.filters = tf.Variable(filters, dtype=tf.float32)
+        self.bias = tf.Variable(bias, dtype=tf.float32)
 
     ###################################################################
 
