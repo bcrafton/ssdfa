@@ -14,25 +14,21 @@ class Convolution2D(Layer):
         self.filter_sizes = filter_sizes
         self.batch_size, self.h, self.w, self.fin = self.input_sizes
         self.fh, self.fw, self.fin, self.fout = self.filter_sizes
-
-        self.bias = tf.Variable(tf.ones(shape=self.fout) * bias)
-
+        
+        bias = np.ones(shape=self.fout) * bias
+        
         self.strides = strides
         self.padding = padding
-
         self.alpha = alpha
-
         self.activation = activation
-        self.last_layer = last_layer
-
         self.name = name
         self._train = train
         
         if load:
             print ("Loading Weights: " + self.name)
             weight_dict = np.load(load, encoding='latin1').item()
-            self.filters = tf.Variable(weight_dict[self.name])
-            self.bias = tf.Variable(weight_dict[self.name + '_bias'])
+            filters = weight_dict[self.name]
+            bias = weight_dict[self.name + '_bias']
         else:
             if init == "zero":
                 filters = np.zeros(shape=self.filter_sizes)
@@ -46,6 +42,7 @@ class Convolution2D(Layer):
                 assert(False)
                 
         self.filters = tf.Variable(filters, dtype=tf.float32)
+        self.bias = tf.Variable(bias, dtype=tf.float32)
 
     ###################################################################
 
