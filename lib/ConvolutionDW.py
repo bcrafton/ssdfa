@@ -64,7 +64,7 @@ class ConvolutionDW(Layer):
         
     def backward(self, AI, AO, DO): 
         DO = tf.multiply(DO, self.activation.gradient(AO))
-        DI = tf.nn.nn.depthwise_conv2d_native_backprop_input(input_sizes=self.input_sizes, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+        DI = tf.nn.depthwise_conv2d_native_backprop_input(input_sizes=self.input_sizes, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
         return DI
 
     def gv(self, AI, AO, DO):

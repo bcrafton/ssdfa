@@ -111,7 +111,6 @@ def parse_function(filename, label):
 def preprocess(image):
     means = tf.reshape(tf.constant(MEAN), [1, 1, 3])
     image = image - means
-
     return image
 
 ##############################################
