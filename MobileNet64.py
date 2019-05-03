@@ -65,6 +65,7 @@ from lib.Convolution2D import Convolution2D
 from lib.Convolution3D import Convolution3D
 from lib.ConvolutionDW import ConvolutionDW
 from lib.MaxPool import MaxPool
+from lib.AvgPool import AvgPool
 from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
@@ -283,7 +284,7 @@ l8_4 = BatchNorm(size=[8, 8, 512])
 l9_1 = ConvolutionDW(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 512, 1], init=args.init, strides=[1, 2, 2, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv14", load=weights_conv_dw, train=train_conv_dw)
 l9_2 = BatchNorm(size=[4, 4, 512])
 l9_3 = Convolution2D(input_sizes=[batch_size, 4, 4, 512], filter_sizes=[1, 1, 512, 1024], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv15", load=weights_conv_1x1, train=train_conv_1x1)
-l9_4 = BatchNorm(size=[8, 8, 512])
+l9_4 = BatchNorm(size=[4, 4, 1024])
 
 l10_1 = ConvolutionDW(input_sizes=[batch_size, 4, 4, 1024], filter_sizes=[3, 3, 1024, 1], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv16", load=weights_conv_dw, train=train_conv_dw)
 l10_2 = BatchNorm(size=[4, 4, 1024])
