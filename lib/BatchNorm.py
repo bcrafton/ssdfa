@@ -11,8 +11,10 @@ from lib.Layer import Layer
 # https://kevinzakka.github.io/2016/09/14/batch_normalization/
 
 class BatchNorm(Layer):
-    def __init__(self, size, name=None, load=None, eps=1e-3):
+    def __init__(self, size, name=None, load=None, train=True, eps=1e-3):
         self.size = size
+        self.name = name
+        self._train = train
         self.eps = eps
         self.num_parameters = np.prod(self.size) * 2
         
@@ -32,7 +34,7 @@ class BatchNorm(Layer):
     ###################################################################
 
     def get_weights(self):
-        return []
+        return [(self.name + '_gamma', self.gamma), (self.name + '_beta', self.beta)]
 
     def num_params(self):
         return self.num_parameters
@@ -64,7 +66,10 @@ class BatchNorm(Layer):
         
         return DI
 
-    def gv(self, AI, AO, DO):    
+    def gv(self, AI, AO, DO):
+        if not self._train:
+            return []
+
         X = AI
         
         mean = tf.reduce_mean(X, axis=0, keepdims=True)
@@ -81,6 +86,9 @@ class BatchNorm(Layer):
         return [(dgamma, self.gamma), (dbeta, self.beta)]
         
     def train(self, AI, AO, DO): 
+        if not self._train:
+            return []
+
         assert(False)
         return []
         
