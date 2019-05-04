@@ -55,6 +55,9 @@ import numpy as np
 from PIL import Image
 import scipy.misc
 
+from lib.mobilenet_preprocessing import preprocess_for_train
+from lib.mobilenet_preprocessing import preprocess_for_eval
+
 from lib.Model import Model
 
 from lib.Layer import Layer 
@@ -113,7 +116,10 @@ IMAGENET_MEAN = [123.68, 116.78, 103.94]
 def parse_function(filename, label):
     image_string = tf.read_file(filename)
     image_decoded = tf.image.decode_jpeg(image_string, channels=3)          # (1)
+    return image_decoded, label
+
     image = tf.cast(image_decoded, tf.float32)
+    # image = tf.image.convert_image_dtype(image_decoded, dtype=tf.float32)
 
     smallest_side = 256.0
     height, width = tf.shape(image)[0], tf.shape(image)[1]
@@ -135,6 +141,9 @@ def parse_function(filename, label):
 # (5) Substract the per color mean `IMAGENET_MEAN`
 # Note: we don't normalize the data here, as VGG was trained without normalization
 def train_preprocess(image, label):
+    image = preprocess_for_train(image, 224, 224)
+    return image, label
+
     crop_image = tf.random_crop(image, [224, 224, 3])                       # (3)
     flip_image = tf.image.random_flip_left_right(crop_image)                # (4)
 
@@ -149,6 +158,9 @@ def train_preprocess(image, label):
 # (4) Substract the per color mean `IMAGENET_MEAN`
 # Note: we don't normalize the data here, as VGG was trained without normalization
 def val_preprocess(image, label):
+    image = preprocess_for_eval(image, 224, 224)
+    return image, label
+
     crop_image = tf.image.resize_image_with_crop_or_pad(image, 224, 224)    # (3)
 
     means = tf.reshape(tf.constant(IMAGENET_MEAN), [1, 1, 3])
@@ -408,40 +420,10 @@ l10 = AvgPool(size=[batch_size, 7, 7, 1024], ksize=[1, 7, 7, 1], strides=[1, 7, 
 
 l11 = ConvToFullyConnected(shape=[1, 1, 1024])
 
-'''
-l12_1 = FullyConnected(size=[1024, 1000], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="fc1", load=weights_fc, train=train_fc)
-l12_2 = BatchNorm(size=1000, name='fc1_bn')
-
-l13 = Dropout(rate=dropout_rate)
-
-l14 = FullyConnected(size=[1000, 1000], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name="fc2", load=weights_fc, train=train_fc)
-'''
-
 l12 = FullyConnected(size=[1024, 1000], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name="fc1", load=weights_fc, train=train_fc)
 
 ###############################################################
 
-'''
-model = Model(layers=[l0_1, l0_2,                     \
-                      l1_1, l1_2, l1_3, l1_4,         \
-                      l2_1, l2_2, l2_3, l2_4,         \
-                      l3_1, l3_2, l3_3, l3_4,         \
-                      l4_1, l4_2, l4_3, l4_4,         \
-                      l5_1, l5_2, l5_3, l5_4,         \
-                      l6_1, l6_2, l6_3, l6_4,         \
-                      l7_1_1, l7_1_2, l7_1_3, l7_1_4, \
-                      l7_2_1, l7_2_2, l7_2_3, l7_2_4, \
-                      l7_3_1, l7_3_2, l7_3_3, l7_3_4, \
-                      l7_4_1, l7_4_2, l7_4_3, l7_4_4, \
-                      l7_5_1, l7_5_2, l7_5_3, l7_5_4, \
-                      l8_1, l8_2, l8_3, l8_4,         \
-                      l9_1, l9_2, l9_3, l9_4,         \
-                      l10,                            \
-                      l11,                            \
-                      l12_1, l12_2,                   \
-                      l13,                            \
-                      l14])
-'''
 model = Model(layers=[l0_1, l0_2,                     \
                       l1_1, l1_2, l1_3, l1_4,         \
                       l2_1, l2_2, l2_3, l2_4,         \
@@ -459,6 +441,7 @@ model = Model(layers=[l0_1, l0_2,                     \
                       l10,                            \
                       l11,                            \
                       l12])
+
 ###############################################################
 
 predict = tf.nn.softmax(model.predict(X=features))
