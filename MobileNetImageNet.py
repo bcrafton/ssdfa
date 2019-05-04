@@ -326,13 +326,13 @@ learning_rate = tf.placeholder(tf.float32, shape=())
 
 ########################
 
-l0 = Convolution2D(input_sizes=[batch_size, 224, 224, 3], filter_sizes=[3, 3, 3, 24], init=args.init, strides=[1, 2, 2, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv1", load=weights_conv, train=train_conv)
+l0 = Convolution2D(input_sizes=[batch_size, 224, 224, 3], filter_sizes=[3, 3, 3, 32], init=args.init, strides=[1, 2, 2, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv1", load=weights_conv, train=train_conv)
 
 ########################
 
-l1_1 = ConvolutionDW(input_sizes=[batch_size, 112, 112, 24], filter_sizes=[3, 3, 24, 1], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv_dw_1", load=weights_conv, train=train_conv)
-l1_2 = BatchNorm(size=[112, 112, 24])
-l1_3 = Convolution2D(input_sizes=[batch_size, 112, 112, 24], filter_sizes=[1, 1, 24, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv_pw_1", load=weights_conv, train=train_conv)
+l1_1 = ConvolutionDW(input_sizes=[batch_size, 112, 112, 32], filter_sizes=[3, 3, 32, 1], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv_dw_1", load=weights_conv, train=train_conv)
+l1_2 = BatchNorm(size=[112, 112, 32])
+l1_3 = Convolution2D(input_sizes=[batch_size, 112, 112, 32], filter_sizes=[1, 1, 32, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv_pw_1", load=weights_conv, train=train_conv)
 l1_4 = BatchNorm(size=[112, 112, 64])
 
 l2_1 = ConvolutionDW(input_sizes=[batch_size, 112, 112, 64], filter_sizes=[3, 3, 64, 1], init=args.init, strides=[1, 2, 2, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv_dw_2", load=weights_conv, train=train_conv)
