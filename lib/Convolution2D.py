@@ -28,7 +28,10 @@ class Convolution2D(Layer):
             print ("Loading Weights: " + self.name)
             weight_dict = np.load(load, encoding='latin1').item()
             filters = weight_dict[self.name]
-            bias = weight_dict[self.name + '_bias']
+            if list(np.shape(filters)) != self.filter_sizes:
+                print (np.shape(filters), self.filter_sizes)
+                assert(list(np.shape(filters)) == self.filter_sizes)
+            # bias = weight_dict[self.name + '_bias']
         else:
             if init == "zero":
                 filters = np.zeros(shape=self.filter_sizes)
