@@ -11,13 +11,20 @@ from lib.Layer import Layer
 # https://kevinzakka.github.io/2016/09/14/batch_normalization/
 
 class BatchNorm(Layer):
-    def __init__(self, size, eps=1e-3):
+    def __init__(self, size, name=None, load=None, eps=1e-3):
         self.size = size
         self.eps = eps
         self.num_parameters = np.prod(self.size) * 2
         
-        gamma = np.ones(shape=size)
-        beta = np.zeros(shape=size)
+        if load:
+            weight_dict = np.load(load).item()
+            gamma = weight_dict[self.name + '_gamma']
+            beta = weight_dict[self.name + '_beta']
+            assert(list(np.shape(gamma)) == list(self.size))
+            assert(list(np.shape(beta)) == list(self.size))
+        else:
+            gamma = np.ones(shape=size)
+            beta = np.zeros(shape=size)
         
         self.gamma = tf.Variable(gamma, dtype=tf.float32)
         self.beta = tf.Variable(beta, dtype=tf.float32)
