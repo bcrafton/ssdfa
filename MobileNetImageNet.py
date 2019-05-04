@@ -326,7 +326,8 @@ learning_rate = tf.placeholder(tf.float32, shape=())
 
 ########################
 
-l0 = Convolution2D(input_sizes=[batch_size, 224, 224, 3], filter_sizes=[3, 3, 3, 32], init=args.init, strides=[1, 2, 2, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv1", load=weights_conv, train=train_conv)
+l0_1 = Convolution2D(input_sizes=[batch_size, 224, 224, 3], filter_sizes=[3, 3, 3, 32], init=args.init, strides=[1, 2, 2, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv1", load=weights_conv, train=train_conv)
+l0_2 = BatchNorm(size=32, name='conv1_bn', load=weights_conv, train=train_conv)
 
 ########################
 
@@ -378,7 +379,7 @@ l7_3_3 = Convolution2D(input_sizes=[batch_size, 14, 14, 512], filter_sizes=[1, 1
 l7_3_4 = BatchNorm(size=512, name='conv_pw_9_bn', load=weights_conv_pw, train=train_conv_pw)
 
 l7_4_1 = ConvolutionDW(input_sizes=[batch_size, 14, 14, 512], filter_sizes=[3, 3, 512, 1], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv_dw_10", load=weights_conv_dw, train=train_conv_dw)
-l7_4_2 = BatchNorm(size=512], name='conv_dw_10_bn', load=weights_conv_dw, train=train_conv_dw)
+l7_4_2 = BatchNorm(size=512, name='conv_dw_10_bn', load=weights_conv_dw, train=train_conv_dw)
 l7_4_3 = Convolution2D(input_sizes=[batch_size, 14, 14, 512], filter_sizes=[1, 1, 512, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, name="conv_pw_10", load=weights_conv_pw, train=train_conv_pw)
 l7_4_4 = BatchNorm(size=512, name='conv_pw_10_bn', load=weights_conv_pw, train=train_conv_pw)
 
@@ -407,16 +408,21 @@ l10 = AvgPool(size=[batch_size, 7, 7, 1024], ksize=[1, 7, 7, 1], strides=[1, 7, 
 
 l11 = ConvToFullyConnected(shape=[1, 1, 1024])
 
-l12 = FullyConnected(size=[1024, 1000], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="fc1", load=weights_fc, train=train_fc)
-l13 = BatchNorm(size=1000)
+'''
+l12_1 = FullyConnected(size=[1024, 1000], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="fc1", load=weights_fc, train=train_fc)
+l12_2 = BatchNorm(size=1000, name='fc1_bn')
 
-l14 = Dropout(rate=dropout_rate)
+l13 = Dropout(rate=dropout_rate)
 
-l15 = FullyConnected(size=[1000, 1000], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name="fc2", load=weights_fc, train=train_fc)
+l14 = FullyConnected(size=[1000, 1000], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name="fc2", load=weights_fc, train=train_fc)
+'''
+
+l12 = FullyConnected(size=[1024, 1000], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name="fc1", load=weights_fc, train=train_fc)
 
 ###############################################################
 
-model = Model(layers=[l0,                             \
+'''
+model = Model(layers=[l0_1, l0_2,                     \
                       l1_1, l1_2, l1_3, l1_4,         \
                       l2_1, l2_2, l2_3, l2_4,         \
                       l3_1, l3_2, l3_3, l3_4,         \
@@ -432,11 +438,27 @@ model = Model(layers=[l0,                             \
                       l9_1, l9_2, l9_3, l9_4,         \
                       l10,                            \
                       l11,                            \
-                      l12,                            \
+                      l12_1, l12_2,                   \
                       l13,                            \
-                      l14,                            \
-                      l15])
-
+                      l14])
+'''
+model = Model(layers=[l0_1, l0_2,                     \
+                      l1_1, l1_2, l1_3, l1_4,         \
+                      l2_1, l2_2, l2_3, l2_4,         \
+                      l3_1, l3_2, l3_3, l3_4,         \
+                      l4_1, l4_2, l4_3, l4_4,         \
+                      l5_1, l5_2, l5_3, l5_4,         \
+                      l6_1, l6_2, l6_3, l6_4,         \
+                      l7_1_1, l7_1_2, l7_1_3, l7_1_4, \
+                      l7_2_1, l7_2_2, l7_2_3, l7_2_4, \
+                      l7_3_1, l7_3_2, l7_3_3, l7_3_4, \
+                      l7_4_1, l7_4_2, l7_4_3, l7_4_4, \
+                      l7_5_1, l7_5_2, l7_5_3, l7_5_4, \
+                      l8_1, l8_2, l8_3, l8_4,         \
+                      l9_1, l9_2, l9_3, l9_4,         \
+                      l10,                            \
+                      l11,                            \
+                      l12])
 ###############################################################
 
 predict = tf.nn.softmax(model.predict(X=features))

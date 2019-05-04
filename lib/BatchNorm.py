@@ -19,11 +19,19 @@ class BatchNorm(Layer):
         self.num_parameters = np.prod(self.size) * 2
         
         if load:
+            print ("Loading Weights: " + self.name)
             weight_dict = np.load(load).item()
             gamma = weight_dict[self.name + '_gamma']
             beta = weight_dict[self.name + '_beta']
-            assert(list(np.shape(gamma)) == list(self.size))
-            assert(list(np.shape(beta)) == list(self.size))
+            '''
+            if np.shape(gamma) != self.size:
+                print (np.shape(gamma), self.size)
+                assert(np.shape(gamma) == self.size)
+
+            if np.shape(beta) != self.size:
+                print (np.shape(beta), self.size)
+                assert(np.shape(beta) == self.size)
+            '''
         else:
             gamma = np.ones(shape=size)
             beta = np.zeros(shape=size)
