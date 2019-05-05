@@ -64,25 +64,36 @@ class BatchNorm(Layer):
     def backward(self, AI, AO, DO): 
         N = tf.shape(AI)[0]
         N = tf.cast(N, dtype=tf.float32)
-        X = AI
-        
+        O = tf.shape(AI)[-1]
+        O = tf.cast(O, dtype=tf.float32)
+
+        _AI = tf.reshape(AI, (-1, O))
+        _DO = tf.reshape(DO, (-1, O))
+
         ####### 
-        mean = (1./N) * tf.reduce_sum(X, axis=0)
-        var = (1./N) * tf.reduce_sum((X - mean) ** 2, axis=0)
-        DI = (1./N) * self.gamma * ((var + self.eps) ** (-1. / 2.)) * (N * DO - tf.reduce_sum(DO, axis=0) - (X - mean) * ((var + self.eps) ** (-1.0)) * tf.reduce_sum(DO * (X - mean), axis=0))
+        mean = (1./N) * tf.reduce_sum(_AI, axis=0)
+        var = (1./N) * tf.reduce_sum((_AI - mean) ** 2, axis=0)
+        DI = (1./N) * self.gamma * ((var + self.eps) ** (-1. / 2.)) * (N * DO - tf.reduce_sum(DO, axis=0) - (AI - mean) * ((var + self.eps) ** (-1.0)) * tf.reduce_sum(DO * (AI - mean), axis=0))
         #######
         
+        # DI = tf.Print(DI, [tf.shape(DI)], message='', summarize=1000)
         return DI
 
     def gv(self, AI, AO, DO):
         if not self._train:
             return []
 
-        X = AI
-        
-        mean = tf.reduce_mean(X, axis=0, keepdims=True)
-        _, var = tf.nn.moments(X - mean, axes=0, keep_dims=True)
-        xhat = (X - mean) / tf.sqrt(var + self.eps)
+        N = tf.shape(AI)[0]
+        N = tf.cast(N, dtype=tf.float32)
+        O = tf.shape(AI)[-1]
+        O = tf.cast(O, dtype=tf.float32)
+
+        AI = tf.reshape(AI, (-1, O))
+        DO = tf.reshape(DO, (-1, O))
+
+        mean = tf.reduce_mean(AI, axis=0)
+        _, var = tf.nn.moments(AI - mean, axes=0)
+        xhat = (AI - mean) / tf.sqrt(var + self.eps)
         
         #######
 
