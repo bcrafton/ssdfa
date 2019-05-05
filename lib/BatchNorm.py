@@ -32,15 +32,15 @@ class BatchNorm(Layer):
             weight_dict = np.load(load).item()
             gamma = weight_dict[self.name + '_gamma']
             beta = weight_dict[self.name + '_beta']
-            '''
-            if np.shape(gamma) != self.size:
+            
+            if np.shape(gamma) != (self.size,):
                 print (np.shape(gamma), self.size)
-                assert(np.shape(gamma) == self.size)
+                assert(np.shape(gamma) == (self.size,))
 
-            if np.shape(beta) != self.size:
+            if np.shape(beta) != (self.size,):
                 print (np.shape(beta), self.size)
-                assert(np.shape(beta) == self.size)
-            '''
+                assert(np.shape(beta) == (self.size,))
+            
         else:
             gamma = np.ones(shape=self.size)
             beta = np.zeros(shape=self.size)
@@ -65,7 +65,9 @@ class BatchNorm(Layer):
         _, var = tf.nn.moments(X - mean, axes=self.dims)
         xhat = (X - mean) / tf.sqrt(var + self.eps)
         Z = self.gamma * xhat + self.beta
-        # Z = tf.Print(Z, [tf.shape(self.gamma), tf.shape(X)], message='', summarize=1000)
+
+        # Z = tf.Print(Z, [mean], message='', summarize=1000)
+        
         return Z
             
     ###################################################################           

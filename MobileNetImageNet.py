@@ -276,14 +276,14 @@ val_iterator = val_dataset.make_initializable_iterator()
 
 ###############################################################
 
-train_conv = True
-weights_conv = None # 'MobileNetWeights.npy'
+train_conv = False
+weights_conv = 'MobileNetWeights.npy'
 
-train_conv_dw = True
-weights_conv_dw = None # 'MobileNetWeights.npy'
+train_conv_dw = False
+weights_conv_dw = 'MobileNetWeights.npy'
 
-train_conv_pw = True 
-weights_conv_pw = None # 'MobileNetWeights.npy'
+train_conv_pw = False 
+weights_conv_pw = 'MobileNetWeights.npy'
 
 train_fc = True
 weights_fc = None
