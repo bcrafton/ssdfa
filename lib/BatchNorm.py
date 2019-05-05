@@ -48,14 +48,21 @@ class BatchNorm(Layer):
     def num_params(self):
         return self.num_parameters
 
+    # means we are gonna need to make gamma and beta (1, shape) I think.
+    # think we get away with it:
+    # https://www.tensorflow.org/api_docs/python/tf/math/multiply
+    # https://docs.scipy.org/doc/numpy/user/basics.broadcasting.html
     def forward(self, X):
-        mean = tf.reduce_mean(X, axis=0, keepdims=True)
-        _, var = tf.nn.moments(X - mean, axes=0, keep_dims=True)
+        N = tf.shape(X)[0]
+        N = tf.cast(N, dtype=tf.float32)
+        O = tf.shape(X)[-1]
+        O = tf.cast(O, dtype=tf.float32)
+
+        _X = tf.reshape(X, (-1, O))
+
+        mean = tf.reduce_mean(_X, axis=0, keepdims=True)
+        _, var = tf.nn.moments(_X - mean, axes=0, keep_dims=True)
         xhat = (X - mean) / tf.sqrt(var + self.eps)
-        # means we are gonna need to make gamma and beta (1, shape) I think.
-        # think we get away with it:
-        # https://www.tensorflow.org/api_docs/python/tf/math/multiply
-        # https://docs.scipy.org/doc/numpy/user/basics.broadcasting.html
         Z = self.gamma * xhat + self.beta
         # Z = tf.Print(Z, [tf.shape(self.gamma), tf.shape(X)], message='', summarize=1000)
         return Z
