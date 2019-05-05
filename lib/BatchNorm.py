@@ -9,6 +9,7 @@ from lib.Layer import Layer
 # https://chrisyeh96.github.io/2017/08/28/deriving-batchnorm-backprop.html
 # https://kratzert.github.io/2016/02/12/understanding-the-gradient-flow-through-the-batch-normalization-layer.html
 # https://kevinzakka.github.io/2016/09/14/batch_normalization/
+# https://stackoverflow.com/questions/38553927/batch-normalization-in-convolutional-neural-network
 
 class BatchNorm(Layer):
     def __init__(self, size, name=None, load=None, train=True, eps=1e-3):
