@@ -1,6 +1,7 @@
 
 import numpy as np
 import tensorflow as tf
+from lib.Layer import Layer
 
 class Activation(object):
     def forward(self, x):
@@ -23,10 +24,12 @@ class Sigmoid(Activation):
     def gradient(self, x):
         return tf.multiply(x, tf.subtract(1.0, x))
         
-class Relu(Activation):
+class Relu(Activation, Layer):
 
     def __init__(self):
         pass
+
+    #############################################
 
     def forward(self, x):
         return tf.nn.relu(x)
@@ -34,6 +37,27 @@ class Relu(Activation):
     def gradient(self, x):
         # pretty sure this gradient works for A and Z
         return tf.cast(x > 0.0, dtype=tf.float32)
+
+    #############################################
+
+    def get_weights(self):
+        return []
+
+    def num_params(self):
+        return 0
+
+    #############################################
+
+    def backward(self, AI, AO, DO):    
+        return tf.cast(AO > 0.0, dtype=tf.float32) * DO
+
+    def gv(self, AI, AO, DO):    
+        return []
+        
+    def train(self, AI, AO, DO): 
+        return []
+
+    #############################################
 
 # https://theclevermachine.wordpress.com/tag/tanh-function/ 
 class Tanh(Activation):
