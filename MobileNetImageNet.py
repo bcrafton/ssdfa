@@ -141,7 +141,7 @@ def parse_function(filename, label):
 # (5) Substract the per color mean `IMAGENET_MEAN`
 # Note: we don't normalize the data here, as VGG was trained without normalization
 def train_preprocess(image, label):
-    image = preprocess_for_train(image, 224, 224)
+    image = preprocess_for_train(image, 224, 224, None)
     return image, label
 
     crop_image = tf.random_crop(image, [224, 224, 3])                       # (3)
@@ -276,14 +276,14 @@ val_iterator = val_dataset.make_initializable_iterator()
 
 ###############################################################
 
-train_conv = False
-weights_conv = 'MobileNetWeights.npy'
+train_conv = True
+weights_conv = None # 'MobileNetWeights.npy'
 
-train_conv_dw = False
-weights_conv_dw = 'MobileNetWeights.npy'
+train_conv_dw = True
+weights_conv_dw = None # 'MobileNetWeights.npy'
 
-train_conv_pw = False
-weights_conv_pw = 'MobileNetWeights.npy'
+train_conv_pw = True 
+weights_conv_pw = None # 'MobileNetWeights.npy'
 
 train_fc = True
 weights_fc = None
