@@ -2,6 +2,7 @@
 import tensorflow as tf
 import numpy as np
 import math
+from tensorflow.python.ops import gen_nn_ops
 
 from lib.Layer import Layer
 
@@ -60,7 +61,7 @@ class BatchNorm(Layer):
     # think we get away with it:
     # https://www.tensorflow.org/api_docs/python/tf/math/multiply
     # https://docs.scipy.org/doc/numpy/user/basics.broadcasting.html
-    def forward(self, X):
+    def forward1(self, X):
         mean = tf.reduce_mean(X, axis=self.dims)
         _, var = tf.nn.moments(X - mean, axes=self.dims)
         xhat = (X - mean) / tf.sqrt(var + self.eps)
@@ -69,10 +70,21 @@ class BatchNorm(Layer):
         # Z = tf.Print(Z, [mean], message='', summarize=1000)
         
         return Z
+
+    def forward2(self, X):
+        mean = tf.reduce_mean(X, axis=self.dims)
+        _, var = tf.nn.moments(X - mean, axes=self.dims)
+        
+        Z = tf.nn.batch_normalization(x=X, mean=mean, variance=var, offset=self.beta, scale=self.gamma, variance_epsilon=self.eps)
+
+        return Z
+
+    def forward(self, X):
+        return self.forward2(X)
             
     ###################################################################           
         
-    def backward(self, AI, AO, DO): 
+    def backward1(self, AI, AO, DO): 
         N = tf.shape(AI)[0]
         N = tf.cast(N, dtype=tf.float32)
 
@@ -85,7 +97,27 @@ class BatchNorm(Layer):
         # DI = tf.Print(DI, [tf.shape(DI)], message='', summarize=1000)
         return DI
 
-    def gv(self, AI, AO, DO):
+    def backward2(self, AI, AO, DO): 
+        mean = tf.reduce_mean(AI, axis=self.dims)
+        _, var = tf.nn.moments(AI - mean, axes=self.dims)
+
+        '''
+        # reserve_space_1: When is_training is True, a 1D Tensor for the computed batch mean to be reused in gradient computation. 
+                           When is_training is False, a 1D Tensor for the population mean to be reused in both 1st and 2nd order gradient computation.
+        # reserve_space_2: When is_training is True, a 1D Tensor for the computed batch variance (inverted variance in the cuDNN case) to be reused in gradient computation. 
+                           When is_training is False, a 1D Tensor for the population variance to be reused in both 1st and 2nd order gradient computation.
+        '''
+
+        [DI, dgamma, dbeta, reserve_space_3, reserve_space_4] = gen_nn_ops.fused_batch_norm_grad_v2(y_backprop=DO, x=AI, scale=self.gamma, reserve_space_1=mean, reserve_space_2=var, epsilon=self.eps)
+        # DI = tf.Print(DI, [tf.shape(dgamma), tf.shape(dbeta)], message='', summarize=1000)
+        return DI
+
+    def backward(self, AI, AO, DO):
+        return self.backward2(AI, AO, DO)
+
+    ###################################################################
+
+    def gv1(self, AI, AO, DO):
         if not self._train:
             return []
 
@@ -101,7 +133,26 @@ class BatchNorm(Layer):
         #######
 
         return [(dgamma, self.gamma), (dbeta, self.beta)]
-        
+
+    def gv2(self, AI, AO, DO):
+        mean = tf.reduce_mean(AI, axis=self.dims)
+        _, var = tf.nn.moments(AI - mean, axes=self.dims)
+
+        '''
+        # reserve_space_1: When is_training is True, a 1D Tensor for the computed batch mean to be reused in gradient computation. 
+                           When is_training is False, a 1D Tensor for the population mean to be reused in both 1st and 2nd order gradient computation.
+        # reserve_space_2: When is_training is True, a 1D Tensor for the computed batch variance (inverted variance in the cuDNN case) to be reused in gradient computation. 
+                           When is_training is False, a 1D Tensor for the population variance to be reused in both 1st and 2nd order gradient computation.
+        '''
+
+        [DI, dgamma, dbeta, reserve_space_3, reserve_space_4] = gen_nn_ops.fused_batch_norm_grad_v2(y_backprop=DO, x=AI, scale=self.gamma, reserve_space_1=mean, reserve_space_2=var, epsilon=self.eps)
+        return [(dgamma, self.gamma), (dbeta, self.beta)]
+
+    def gv(self, AI, AO, DO):
+        return self.gv2(AI, AO, DO)
+
+    ###################################################################
+
     def train(self, AI, AO, DO): 
         if not self._train:
             return []
