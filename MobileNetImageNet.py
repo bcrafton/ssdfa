@@ -340,7 +340,7 @@ learning_rate = tf.placeholder(tf.float32, shape=())
 
 l0_1 = Convolution2D(input_sizes=[batch_size, 224, 224, 3], filter_sizes=[3, 3, 3, 32], init=args.init, strides=[1, 2, 2, 1], padding="SAME", alpha=learning_rate, activation=Linear(), bias=args.bias, name="conv1", load=weights_conv, train=train_conv)
 l0_2 = BatchNorm(input_size=[batch_size, 112, 112, 32], name='conv1_bn', load=weights_conv, train=train_conv)
-l1_3 = Relu()
+l0_3 = Relu()
 
 ########################
 
@@ -451,7 +451,7 @@ l12 = FullyConnected(size=[1024, 1000], num_classes=num_classes, init_weights=ar
 
 ###############################################################
 
-model = Model(layers=[l0_1, l0_2, l03,                                \
+model = Model(layers=[l0_1, l0_2, l0_3,                               \
                       l1_1, l1_2, l1_3, l1_4, l1_5, l1_6,             \
                       l2_1, l2_2, l2_3, l2_4, l2_5, l2_6,             \
                       l3_1, l3_2, l3_3, l3_4, l3_5, l3_6,             \
