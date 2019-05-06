@@ -135,6 +135,9 @@ class BatchNorm(Layer):
         return [(dgamma, self.gamma), (dbeta, self.beta)]
 
     def gv2(self, AI, AO, DO):
+        if not self._train:
+            return []
+
         mean = tf.reduce_mean(AI, axis=self.dims)
         _, var = tf.nn.moments(AI - mean, axes=self.dims)
 
