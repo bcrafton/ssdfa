@@ -100,6 +100,11 @@ class BatchNorm(Layer):
     def backward2(self, AI, AO, DO): 
         mean = tf.reduce_mean(AI, axis=self.dims)
         _, var = tf.nn.moments(AI - mean, axes=self.dims)
+        # inverted variance in the cuDNN case
+        # so how do we do this ? 
+        # grep -r "var_to_inv_var" * -B 4
+        # lib/python3.5/site-packages/tensorflow/include/tensorflow/stream_executor/dnn.h-  //  reserve_space_2: saved inv_var (1/sqrt(epsilon + variance), to be reused
+        ivar = 1. / tf.sqrt(self.eps + var)
 
         '''
         # reserve_space_1: When is_training is True, a 1D Tensor for the computed batch mean to be reused in gradient computation. 
@@ -108,7 +113,7 @@ class BatchNorm(Layer):
                            When is_training is False, a 1D Tensor for the population variance to be reused in both 1st and 2nd order gradient computation.
         '''
 
-        [DI, dgamma, dbeta, reserve_space_3, reserve_space_4] = gen_nn_ops.fused_batch_norm_grad_v2(y_backprop=DO, x=AI, scale=self.gamma, reserve_space_1=mean, reserve_space_2=var, epsilon=self.eps)
+        [DI, dgamma, dbeta, reserve_space_3, reserve_space_4] = gen_nn_ops.fused_batch_norm_grad_v2(y_backprop=DO, x=AI, scale=self.gamma, reserve_space_1=mean, reserve_space_2=ivar, epsilon=self.eps, is_training=True)
         # DI = tf.Print(DI, [tf.shape(dgamma), tf.shape(dbeta)], message='', summarize=1000)
         return DI
 
@@ -140,7 +145,12 @@ class BatchNorm(Layer):
 
         mean = tf.reduce_mean(AI, axis=self.dims)
         _, var = tf.nn.moments(AI - mean, axes=self.dims)
-
+        # inverted variance in the cuDNN case
+        # so how do we do this ? 
+        # grep -r "var_to_inv_var" * -B 4
+        # lib/python3.5/site-packages/tensorflow/include/tensorflow/stream_executor/dnn.h-  //  reserve_space_2: saved inv_var (1/sqrt(epsilon + variance), to be reused
+        ivar = 1. / tf.sqrt(self.eps + var)
+        
         '''
         # reserve_space_1: When is_training is True, a 1D Tensor for the computed batch mean to be reused in gradient computation. 
                            When is_training is False, a 1D Tensor for the population mean to be reused in both 1st and 2nd order gradient computation.
@@ -148,7 +158,7 @@ class BatchNorm(Layer):
                            When is_training is False, a 1D Tensor for the population variance to be reused in both 1st and 2nd order gradient computation.
         '''
 
-        [DI, dgamma, dbeta, reserve_space_3, reserve_space_4] = gen_nn_ops.fused_batch_norm_grad_v2(y_backprop=DO, x=AI, scale=self.gamma, reserve_space_1=mean, reserve_space_2=var, epsilon=self.eps)
+        [DI, dgamma, dbeta, reserve_space_3, reserve_space_4] = gen_nn_ops.fused_batch_norm_grad_v2(y_backprop=DO, x=AI, scale=self.gamma, reserve_space_1=mean, reserve_space_2=ivar, epsilon=self.eps, is_training=True)
         return [(dgamma, self.gamma), (dbeta, self.beta)]
 
     def gv(self, AI, AO, DO):
