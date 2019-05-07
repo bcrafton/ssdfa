@@ -72,21 +72,24 @@ TRAIN_EXAMPLES = 50000
 TEST_EXAMPLES = 10000
 BATCH_SIZE = args.batch_size
 
+train_conv = True
+weights_conv = None
+
+train_conv_dw = True
+weights_conv_dw = None
+
+train_conv_pw = True
+weights_conv_pw = None
+
+train_fc = True
+weights_fc = None
+
 if args.act == 'tanh':
     act = Tanh()
 elif args.act == 'relu':
     act = Relu()
 else:
     assert(False)
-
-train_fc=True
-if args.load:
-    train_conv=False
-else:
-    train_conv=True
-
-weights_fc=None
-weights_conv=args.load
 
 ##############################################
 
@@ -179,7 +182,7 @@ l10 = AvgPool(size=[batch_size, 4, 4, 256], ksize=[1, 4, 4, 1], strides=[1, 4, 4
 
 l11 = ConvToFullyConnected(shape=[1, 1, 256])
 
-l12 = FullyConnected(size=[256, 10], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name="fc1", load=weights_fc, train=train_fc)
+l12 = FullyConnected(size=[256, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name="fc1", load=weights_fc, train=train_fc)
 
 ##############################################
 
