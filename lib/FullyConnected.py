@@ -21,7 +21,7 @@ class FullyConnected(Layer):
         self.num_classes = num_classes
 
         # bias
-        self.bias = tf.Variable(tf.ones(shape=[self.output_size]) * bias)
+        bias = np.ones(shape=self.output_size) * bias
 
         # lr
         self.alpha = alpha
@@ -38,8 +38,8 @@ class FullyConnected(Layer):
         if load:
             print ("Loading Weights: " + self.name)
             weight_dict = np.load(load).item()
-            self.weights = tf.Variable(weight_dict[self.name])
-            self.bias = tf.Variable(weight_dict[self.name + '_bias'])
+            weights = weight_dict[self.name]
+            bias = weight_dict[self.name + '_bias']
         else:
             if init_weights == "zero":
                 weights = np.zeros(shape=self.size)
@@ -53,6 +53,7 @@ class FullyConnected(Layer):
                 assert(False)
 
         self.weights = tf.Variable(weights, dtype=tf.float32)
+        self.bias = tf.Variable(bias, dtype=tf.float32)
 
     ###################################################################
         
@@ -65,7 +66,8 @@ class FullyConnected(Layer):
         return weights_size + bias_size
 
     def forward(self, X):
-        Z = tf.matmul(X, self.weights) # + self.bias
+        # X = tf.Print(X, [tf.shape(X)], message='', summarize=1000, first_n=1)
+        Z = tf.matmul(X, self.weights) + self.bias
         A = self.activation.forward(Z)
         return A
 
