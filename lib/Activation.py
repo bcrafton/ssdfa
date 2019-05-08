@@ -58,6 +58,28 @@ class Relu(Activation, Layer):
         return []
 
     #############################################
+    
+    def dfa_backward(self, AI, AO, E, DO):
+        return tf.cast(AO > 0.0, dtype=tf.float32) * DO
+
+    def dfa_gv(self, AI, AO, E, DO):
+        return []
+        
+    def dfa(self, AI, AO, E, DO): 
+        return []
+
+    #############################################
+    
+    def lel_backward(self, AI, AO, E, DO, Y):
+        return tf.cast(AO > 0.0, dtype=tf.float32) * DO
+
+    def lel_gv(self, AI, AO, E, DO, Y):
+        return []
+        
+    def lel(self, AI, AO, E, DO, Y): 
+        return []
+
+    #############################################
 
 # https://theclevermachine.wordpress.com/tag/tanh-function/ 
 class Tanh(Activation):
