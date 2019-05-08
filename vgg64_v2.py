@@ -69,6 +69,9 @@ from lib.MaxPool import MaxPool
 from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
+from lib.LELConv import LELConv
+from lib.LELFC import LELFC
+from lib.BatchNorm import BatchNorm
 
 from lib.Activation import Activation
 from lib.Activation import Sigmoid
@@ -356,13 +359,13 @@ l4_7 = Relu()
 l4_8 = LELConv(input_shape=[args.batch_size, 8, 8, 512], ksize=[1, 4, 4, 1], num_classes=1000, name='conv2_fb')
 l4_9 = MaxPool(size=[batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
-l5 = ConvToFullyConnected(shape=[4, 4, 512])
+l5 = ConvToFullyConnected(input_shape=[4, 4, 512])
 
-l6 = FullyConnected(size=[4*4*512, 4096], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Relu(), bias=1.0, last_layer=False, name="fc1", load=weights_fc, train=train_fc)
+l6 = FullyConnected(input_shape=4*4*512, size=4096, init=args.init, alpha=learning_rate, activation=Relu(), bias=1.0, name="fc1", load=weights_fc, train=train_fc)
 
 l7 = Dropout(rate=dropout_rate)
 
-l8 = FullyConnected(size=[4096, num_classes], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=1.0, last_layer=True, name="fc2", load=weights_fc, train=train_fc)
+l8 = FullyConnected(input_shape=4096, size=1000, init=args.init, alpha=learning_rate, activation=Linear(), bias=1.0, name="fc2", load=weights_fc, train=train_fc)
 
 ###############################################################
 
@@ -381,7 +384,7 @@ predict = tf.nn.softmax(model.predict(X=features))
 
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt == "momentum":
     if args.dfa:
-        grads_and_vars = model.dfa_gvs(X=features, Y=labels)
+        grads_and_vars = model.lel_gvs(X=features, Y=labels)
     else:
         grads_and_vars = model.gvs(X=features, Y=labels)
         
@@ -398,7 +401,7 @@ if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt ==
 
 else:
     if args.dfa:
-        train = model.dfa(X=features, Y=labels)
+        train = model.lel(X=features, Y=labels)
     else:
         train = model.train(X=features, Y=labels)
 
