@@ -8,10 +8,10 @@ import sys
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--batch_size', type=int, default=100)
-parser.add_argument('--alpha', type=float, default=1e-4)
+parser.add_argument('--alpha', type=float, default=1e-2)
 parser.add_argument('--l2', type=float, default=0.)
 parser.add_argument('--decay', type=float, default=1.)
-parser.add_argument('--eps', type=float, default=1e-5)
+parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--dropout', type=float, default=0.5)
 parser.add_argument('--act', type=str, default='relu')
 parser.add_argument('--bias', type=float, default=0.)
@@ -115,7 +115,7 @@ l10 = Convolution(input_sizes=[args.batch_size, 8, 8, 128], filter_sizes=[5, 5, 
 l11 = BatchNorm(input_size=[args.batch_size, 8, 8, 256], name='conv3_bn')
 l12 = Relu()
 l13 = MaxPool(size=[args.batch_size, 8, 8, 256], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
-l14 = LELConv(input_shape=[args.batch_size, 4, 4, 256], ksize=[1,4,4,1], num_classes=10, name='conv3_fb')
+l14 = LELConv(input_shape=[args.batch_size, 4, 4, 256], ksize=[1,2,2,1], num_classes=10, name='conv3_fb')
 
 l15 = ConvToFullyConnected(input_shape=[4, 4, 256])
 
