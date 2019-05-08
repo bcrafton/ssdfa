@@ -11,7 +11,10 @@ class Layer:
 
     def get_weights(self):
         pass
-        
+
+    def output_shape(self):
+        assert(False)
+
     def num_params(self):
         pass
 

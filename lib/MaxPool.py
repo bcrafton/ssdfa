@@ -6,20 +6,29 @@ from tensorflow.python.ops import gen_nn_ops
 # return gen_nn_ops.max_pool_v2(value=X, ksize=self.size, strides=self.strides, padding="SAME")
 
 from lib.Layer import Layer 
-from lib.Activation import Activation
-from lib.Activation import Sigmoid
+
+from lib.conv_utils import conv_output_length
+from lib.conv_utils import conv_input_length
 
 class MaxPool(Layer):
     def __init__(self, size, ksize, strides, padding):
         self.size = size
+        self.batch_size, self.h, self.w, self.fin = self.size
         self.ksize = ksize
         self.strides = strides
+        _, self.sh, self.sw, _ = self.strides
         self.padding = padding
 
     ###################################################################
 
     def get_weights(self):
         return []
+
+    def output_shape(self):
+        oh = conv_output_length(self.h, self.fh, self.padding.lower(), self.sh)
+        ow = conv_output_length(self.w, self.fw, self.padding.lower(), self.sw)
+        od = self.fout
+        return [oh, oh, od]
 
     def num_params(self):
         return 0

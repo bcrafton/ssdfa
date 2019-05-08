@@ -33,6 +33,9 @@ class FeedbackConv(Layer):
     
     def get_feedback(self):
         return self.B
+        
+    def output_shape(self):
+        return [self.h, self.w, self.f]
 
     def num_params(self):
         return 0

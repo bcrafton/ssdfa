@@ -4,8 +4,9 @@ import numpy as np
 import math
 
 from lib.Layer import Layer 
-from lib.Activation import Activation
-from lib.Activation import Sigmoid
+
+from lib.conv_utils import conv_output_length
+from lib.conv_utils import conv_input_length
 
 class Convolution2D(Layer):
 
@@ -51,6 +52,12 @@ class Convolution2D(Layer):
 
     def get_weights(self):
         return [(self.name, self.filters), (self.name + "_bias", self.bias)]
+
+    def output_shape(self):
+        oh = conv_output_length(self.h, self.fh, self.padding.lower(), self.sh)
+        ow = conv_output_length(self.w, self.fw, self.padding.lower(), self.sw)
+        od = self.fout
+        return [oh, oh, od]
 
     def num_params(self):
         filter_weights_size = self.fh * self.fw * self.fin * self.fout
