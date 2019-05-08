@@ -45,11 +45,13 @@ from lib.ConvToFullyConnected import ConvToFullyConnected
 from lib.FullyConnected import FullyConnected
 from lib.Convolution import Convolution
 from lib.MaxPool import MaxPool
+from lib.AvgPool import AvgPool
 from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
 from lib.LELFC import LELFC
 from lib.LELConv import LELConv
+from lib.BatchNorm import BatchNorm
 
 from lib.Activation import Activation
 from lib.Activation import Sigmoid
@@ -98,24 +100,30 @@ X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), X)
 Y = tf.placeholder(tf.float32, [None, 10])
 
 l0 = Convolution(input_sizes=[args.batch_size, 32, 32, 3], filter_sizes=[5, 5, 3, 96], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load=weights_conv, train=train_conv)
-l1 = MaxPool(size=[args.batch_size, 32, 32, 96], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
-l2 = LELConv(input_shape=[args.batch_size, 16, 16, 96], ksize=[1,4,4,1], num_classes=10, name='conv1_fb')
+l1 = BatchNorm(input_size=[args.batch_size, 32, 32, 96], name='conv1_bn')
+l2 = Relu()
+l3 = MaxPool(size=[args.batch_size, 32, 32, 96], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
+l4 = LELConv(input_shape=[args.batch_size, 16, 16, 96], ksize=[1,4,4,1], num_classes=10, name='conv1_fb')
 
-l3 = Convolution(input_sizes=[args.batch_size, 16, 16, 96], filter_sizes=[5, 5, 96, 128], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv2', load=weights_conv, train=train_conv)
-l4 = MaxPool(size=[args.batch_size, 16, 16, 128], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
-l5 = LELConv(input_shape=[args.batch_size, 8, 8, 128], ksize=[1,4,4,1], num_classes=10, name='conv2_fb')
+l5 = Convolution(input_sizes=[args.batch_size, 16, 16, 96], filter_sizes=[5, 5, 96, 128], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv2', load=weights_conv, train=train_conv)
+l6 = BatchNorm(input_size=[args.batch_size, 16, 16, 128], name='conv2_bn')
+l7 = Relu()
+l8 = MaxPool(size=[args.batch_size, 16, 16, 128], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
+l9 = LELConv(input_shape=[args.batch_size, 8, 8, 128], ksize=[1,4,4,1], num_classes=10, name='conv2_fb')
 
-l6 = Convolution(input_sizes=[args.batch_size, 8, 8, 128], filter_sizes=[5, 5, 128, 256], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv3', load=weights_conv, train=train_conv)
-l7 = MaxPool(size=[args.batch_size, 8, 8, 256], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
-l8 = LELConv(input_shape=[args.batch_size, 4, 4, 256], ksize=[1,4,4,1], num_classes=10, name='conv3_fb')
+l10 = Convolution(input_sizes=[args.batch_size, 8, 8, 128], filter_sizes=[5, 5, 128, 256], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv3', load=weights_conv, train=train_conv)
+l11 = BatchNorm(input_size=[args.batch_size, 8, 8, 256], name='conv3_bn')
+l12 = Relu()
+l13 = MaxPool(size=[args.batch_size, 8, 8, 256], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
+l14 = LELConv(input_shape=[args.batch_size, 4, 4, 256], ksize=[1,4,4,1], num_classes=10, name='conv3_fb')
 
-l9 = ConvToFullyConnected(input_shape=[4, 4, 256])
+l15 = ConvToFullyConnected(input_shape=[4, 4, 256])
 
-l10 = FullyConnected(input_shape=4*4*256, size=10, init=args.init, activation=Linear(), bias=args.bias, name='fc1', load=weights_fc, train=train_fc)
+l16 = FullyConnected(input_shape=4*4*256, size=10, init=args.init, activation=Linear(), bias=args.bias, name='fc1', load=weights_fc, train=train_fc)
 
 ##############################################
 
-model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10])
+model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16])
 predict = model.predict(X=X)
 weights = model.get_weights()
 
