@@ -102,7 +102,7 @@ Y = tf.placeholder(tf.float32, [None, 10])
 l0 = Convolution(input_sizes=[args.batch_size, 32, 32, 3], filter_sizes=[5, 5, 3, 96], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load=weights_conv, train=train_conv)
 l1 = BatchNorm(input_size=[args.batch_size, 32, 32, 96], name='conv1_bn')
 l2 = Relu()
-l3 = LELConv(input_shape=[args.batch_size, 32, 32, 96], ksize=[1,4,4,1], num_classes=10, name='conv1_fb')
+l3 = LELConv(input_shape=[args.batch_size, 32, 32, 96], ksize=[1,8,8,1], num_classes=10, name='conv1_fb')
 l4 = MaxPool(size=[args.batch_size, 32, 32, 96], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
 
 l5 = Convolution(input_sizes=[args.batch_size, 16, 16, 96], filter_sizes=[5, 5, 96, 128], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv2', load=weights_conv, train=train_conv)
