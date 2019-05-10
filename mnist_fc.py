@@ -7,7 +7,7 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=100)
-parser.add_argument('--batch_size', type=int, default=32)
+parser.add_argument('--batch_size', type=int, default=50)
 parser.add_argument('--alpha', type=float, default=1e-2)
 parser.add_argument('--l2', type=float, default=0.)
 parser.add_argument('--decay', type=float, default=1.)
@@ -49,6 +49,9 @@ from lib.MaxPool import MaxPool
 from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
 
+from lib.SpikingFC import SpikingFC
+from lib.SpikingSum import SpikingSum
+
 from lib.Activation import Activation
 from lib.Activation import Sigmoid
 from lib.Activation import Relu
@@ -59,39 +62,46 @@ from lib.Activation import Linear
 
 ##############################################
 
-mnist = tf.keras.datasets.mnist.load_data()
+def to_spike_train(mat, times):
+    shape = np.shape(mat)
+    assert(len(shape) == 2)
+    N, O = shape
+    mat = np.reshape(mat, (N, 1, O))
+    
+    out_shape = N, times, O
+    train = np.random.uniform(low=0.0, high=1.0, size=out_shape)
+    train = train < mat
+    
+    return train
 
 ##############################################
 
-EPOCHS = args.epochs
 TRAIN_EXAMPLES = 60000
 TEST_EXAMPLES = 10000
-BATCH_SIZE = args.batch_size
 
 ##############################################
 
 tf.set_random_seed(0)
 tf.reset_default_graph()
 
-batch_size = tf.placeholder(tf.int32, shape=())
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 
-X = tf.placeholder(tf.float32, [None, 784])
-Y = tf.placeholder(tf.float32, [None, 10])
+X = tf.placeholder(tf.float32, [args.batch_size, 64, 784])
+Y = tf.placeholder(tf.float32, [args.batch_size, 10])
 
-l0 = FullyConnected(size=[784, 400], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Tanh(), bias=args.bias, l2=args.l2, last_layer=False, name="fc1")
-l1 = Dropout(rate=dropout_rate)
-l2 = FeedbackFC(size=[784, 400], num_classes=10, sparse=args.sparse, rank=args.rank, name="fc1_fb")
+l0 = SpikingFC(input_shape=[args.batch_size, 64, 784], size=64, init=args.init, activation=Relu(), name="sfc1")
+l1 = SpikingFC(input_shape=[args.batch_size, 64, 64], size=64, init=args.init, activation=Relu(), name="sfc2")
+# dont even need to do 64x64 -> 64 here. could even do 64x64 -> 16x64. like convolve the time. 
+l2 = SpikingSum(input_shape=[args.batch_size, 64, 64], init=args.init, activation=Relu(), name="ss1")
+l3 = ConvToFullyConnected(input_shape=[64, 1])
+l4 = FullyConnected(input_shape=64, size=10, init=args.init, activation=Linear(), name='fc1')
 
-l3 = FullyConnected(size=[400, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, l2=args.l2, last_layer=True, name="fc2")
-
-model = Model(layers=[l0, l1, l2, l3])
+model = Model(layers=[l0, l1, l2, l3, l4])
 
 ##############################################
 
 predict = model.predict(X=X)
-
 weights = model.get_weights()
 
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay":
@@ -124,7 +134,7 @@ sess = tf.InteractiveSession()
 tf.global_variables_initializer().run()
 tf.local_variables_initializer().run()
 
-(x_train, y_train), (x_test, y_test) = mnist
+(x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 
 x_train = x_train.reshape(TRAIN_EXAMPLES, 784)
 x_train = x_train.astype('float32')
@@ -149,7 +159,7 @@ f.close()
 train_accs = []
 test_accs = []
 
-for ii in range(EPOCHS):
+for ii in range(args.epochs):
     if args.opt == 'decay' or args.opt == 'gd':
         decay = np.power(args.decay, ii)
         lr = args.alpha * decay
@@ -163,13 +173,22 @@ for ii in range(EPOCHS):
     _count = 0
     _total_correct = 0
     
-    for jj in range(int(TRAIN_EXAMPLES / BATCH_SIZE)):
-        xs = x_train[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
-        ys = y_train[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
-        _correct, _ = sess.run([total_correct, train], feed_dict={batch_size: BATCH_SIZE, dropout_rate: args.dropout, learning_rate: lr, X: xs, Y: ys})
+    for jj in range(0, TRAIN_EXAMPLES, args.batch_size):
+        print (jj)
+    
+        start = jj
+        end = jj + args.batch_size
+        assert(end <= TRAIN_EXAMPLES)
+        
+        xs = x_train[start:end]
+        xs = to_spike_train(xs, 64)
+        ys = y_train[start:end]
+        
+        # _correct, _predict, _ = sess.run([total_correct, predict, train], feed_dict={dropout_rate: args.dropout, learning_rate: lr, X: xs, Y: ys})
+        _correct, _ = sess.run([total_correct, train], feed_dict={dropout_rate: args.dropout, learning_rate: lr, X: xs, Y: ys})
         
         _total_correct += _correct
-        _count += BATCH_SIZE
+        _count += args.batch_size
 
     train_acc = 1.0 * _total_correct / _count
     train_accs.append(train_acc)
@@ -179,13 +198,21 @@ for ii in range(EPOCHS):
     _count = 0
     _total_correct = 0
 
-    for jj in range(int(TEST_EXAMPLES / BATCH_SIZE)):
-        xs = x_test[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
-        ys = y_test[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
-        _correct = sess.run(total_correct, feed_dict={batch_size: BATCH_SIZE, dropout_rate: 0.0, learning_rate: 0.0, X: xs, Y: ys})
+    for jj in range(0, TEST_EXAMPLES, args.batch_size):
+        print (jj)
+    
+        start = jj
+        end = jj + args.batch_size
+        assert(end <= TEST_EXAMPLES)
+        
+        xs = x_test[start:end]
+        xs = to_spike_train(xs, 64)
+        ys = y_test[start:end]
+        
+        _correct = sess.run(total_correct, feed_dict={dropout_rate: 0.0, learning_rate: 0.0, X: xs, Y: ys})
         
         _total_correct += _correct
-        _count += BATCH_SIZE
+        _count += args.batch_size
         
     test_acc = 1.0 * _total_correct / _count
     test_accs.append(test_acc)
@@ -197,14 +224,6 @@ for ii in range(EPOCHS):
     f = open(filename, "a")
     f.write(str(test_acc) + "\n")
     f.close()
-
-##############################################
-
-if args.save:
-    [w] = sess.run([weights], feed_dict={})
-    w['train_acc'] = train_accs
-    w['test_acc'] = test_accs
-    np.save(args.name, w)
     
 ##############################################
 
