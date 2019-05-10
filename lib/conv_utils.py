@@ -49,3 +49,22 @@ def conv_input_length(output_length, filter_size, padding, stride):
   elif padding == 'full':
     pad = filter_size - 1
   return (output_length - 1) * stride - 2 * pad + filter_size
+
+
+def get_pad(padding, filter_size):
+
+    if padding == 'same':
+        pad = filter_size // 2
+    elif padding == 'valid':
+        pad = 0
+    elif padding == 'full':
+        pad = filter_size - 1      
+    else:
+        assert(False)
+
+    return pad
+
+
+
+
+
