@@ -14,14 +14,14 @@ def conv1d_extract_patches(input_shape, filter_shape, x):
         
     pad = fw // 2
     x = tf.pad(x, [[0, 0], [pad, pad], [0, 0]])
-    time = time + 2 * pad
+    time_pad = time + 2 * pad
     
     xs = []
     for ii in range(fw):
         start = ii 
-        end = ii + time - fw + 1
+        end = ii + time_pad - fw + 1
         next = x[:, start:end, :]
-        next = tf.reshape(next, (batch, -1, 1, input_size))
+        next = tf.reshape(next, (batch, time, 1, input_size))
         xs.append(next)
         
     xs = tf.concat(xs, axis=2)
@@ -72,8 +72,8 @@ class SpikingTimeConv(Layer):
         self.name = name
         self._train = train
         
-        
         filters = np.array([0., 0., 1., 0., 0.])
+        # filters = np.array([-0.33, -0.66, 1., 0.0, 0.0])
         # filters = np.array([0.1, 0.1, 0.6, 0.1, 0.1])
         filters = np.reshape(filters, (-1, 1))
         filters = np.repeat(filters, self.input_size, 1)

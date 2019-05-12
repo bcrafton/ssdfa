@@ -25,7 +25,7 @@ class SpikingSum(Layer):
         self.name = name
         self._train = train
         
-        filters = np.random.normal(loc=1.0, scale=0.1, size=self.filter_sizes)
+        filters = np.random.normal(loc=1.0, scale=0.0, size=self.filter_sizes)
         self.filters = tf.Variable(filters, dtype=tf.float32)
 
     ###################################################################

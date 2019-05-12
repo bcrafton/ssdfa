@@ -64,6 +64,23 @@ from lib.Activation import Linear
 
 ##############################################
 
+def to_spike_train(mat):
+    shape = np.shape(mat)
+    assert(len(shape) == 2)
+    N, O = shape
+
+    mat = mat / 8.
+    mat = np.floor(mat).astype(int)
+    mat = np.reshape(mat, N*O)
+    mat = keras.utils.to_categorical(mat, 32)
+    mat = np.reshape(mat, (N, O, 32))
+    mat = np.transpose(mat, (0, 2, 1))
+    
+    assert(np.count_nonzero(mat) == N * O)
+    
+    return mat
+
+'''
 cmp_arr = np.random.uniform(low=0., high=1., size=(1, args.time_steps, 1))
 def to_spike_train(mat):
     shape = np.shape(mat)
@@ -75,6 +92,7 @@ def to_spike_train(mat):
     train = cmp_arr < mat
     
     return train
+'''
     
 ##############################################
 
@@ -86,7 +104,6 @@ TEST_EXAMPLES = 10000
 tf.set_random_seed(0)
 tf.reset_default_graph()
 
-batch_size = tf.placeholder(tf.int32, shape=())
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 
@@ -94,14 +111,14 @@ X = tf.placeholder(tf.float32, [args.batch_size, args.time_steps, 3072])
 Y = tf.placeholder(tf.float32, [args.batch_size, 10])
 
 l0 = SpikingFC(input_shape=[args.batch_size, args.time_steps, 3072], size=128, init=args.init, activation=Linear(), name="sfc1")
-l1 = SpikingTimeConv(input_shape=[args.batch_size, args.time_steps, 128], filter_size=5, init=args.init, activation=Linear(), name="stc1", train=True)
+l1 = SpikingTimeConv(input_shape=[args.batch_size, args.time_steps, 128], filter_size=5, init=args.init, activation=Linear(), name="stc1", train=False)
 l2 = Relu()
 
 l3 = SpikingFC(input_shape=[args.batch_size, args.time_steps, 128], size=128, init=args.init, activation=Linear(), name="sfc2")
-l4 = SpikingTimeConv(input_shape=[args.batch_size, args.time_steps, 128], filter_size=5, init=args.init, activation=Linear(), name="stc2", train=True)
+l4 = SpikingTimeConv(input_shape=[args.batch_size, args.time_steps, 128], filter_size=5, init=args.init, activation=Linear(), name="stc2", train=False)
 l5 = Relu()
 
-l6 = SpikingSum(input_shape=[args.batch_size, args.time_steps, 128], init=args.init, activation=Relu(), name="ss1")
+l6 = SpikingSum(input_shape=[args.batch_size, args.time_steps, 128], init=args.init, activation=Relu(), name="ss1", train=False)
 l7 = FullyConnected(input_shape=128, size=10, init=args.init, activation=Linear(), name='fc1')
 
 model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7])
@@ -147,11 +164,11 @@ assert(np.shape(x_train) == (TRAIN_EXAMPLES, 32, 32, 3))
 assert(np.shape(x_test) == (TEST_EXAMPLES, 32, 32, 3))
 
 x_train = np.reshape(x_train, (TRAIN_EXAMPLES, 32*32*3))
-x_train = x_train / 255.
+#x_train = x_train / 255.
 y_train = keras.utils.to_categorical(y_train, 10)
 
 x_test = np.reshape(x_test, (TEST_EXAMPLES, 32*32*3))
-x_test = x_test / 255.
+#x_test = x_test / 255.
 y_test = keras.utils.to_categorical(y_test, 10)
 
 ##############################################
@@ -188,12 +205,17 @@ for ii in range(args.epochs):
         
         xs = x_train[start:end]
         xs = to_spike_train(xs)
+        
+        # print (xs[0], np.shape(xs[0]))
+        # print (np.sum(xs[0], axis=0), np.shape(xs[0]))
+        # print (xs[0].T)
+        
         # xs = xs * 1.0 / 64.
         ys = y_train[start:end]
         
         _correct, _ = sess.run([total_correct, train], feed_dict={dropout_rate: args.dropout, learning_rate: lr, X: xs, Y: ys})
         
-        _total_correct += _correct
+        _total_correct += _correct 
         _count += args.batch_size
 
     train_acc = 1.0 * _total_correct / _count

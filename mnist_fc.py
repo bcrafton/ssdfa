@@ -63,22 +63,42 @@ from lib.Activation import LeakyRelu
 from lib.Activation import Linear
 
 ##############################################
+def to_spike_train(mat):
+    shape = np.shape(mat)
+    assert(len(shape) == 2)
+    N, O = shape
+
+    mat = mat / 8.
+    mat = np.floor(mat).astype(int)
+    mat = np.reshape(mat, N*O)
+    mat = keras.utils.to_categorical(mat, 32)
+    mat = np.reshape(mat, (N, O, 32))
+    mat = np.transpose(mat, (0, 2, 1))
+    
+    return mat
+
+    
 '''
-def to_spike_train(mat, times):
+def to_spike_train(mat):
+    mat = mat / 255.
+    
     shape = np.shape(mat)
     assert(len(shape) == 2)
     N, O = shape
     mat = np.reshape(mat, (N, 1, O))
     
-    out_shape = N, times, O
+    out_shape = N, args.time_steps, O
     train = np.random.uniform(low=0.0, high=1.0, size=out_shape)
     train = train < mat
     
     return train
 '''
 
+'''
 cmp_arr = np.random.uniform(low=0., high=1., size=(1, args.time_steps, 1))
 def to_spike_train(mat):
+    mat = mat / 255.
+
     shape = np.shape(mat)
     assert(len(shape) == 2)
     N, O = shape
@@ -88,6 +108,7 @@ def to_spike_train(mat):
     train = cmp_arr < mat
     
     return train
+'''
 ##############################################
 
 TRAIN_EXAMPLES = 60000
@@ -104,18 +125,18 @@ learning_rate = tf.placeholder(tf.float32, shape=())
 X = tf.placeholder(tf.float32, [args.batch_size, args.time_steps, 784])
 Y = tf.placeholder(tf.float32, [args.batch_size, 10])
 
-# def __init__(self, input_shape, filter_size, init, activation, alpha=0., name=None, load=None, train=True):
-
 l0 = SpikingFC(input_shape=[args.batch_size, args.time_steps, 784], size=64, init=args.init, activation=Linear(), name="sfc1")
-l1 = SpikingTimeConv(input_shape=[args.batch_size, args.time_steps, 64], filter_size=5, init=args.init, activation=Linear(), name="stc1", train=True)
+l1 = SpikingTimeConv(input_shape=[args.batch_size, args.time_steps, 64], filter_size=5, init=args.init, activation=Linear(), name="stc1", train=False)
 l2 = Relu()
 
 l3 = SpikingFC(input_shape=[args.batch_size, args.time_steps, 64], size=64, init=args.init, activation=Linear(), name="sfc2")
-l4 = SpikingTimeConv(input_shape=[args.batch_size, args.time_steps, 64], filter_size=5, init=args.init, activation=Linear(), name="stc2", train=True)
+l4 = SpikingTimeConv(input_shape=[args.batch_size, args.time_steps, 64], filter_size=5, init=args.init, activation=Linear(), name="stc2", train=False)
 l5 = Relu()
 
 # dont even need to do 64x64 -> 64 here. could even do 64x64 -> 16x64. like convolve the time. 
-l6 = SpikingSum(input_shape=[args.batch_size, args.time_steps, 64], init=args.init, activation=Relu(), name="ss1")
+# want to try doing convolutions for classification
+# so 10 convs -> 10 classes. 
+l6 = SpikingSum(input_shape=[args.batch_size, args.time_steps, 64], init=args.init, activation=Relu(), name="ss1", train=False)
 l7 = FullyConnected(input_shape=64, size=10, init=args.init, activation=Linear(), name='fc1')
 
 model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7])
@@ -162,7 +183,7 @@ x_train = x_train.astype('float32')
 #mean = np.mean(x_train, axis=0, keepdims=True)
 #std = np.mean(x_train, axis=0, keepdims=True)
 #x_train = (x_train - mean) / (std + 1.)
-x_train /= 255.
+#x_train /= 255.
 y_train = keras.utils.to_categorical(y_train, 10)
 
 x_test = x_test.reshape(TEST_EXAMPLES, 784)
@@ -170,7 +191,7 @@ x_test = x_test.astype('float32')
 #mean = np.mean(x_test, axis=0, keepdims=True)
 #std = np.mean(x_test, axis=0, keepdims=True)
 #x_test = (x_test - mean) / (std + 1.)
-x_test /= 255.
+#x_test /= 255.
 y_test = keras.utils.to_categorical(y_test, 10)
 
 ##############################################
