@@ -4,8 +4,6 @@ import numpy as np
 import math
 
 from lib.Layer import Layer 
-from lib.Activation import Activation
-from lib.Activation import Sigmoid
 
 class SpikingFC(Layer):
 
@@ -14,7 +12,6 @@ class SpikingFC(Layer):
         self.batch, self.times, self.input_size = input_shape
         self.output_size = size
         self.size = [self.input_size, self.output_size]
-
         self.alpha = alpha
         self.activation = activation
         self.name = name
@@ -22,7 +19,6 @@ class SpikingFC(Layer):
         
         sqrt_fan_in = math.sqrt(self.input_size)
         weights = np.random.uniform(low=-1.0/sqrt_fan_in, high=1.0/sqrt_fan_in, size=self.size)
-
         self.weights = tf.Variable(weights, dtype=tf.float32)
 
     ###################################################################
@@ -36,7 +32,6 @@ class SpikingFC(Layer):
 
     def forward(self, X):
         Z = tf.keras.backend.dot(X, self.weights)
-        # put the 1D conv here.
         A = self.activation.forward(Z)
         return A
 
@@ -70,19 +65,7 @@ class SpikingFC(Layer):
 
     def train(self, AI, AO, DO):
         assert(False)
-    
-        if not self._train:
-            return []
-
-        N = tf.shape(AI)[0]
-        N = tf.cast(N, dtype=tf.float32)
-
-        DO = tf.multiply(DO, self.activation.gradient(AO))
-        DW = tf.matmul(tf.transpose(AI), DO) 
-        DB = tf.reduce_sum(DO, axis=0)
-
-        self.weights = self.weights.assign(tf.subtract(self.weights, tf.scalar_mul(self.alpha, DW)))
-        return [(DW, self.weights)]
+        return []
         
     ###################################################################
 
