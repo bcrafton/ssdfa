@@ -8,12 +8,12 @@ import sys
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--batch_size', type=int, default=50)
-parser.add_argument('--alpha', type=float, default=5e-2)
+parser.add_argument('--alpha', type=float, default=1e-2)
 parser.add_argument('--l2', type=float, default=0.)
 parser.add_argument('--decay', type=float, default=1.)
 parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--dropout', type=float, default=0.0)
-parser.add_argument('--act', type=str, default='tanh')
+parser.add_argument('--act', type=str, default='relu')
 parser.add_argument('--bias', type=float, default=0.)
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--dfa', type=int, default=0)
@@ -107,11 +107,11 @@ Y = tf.placeholder(tf.float32, [args.batch_size, 10])
 # def __init__(self, input_shape, filter_size, init, activation, alpha=0., name=None, load=None, train=True):
 
 l0 = SpikingFC(input_shape=[args.batch_size, 64, 784], size=64, init=args.init, activation=Linear(), name="sfc1")
-l1 = SpikingTimeConv(input_shape=[args.batch_size, 64, 64], filter_size=5, init=args.init, activation=Linear(), name="stc1", train=True)
+l1 = SpikingTimeConv(input_shape=[args.batch_size, 64, 64], filter_size=5, init=args.init, activation=Linear(), name="stc1", train=False)
 l2 = Relu()
 
 l3 = SpikingFC(input_shape=[args.batch_size, 64, 64], size=64, init=args.init, activation=Linear(), name="sfc2")
-l4 = SpikingTimeConv(input_shape=[args.batch_size, 64, 64], filter_size=5, init=args.init, activation=Linear(), name="stc2", train=True)
+l4 = SpikingTimeConv(input_shape=[args.batch_size, 64, 64], filter_size=5, init=args.init, activation=Linear(), name="stc2", train=False)
 l5 = Relu()
 
 # dont even need to do 64x64 -> 64 here. could even do 64x64 -> 16x64. like convolve the time. 
@@ -208,7 +208,7 @@ for ii in range(args.epochs):
         
         xs = x_train[start:end]
         xs = to_spike_train(xs)
-        xs = xs * 1.0 / 64.
+        # xs = xs * 1.0 / 64.
         ys = y_train[start:end]
         
         _correct, _ = sess.run([total_correct, train], feed_dict={dropout_rate: args.dropout, learning_rate: lr, X: xs, Y: ys})
@@ -231,7 +231,7 @@ for ii in range(args.epochs):
         
         xs = x_test[start:end]
         xs = to_spike_train(xs)
-        xs = xs * 1.0 / 64.
+        # xs = xs * 1.0 / 64.
         ys = y_test[start:end]
         
         _correct = sess.run(total_correct, feed_dict={dropout_rate: 0.0, learning_rate: 0.0, X: xs, Y: ys})

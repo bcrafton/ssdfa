@@ -51,9 +51,9 @@ def conv1d_grad(input_shape, filter_shape, x, d):
     # so i think u can do extract patches here
     # or we cud conv a with d with padding 2 on each side ...
     patches_x = conv1d_extract_patches(input_shape=input_shape, filter_shape=filter_shape, x=x)
-    patches_d = conv1d_extract_patches(input_shape=input_shape, filter_shape=filter_shape, x=x)
+    patches_d = conv1d_extract_patches(input_shape=input_shape, filter_shape=filter_shape, x=d)
     df = patches_x * patches_d
-    df = tf.reduce_sum(df, axis=[0, 1]) / batch / time
+    df = tf.reduce_sum(df, axis=[0, 1]) 
     return df
 
 ################################################
@@ -72,21 +72,16 @@ class SpikingTimeConv(Layer):
         self.name = name
         self._train = train
         
-        filters = np.array([0., 0., 1., 0., 0.])
-        # filters = np.array([0.1, 0.1, 0.1, 0.1, 0.1])
         
-        '''
-        filters = np.reshape(filters, (1, -1))
-        filters = np.repeat(filters, self.input_size, 0)
-        filters = np.reshape(filters, self.filter_shape)
-        '''
+        filters = np.array([0., 0., 1., 0., 0.])
+        # filters = np.array([0.1, 0.1, 0.6, 0.1, 0.1])
         filters = np.reshape(filters, (-1, 1))
         filters = np.repeat(filters, self.input_size, 1)
-        
-        # print (np.shape(filters))
-        # print (filters)
-        
-        # filters = np.random.uniform(low=1., high=1., size=self.filter_shape)
+        '''
+        low = -1./self.filter_size
+        high = 1./self.filter_size
+        filters = np.random.uniform(low=low, high=high, size=self.filter_shape)
+        '''
         
         self.filters = tf.Variable(filters, dtype=tf.float32)
 
