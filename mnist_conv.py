@@ -7,13 +7,14 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=100)
-parser.add_argument('--batch_size', type=int, default=32)
+parser.add_argument('--batch_size', type=int, default=50)
+parser.add_argument('--time_steps', type=int, default=32)
 parser.add_argument('--alpha', type=float, default=1e-2)
 parser.add_argument('--l2', type=float, default=0.)
 parser.add_argument('--decay', type=float, default=1.)
 parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--dropout', type=float, default=0.0)
-parser.add_argument('--act', type=str, default='tanh')
+parser.add_argument('--act', type=str, default='relu')
 parser.add_argument('--bias', type=float, default=0.)
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--dfa', type=int, default=0)
@@ -22,7 +23,7 @@ parser.add_argument('--rank', type=int, default=0)
 parser.add_argument('--init', type=str, default="sqrt_fan_in")
 parser.add_argument('--opt', type=str, default="adam")
 parser.add_argument('--save', type=int, default=0)
-parser.add_argument('--name', type=str, default="mnist_conv")
+parser.add_argument('--name', type=str, default="mnist_fc")
 parser.add_argument('--load', type=str, default=None)
 args = parser.parse_args()
 
@@ -35,6 +36,7 @@ if args.gpu >= 0:
 import time
 import tensorflow as tf
 import keras
+from keras.datasets import mnist
 import math
 import numpy as np
 
@@ -47,7 +49,11 @@ from lib.Convolution import Convolution
 from lib.MaxPool import MaxPool
 from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
-from lib.FeedbackConv import FeedbackConv
+
+from lib.SpikingFC import SpikingFC
+from lib.SpikingConv import SpikingConv
+from lib.SpikingTimeConv import SpikingTimeConv
+from lib.SpikingSum import SpikingSum
 
 from lib.Activation import Activation
 from lib.Activation import Sigmoid
@@ -58,65 +64,54 @@ from lib.Activation import LeakyRelu
 from lib.Activation import Linear
 
 ##############################################
+def to_spike_train(mat):
+    shape = np.shape(mat)
+    assert(len(shape) == 4)
+    N, H, W, C = shape
 
-mnist = tf.keras.datasets.mnist.load_data()
+    mat = mat / 8.
+    mat = np.floor(mat).astype(int)
+    mat = np.reshape(mat, N*H*W*C)
+    mat = keras.utils.to_categorical(mat, 32)
+    mat = np.reshape(mat, (N, H, W, C, 32))
+    mat = np.transpose(mat, (0, 4, 1, 2, 3))
+    
+    return mat
 
 ##############################################
 
-EPOCHS = args.epochs
 TRAIN_EXAMPLES = 60000
 TEST_EXAMPLES = 10000
-BATCH_SIZE = args.batch_size
-
-if args.act == 'tanh':
-    act = Tanh()
-elif args.act == 'relu':
-    act = Relu()
-else:
-    assert(False)
-
-train_fc=True
-if args.load:
-    train_conv=False
-else:
-    train_conv=True
-
-weights_fc=None
-weights_conv=args.load
 
 ##############################################
 
 tf.set_random_seed(0)
 tf.reset_default_graph()
 
-batch_size = tf.placeholder(tf.int32, shape=())
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
-X = tf.placeholder(tf.float32, [None, 28, 28, 1])
-X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), X)
-Y = tf.placeholder(tf.float32, [None, 10])
 
-l0 = Convolution(input_sizes=[batch_size, 28, 28, 1], filter_sizes=[3, 3, 1, 32], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load=weights_conv, train=train_conv)
-l1 = FeedbackConv(size=[batch_size, 28, 28, 32], num_classes=10, sparse=args.sparse, rank=args.rank, name='conv1_fb')
+X = tf.placeholder(tf.float32, [args.batch_size, args.time_steps, 28, 28, 1])
+Y = tf.placeholder(tf.float32, [args.batch_size, 10])
 
-l2 = Convolution(input_sizes=[batch_size, 28, 28, 32], filter_sizes=[3, 3, 32, 64], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv2', load=weights_conv, train=train_conv)
-l3 = MaxPool(size=[batch_size, 28, 28, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
-l4 = Dropout(rate=dropout_rate/2.)
-l5 = FeedbackConv(size=[batch_size, 14, 14, 64], num_classes=10, sparse=args.sparse, rank=args.rank, name='conv2_fb')
+l0 = SpikingConv(input_shape=[args.batch_size, args.time_steps, 28, 28, 1], filter_sizes=[3, 3, 1, 32], init=args.init, strides=[1, 1, 1, 1], padding="SAME", activation=Linear(), name="sc1")
+l1 = Relu()
 
-l6 = ConvToFullyConnected(shape=[14, 14, 64])
-l7 = FullyConnected(size=[14*14*64, 128], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='fc1', load=weights_fc, train=train_fc)
-l8 = Dropout(rate=dropout_rate)
-l9 = FeedbackFC(size=[14*14*64, 128], num_classes=10, sparse=args.sparse, rank=args.rank, name='fc1_fb')
+l2 = SpikingConv(input_shape=[args.batch_size, args.time_steps, 28, 28, 32], filter_sizes=[3, 3, 32, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", activation=Linear(), name="sc2")
+l3 = Relu()
+l4 = MaxPool(size=[args.batch_size, args.time_steps, 28, 28, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+ 
+l5 = ConvToFullyConnected(input_shape=[14, 14, 64])
+l6 = SpikingFC(input_shape=[args.batch_size, args.time_steps, 14*14*64], size=128, init=args.init, activation=Linear(), name="sfc1")
 
-l10 = FullyConnected(size=[128, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name='fc2', load=weights_fc, train=train_fc)
+l7 = SpikingSum(input_shape=[args.batch_size, args.time_steps, 128], init=args.init, activation=Relu(), name="ss1", train=False)
+l8 = FullyConnected(input_shape=128, size=10, init=args.init, activation=Linear(), name='fc1')
 
-model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10])
+model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8])
 
 ##############################################
 
 predict = model.predict(X=X)
-
 weights = model.get_weights()
 
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay":
@@ -149,12 +144,22 @@ sess = tf.InteractiveSession()
 tf.global_variables_initializer().run()
 tf.local_variables_initializer().run()
 
-(x_train, y_train), (x_test, y_test) = mnist
+(x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 
 x_train = x_train.reshape(TRAIN_EXAMPLES, 28, 28, 1)
+x_train = x_train.astype('float32')
+#mean = np.mean(x_train, axis=0, keepdims=True)
+#std = np.mean(x_train, axis=0, keepdims=True)
+#x_train = (x_train - mean) / (std + 1.)
+#x_train /= 255.
 y_train = keras.utils.to_categorical(y_train, 10)
 
 x_test = x_test.reshape(TEST_EXAMPLES, 28, 28, 1)
+x_test = x_test.astype('float32')
+#mean = np.mean(x_test, axis=0, keepdims=True)
+#std = np.mean(x_test, axis=0, keepdims=True)
+#x_test = (x_test - mean) / (std + 1.)
+#x_test /= 255.
 y_test = keras.utils.to_categorical(y_test, 10)
 
 ##############################################
@@ -170,7 +175,7 @@ f.close()
 train_accs = []
 test_accs = []
 
-for ii in range(EPOCHS):
+for ii in range(args.epochs):
     if args.opt == 'decay' or args.opt == 'gd':
         decay = np.power(args.decay, ii)
         lr = args.alpha * decay
@@ -184,13 +189,20 @@ for ii in range(EPOCHS):
     _count = 0
     _total_correct = 0
     
-    for jj in range(int(TRAIN_EXAMPLES / BATCH_SIZE)):
-        xs = x_train[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
-        ys = y_train[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
-        _correct, _ = sess.run([total_correct, train], feed_dict={batch_size: BATCH_SIZE, dropout_rate: args.dropout, learning_rate: lr, X: xs, Y: ys})
+    for jj in range(0, TRAIN_EXAMPLES, args.batch_size):
+        start = jj
+        end = jj + args.batch_size
+        assert(end <= TRAIN_EXAMPLES)
+        
+        xs = x_train[start:end]
+        xs = to_spike_train(xs)
+        # xs = xs * 1.0 / 64.
+        ys = y_train[start:end]
+        
+        _correct, _ = sess.run([total_correct, train], feed_dict={dropout_rate: args.dropout, learning_rate: lr, X: xs, Y: ys})
         
         _total_correct += _correct
-        _count += BATCH_SIZE
+        _count += args.batch_size
 
     train_acc = 1.0 * _total_correct / _count
     train_accs.append(train_acc)
@@ -200,13 +212,20 @@ for ii in range(EPOCHS):
     _count = 0
     _total_correct = 0
 
-    for jj in range(int(TEST_EXAMPLES / BATCH_SIZE)):
-        xs = x_test[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
-        ys = y_test[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
-        _correct = sess.run(total_correct, feed_dict={batch_size: BATCH_SIZE, dropout_rate: 0.0, learning_rate: 0.0, X: xs, Y: ys})
+    for jj in range(0, TEST_EXAMPLES, args.batch_size):
+        start = jj
+        end = jj + args.batch_size
+        assert(end <= TEST_EXAMPLES)
+        
+        xs = x_test[start:end]
+        xs = to_spike_train(xs)
+        # xs = xs * 1.0 / 64.
+        ys = y_test[start:end]
+        
+        _correct = sess.run(total_correct, feed_dict={dropout_rate: 0.0, learning_rate: 0.0, X: xs, Y: ys})
         
         _total_correct += _correct
-        _count += BATCH_SIZE
+        _count += args.batch_size
         
     test_acc = 1.0 * _total_correct / _count
     test_accs.append(test_acc)
@@ -215,17 +234,18 @@ for ii in range(EPOCHS):
             
     print ("train acc: %f test acc: %f" % (train_acc, test_acc))
     
-    f = open(filename, "a")
-    f.write(str(test_acc) + "\n")
-    f.close()
+    ##############################################
 
-##############################################
-
-if args.save:
     [w] = sess.run([weights], feed_dict={})
-    w['train_acc'] = train_accs
-    w['test_acc'] = test_accs
-    np.save(args.name, w)
     
-##############################################
+    print (np.std(w['sfc1']), np.average(w['sfc1']))
+    print (np.std(w['sfc2']), np.average(w['sfc2']))
+
+
+
+
+
+
+
+
 

@@ -13,11 +13,19 @@ from lib.conv_utils import conv_input_length
 class MaxPool(Layer):
     def __init__(self, size, ksize, strides, padding):
         self.size = size
-        self.batch_size, self.h, self.w, self.fin = self.size
+        self.batch, self.times, self.h, self.w, self.fin = self.size
+        
         self.ksize = ksize
+        _, self.kh, self.kw, _ = self.ksize
+        
         self.strides = strides
         _, self.sh, self.sw, _ = self.strides
+        
         self.padding = padding
+
+        self.oh = conv_output_length(self.h, self.kh, self.padding.lower(), self.sh)
+        self.ow = conv_output_length(self.w, self.kw, self.padding.lower(), self.sw)
+        self.od = self.fin
 
     ###################################################################
 
@@ -25,24 +33,27 @@ class MaxPool(Layer):
         return []
 
     def output_shape(self):
-        oh = conv_output_length(self.h, self.fh, self.padding.lower(), self.sh)
-        ow = conv_output_length(self.w, self.fw, self.padding.lower(), self.sw)
-        od = self.fout
-        return [oh, oh, od]
+        return [self.oh, self.oh, self.od]
 
     def num_params(self):
         return 0
 
     def forward(self, X):
+        X = tf.reshape(X, (self.batch * self.times, self.h, self.w, self.fin))
         Z = tf.nn.max_pool(X, ksize=self.ksize, strides=self.strides, padding=self.padding)
-        # Z = tf.Print(Z, [Z], message="", summarize=1000)
+        Z = tf.reshape(Z, (self.batch, self.times, self.oh, self.ow, self.od))
         return Z
             
     ###################################################################           
         
-    def backward(self, AI, AO, DO):    
-        grad = gen_nn_ops.max_pool_grad(grad=DO, orig_input=AI, orig_output=AO, ksize=self.ksize, strides=self.strides, padding=self.padding)
-        return grad
+    def backward(self, AI, AO, DO):
+        AI = tf.reshape(AI , (self.batch * self.times, self.h, self.w, self.fin))
+        DO = tf.reshape(DO, (self.batch * self.times, self.oh, self.ow, self.od))
+        AO =tf.reshape(AO, (self.batch * self.times, self.oh, self.ow, self.od))
+        
+        DI = gen_nn_ops.max_pool_grad(grad=DO, orig_input=AI, orig_output=AO, ksize=self.ksize, strides=self.strides, padding=self.padding)
+        DI = tf.reshape(DI, (self.batch, self.times, self.h, self.w, self.fin))
+        return DI
 
     def gv(self, AI, AO, DO):    
         return []
@@ -51,31 +62,3 @@ class MaxPool(Layer):
         return []
         
     ###################################################################
-
-    def dfa_backward(self, AI, AO, E, DO):
-        grad = gen_nn_ops.max_pool_grad(grad=DO, orig_input=AI, orig_output=AO, ksize=self.ksize, strides=self.strides, padding=self.padding)
-        # grad = tf.Print(grad, [tf.shape(grad), tf.count_nonzero(tf.equal(grad, 1)), tf.count_nonzero(tf.equal(grad, 2)), tf.count_nonzero(tf.equal(grad, 3)), tf.count_nonzero(tf.equal(grad, 4)), tf.count_nonzero(tf.equal(grad, 5))], message="", summarize=1000)
-        return grad
-        
-    def dfa_gv(self, AI, AO, E, DO):
-        return []
-        
-    def dfa(self, AI, AO, E, DO): 
-        return []
-        
-    ###################################################################   
-    
-    def lel_backward(self, AI, AO, E, DO, Y):
-        grad = gen_nn_ops.max_pool_grad(grad=DO, orig_input=AI, orig_output=AO, ksize=self.ksize, strides=self.strides, padding=self.padding)
-        # grad = tf.Print(grad, [tf.shape(grad), tf.count_nonzero(tf.equal(grad, 1)), tf.count_nonzero(tf.equal(grad, 2)), tf.count_nonzero(tf.equal(grad, 3)), tf.count_nonzero(tf.equal(grad, 4)), tf.count_nonzero(tf.equal(grad, 5))], message="", summarize=1000)
-        return grad
-        
-    def lel_gv(self, AI, AO, E, DO, Y):
-        return []
-        
-    def lel(self, AI, AO, E, DO, Y): 
-        return []
-        
-    ###################################################################
-    
-    
