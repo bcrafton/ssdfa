@@ -79,7 +79,8 @@ class LELConv(Layer):
     ###################################################################   
         
     def lel_backward(self, AI, AO, E, DO, Y):
-        DO = self.B.backwards(AI, Y)
+        DO = self.B.backwards(AI, Y) * DO
+        # DO = self.B.backwards(DO, Y)
         return DO
         
     def lel_gv(self, AI, AO, E, DO, Y):

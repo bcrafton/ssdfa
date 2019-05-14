@@ -64,7 +64,7 @@ class Convolution(Layer):
         return filter_weights_size + bias_weights_size
                 
     def forward(self, X):
-        Z = tf.nn.conv2d(X, self.filters, self.strides, self.padding) + tf.reshape(self.bias, [1, 1, self.fout])
+        Z = tf.nn.conv2d(X, self.filters, self.strides, self.padding) # + tf.reshape(self.bias, [1, 1, self.fout])
         A = self.activation.forward(Z)
         return A
         
@@ -125,8 +125,11 @@ class Convolution(Layer):
     ###################################################################    
         
     def lel_backward(self, AI, AO, E, DO, Y):
-        return tf.ones(shape=(tf.shape(AI)))
-        
+        # DI = tf.ones(shape=(tf.shape(AI)))
+        DO = self.activation.gradient(AO)
+        DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_sizes, filter=tf.abs(self.filters), out_backprop=DO, strides=self.strides, padding=self.padding)
+        return DI
+
     def lel_gv(self, AI, AO, E, DO, Y):
         if not self._train:
             return []

@@ -128,8 +128,11 @@ class FullyConnected(Layer):
     ###################################################################
         
     def lel_backward(self, AI, AO, E, DO, Y):
-        return tf.ones(shape=(tf.shape(AI)))
-        
+        # DI = tf.ones(shape=(tf.shape(AI)))
+        DO = self.activation.gradient(AO)
+        DI = tf.matmul(DO, tf.transpose(tf.abs(self.weights)))
+        return DI
+
     def lel_gv(self, AI, AO, E, DO, Y):
         if not self._train:
             return []
