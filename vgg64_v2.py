@@ -446,7 +446,7 @@ for ii in range(0, epochs):
         if (j % (100 * batch_size) == 0):
             [_total_correct, _total_top5, _, (_forward, _backward), _gvs] = sess.run([total_correct, total_top5, train, backward, grads_and_vars], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
         else:
-            [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha
+            [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
 
         train_total += batch_size
         train_correct += _total_correct
