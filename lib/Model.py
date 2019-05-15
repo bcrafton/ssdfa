@@ -257,7 +257,7 @@ class Model:
             else:
                 D[ii] = l.backward(A[ii-1], A[ii], D[ii+1])
                 
-        return D
+        return (A, D)
     
     def dfa_backwards(self, X, Y):
         A = [None] * self.num_layers
