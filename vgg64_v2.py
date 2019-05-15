@@ -80,7 +80,44 @@ from lib.Activation import Softmax
 from lib.Activation import LeakyRelu
 from lib.Activation import Linear
 
-##############################################
+###############################################################
+
+def factors(x):
+    l = [] 
+    for i in range(1, x + 1):
+        if x % i == 0:
+            l.append(i)
+    
+    mid = int(len(l) / 2)
+
+    # print (l)
+    # print (len(l))
+    # print (mid-1, mid+1)
+
+    return l[mid-1:mid+1]
+
+def viz(name, filters):
+    fh, fw, fin, fout = np.shape(filters)
+    filters = filters.T
+    assert(np.shape(filters) == (fout, fin, fw, fh))
+    [nrows, ncols] = factors(fin * fout)
+    filters = np.reshape(filters, (nrows, ncols, fw, fh))
+
+    for ii in range(nrows):
+        for jj in range(ncols):
+            if jj == 0:
+                row = filters[ii][jj]
+            else:
+                row = np.concatenate((row, filters[ii][jj]), axis=1)
+                
+        if ii == 0:
+            img = row
+        else:
+            img = np.concatenate((img, row), axis=0)
+            
+    plt.imsave(name, img, cmap="gray")
+
+###############################################################
 
 batch_size = args.batch_size
 num_classes = 1000
@@ -444,7 +481,7 @@ for ii in range(0, epochs):
         print (j)
         
         if (j % (100 * batch_size) == 0):
-            [_total_correct, _total_top5, _, (_forward, _backward), _gvs] = sess.run([total_correct, total_top5, train, backward, grads_and_vars], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
+            [_total_correct, _total_top5, _, (_forward, _backward), _gvs] = sess.run([total_correct, total_top5, train, backward, grads_and_vars], feed_dict={handle: train_handle, dropout_rate: 0.0, learning_rate: 0.0})
         else:
             [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
 
@@ -468,7 +505,26 @@ for ii in range(0, epochs):
             plt.imsave('forward_1_%d.png' % (ii,), img, cmap="gray")
             img = _forward[5][0, :, :, 0]
             plt.imsave('forward_2_%d.png' % (ii,), img, cmap="gray")
-
+            '''
+            for k in range(len(_backward)):
+                 print (np.shape(_backward[k]))
+            '''
+            # backwards is in the right order actually because we do backward loop in Model.
+            img = _backward[1][0, :, :, 0]
+            plt.imsave('backward_%d_0_%d.png' % (ii,), img, cmap="gray")
+            img = _backward[3][0, :, :, 0]
+            plt.imsave('backward_%d_1_%d.png' % (ii,), img, cmap="gray")
+            img = _backward[6][0, :, :, 0]
+            plt.imsave('backward_%d_2_%d.png' % (ii,), img, cmap="gray")
+            '''
+            for l in range(len(_gvs)):
+                 print (np.shape(_gvs[l]))
+            '''
+            # same is not true for gvs
+            f1 = _gvs[4][0]
+            viz('gv_0_%d.png' % (ii,), f1)
+            f2 = _gvs[6][0]
+            viz('gv_1_%d.png' % (ii,), f2)
 
     p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
     print (p)
