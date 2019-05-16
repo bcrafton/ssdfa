@@ -9,7 +9,7 @@ from lib.Activation import Sigmoid
 
 class FullyConnected(Layer):
 
-    def __init__(self, input_shape, size, init, activation, bias, alpha=0., name=None, load=None, train=True):
+    def __init__(self, input_shape, size, init, activation, bias=0, alpha=0., name=None, load=None, train=True, fa=False):
 
         self.input_size = input_shape
         self.output_size = size
@@ -21,7 +21,8 @@ class FullyConnected(Layer):
         self.activation = activation
         self.name = name
         self._train = train
-        
+        self.fa = fa
+
         if load:
             print ("Loading Weights: " + self.name)
             weight_dict = np.load(load).item()
@@ -39,8 +40,11 @@ class FullyConnected(Layer):
                 # glorot
                 assert(False)
 
+        fb = np.copy(weights)
+        
         self.weights = tf.Variable(weights, dtype=tf.float32)
         self.bias = tf.Variable(bias, dtype=tf.float32)
+        self.fb = tf.Variable(fb, dtype=tf.float32)
 
     ###################################################################
         
@@ -61,7 +65,12 @@ class FullyConnected(Layer):
             
     def backward(self, AI, AO, DO):
         DO = tf.multiply(DO, self.activation.gradient(AO))
-        DI = tf.matmul(DO, tf.transpose(self.weights))
+        
+        if self.fa:
+            DI = tf.matmul(DO, tf.transpose(self.fb))
+        else:
+            DI = tf.matmul(DO, tf.transpose(self.weights))
+        
         return DI
         
     def gv(self, AI, AO, DO):

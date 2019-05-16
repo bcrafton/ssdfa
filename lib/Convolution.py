@@ -12,7 +12,7 @@ from lib.conv_utils import conv_input_length
 
 class Convolution(Layer):
 
-    def __init__(self, input_sizes, filter_sizes, init, strides, padding, alpha=0., activation=None, bias=0., name=None, load=None, train=True):
+    def __init__(self, input_sizes, filter_sizes, init, strides, padding, alpha=0., activation=None, bias=0., name=None, load=None, train=True, fa=False):
         self.input_sizes = input_sizes
         self.filter_sizes = filter_sizes
         self.batch_size, self.h, self.w, self.fin = self.input_sizes
@@ -26,6 +26,7 @@ class Convolution(Layer):
         self.activation = Linear() if activation == None else activation
         self.name = name
         self._train = train
+        self.fa = fa
         
         if load:
             print ("Loading Weights: " + self.name)
@@ -44,8 +45,11 @@ class Convolution(Layer):
                 # glorot
                 assert(False)
                 
+        fb = np.copy(filters)
+
         self.filters = tf.Variable(filters, dtype=tf.float32)
         self.bias = tf.Variable(bias, dtype=tf.float32)
+        self.fb = tf.Variable(fb, dtype=tf.float32)
 
     ###################################################################
 
@@ -72,7 +76,12 @@ class Convolution(Layer):
         
     def backward(self, AI, AO, DO):    
         DO = tf.multiply(DO, self.activation.gradient(AO))
-        DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_sizes, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+
+        if self.fa:
+            DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_sizes, filter=self.fb, out_backprop=DO, strides=self.strides, padding=self.padding)
+        else:
+            DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_sizes, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+
         return DI
 
     def gv(self, AI, AO, DO):    
@@ -126,8 +135,10 @@ class Convolution(Layer):
         
     def lel_backward(self, AI, AO, E, DO, Y):
         # DI = tf.ones(shape=(tf.shape(AI)))
+        
         DO = self.activation.gradient(AO)
         DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_sizes, filter=tf.abs(self.filters), out_backprop=DO, strides=self.strides, padding=self.padding)
+        
         return DI
 
     def lel_gv(self, AI, AO, E, DO, Y):
