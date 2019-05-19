@@ -28,6 +28,7 @@ class Block(Layer):
         self.num_classes = num_classes
         self.init = init
         self.name = name
+        self.pad = (self.fout - self.fin) / 2
 
         l0 = Convolution(input_sizes=self.input_shape, filter_sizes=self.filter_shape, init=self.init, strides=[1,1,1,1], padding="SAME", name=self.name + '_conv')
         l1 = BatchNorm(input_size=self.output_shape, name=self.name + '_bn')
@@ -79,24 +80,28 @@ class Block(Layer):
     def lel_backward(self, AI, AO, E, DO, Y):
         # return self.block.lel_backward(AI, AO, E, DO, Y)
         
+        pad_AI = tf.pad(AI, [[0, 0], [0, 0], [0, 0], [self.pad, self.pad]])
+        
         conv = l0.forward(X)
         bn = l1.forward(conv)
         relu = l2.forward(bn)
         lel = l3.forward(relu)
         
-        dlel = l3.lel_backward(AI + relu, AO, E, DO, Y)
+        dlel = l3.lel_backward(pad_AI + relu, AO, E, DO, Y)
         
         return dlel
         
     def lel_gv(self, AI, AO, E, DO, Y):
         # return self.block.lel_gv(AI, AO, E, DO, Y)
         
+        pad_AI = tf.pad(AI, [[0, 0], [0, 0], [0, 0], [self.pad, self.pad]])
+        
         conv = l0.forward(X)
         bn = l1.forward(conv)
         relu = l2.forward(bn)
         lel = l3.forward(relu)
         
-        dlel = l3.lel_backward(AI + relu, lel, E, DO, Y)
+        dlel = l3.lel_backward(pad_AI + relu, lel, E, DO, Y)
         drelu = l2.lel_backward(bn, relu, E, dlel, Y)
         dbn = l1.lel_backward(conv, bn, E, drelu, Y)
         dconv = l0.lel_backward(AI, conv, E, dbn, Y)
@@ -106,7 +111,7 @@ class Block(Layer):
         dconv = l0.lel_backward(AI, conv, E, dbn, Y)
         dbn = l1.lel_backward(conv, bn, E, drelu, Y)
         drelu = l2.lel_backward(bn, relu, E, dlel, Y)
-        dlel = l3.lel_gv(AI + relu, lel, E, DO, Y)
+        dlel = l3.lel_gv(pad_AI + relu, lel, E, DO, Y)
         
         gvs.extend(dconv)
         gvs.extend(dbn)
