@@ -52,14 +52,6 @@ class Block(Layer):
     def forward(self, X):
         return self.block.forward(X)
         
-        '''
-        conv = l0.forward(X)
-        bn = l1.forward(conv)
-        relu = l2.forward(bn)
-        lel = l3.forward(relu)
-        return lel
-        '''
-        
     ###################################################################           
         
     def backward(self, AI, AO, DO):    
@@ -85,12 +77,52 @@ class Block(Layer):
     ###################################################################   
     
     def lel_backward(self, AI, AO, E, DO, Y):
-        return self.block.lel_backward(AI, AO, E, DO, Y)
+        # return self.block.lel_backward(AI, AO, E, DO, Y)
+        
+        conv = l0.forward(X)
+        bn = l1.forward(conv)
+        relu = l2.forward(bn)
+        lel = l3.forward(relu)
+        
+        dlel = l3.lel_backward(AI + relu, AO, E, DO, Y)
+        
+        return dlel
         
     def lel_gv(self, AI, AO, E, DO, Y):
-        return self.block.lel_gv(AI, AO, E, DO, Y)
+        # return self.block.lel_gv(AI, AO, E, DO, Y)
+        
+        conv = l0.forward(X)
+        bn = l1.forward(conv)
+        relu = l2.forward(bn)
+        lel = l3.forward(relu)
+        
+        dlel = l3.lel_backward(AI + relu, lel, E, DO, Y)
+        drelu = l2.lel_backward(bn, relu, E, dlel, Y)
+        dbn = l1.lel_backward(conv, bn, E, drelu, Y)
+        dconv = l0.lel_backward(AI, conv, E, dbn, Y)
+        
+        gvs = []
+        
+        dconv = l0.lel_backward(AI, conv, E, dbn, Y)
+        dbn = l1.lel_backward(conv, bn, E, drelu, Y)
+        drelu = l2.lel_backward(bn, relu, E, dlel, Y)
+        dlel = l3.lel_gv(AI + relu, lel, E, DO, Y)
+        
+        gvs.extend(dconv)
+        gvs.extend(dbn)
+        gvs.extend(drelu)
+        gvs.extend(dlel)
+        
+        return gvs
         
     def lel(self, AI, AO, E, DO, Y): 
         assert(False)
         
     ###################################################################   
+    
+    
+    
+    
+    
+    
+    
