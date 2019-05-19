@@ -379,6 +379,85 @@ class Model:
         return grads_and_vars
         
     ####################################################################
+
+    def lel_backward(self, AI, AO, DO):
+        
+        X = AI
+        
+        A = [None] * self.num_layers
+        D = [None] * self.num_layers
+        
+        for ii in range(self.num_layers):
+            l = self.layers[ii]
+            if ii == 0:
+                A[ii] = l.forward(X)
+            else:
+                A[ii] = l.forward(A[ii-1])
+            
+        '''
+        E = tf.nn.softmax(A[self.num_layers-1]) - Y
+        N = tf.shape(A[self.num_layers-1])[0]
+        N = tf.cast(N, dtype=tf.float32)
+        E = E / N
+        '''
+        
+        E = DO
+        
+        for ii in range(self.num_layers-1, -1, -1):
+            l = self.layers[ii]
+                
+            if (ii == self.num_layers-1):
+                D[ii] = l.lel_backward(A[ii-1], A[ii], E, E)
+            elif (ii == 0):
+                D[ii] = l.lel_backward(X, A[ii], E, D[ii+1])
+            else:
+                D[ii] = l.lel_backward(A[ii-1], A[ii], E, D[ii+1])
+                
+        return D[0]
+        
+    def lel_gv(self, AI, AO, DO):
+    
+        X = AI
+    
+        A = [None] * self.num_layers
+        D = [None] * self.num_layers
+        grads_and_vars = []
+        
+        for ii in range(self.num_layers):
+            l = self.layers[ii]
+            if ii == 0:
+                A[ii] = l.forward(X)
+            else:
+                A[ii] = l.forward(A[ii-1])
+            
+        '''
+        E = tf.nn.softmax(A[self.num_layers-1]) - Y
+        N = tf.shape(A[self.num_layers-1])[0]
+        N = tf.cast(N, dtype=tf.float32)
+        E = E / N
+        '''
+        
+        E = DO
+        
+        for ii in range(self.num_layers-1, -1, -1):
+            l = self.layers[ii]
+                
+            if (ii == self.num_layers-1):
+                D[ii] = l.lel_backward(A[ii-1], A[ii], E, E, Y)
+                gvs = l.lel_gv(A[ii-1], A[ii], E, E, Y)
+                grads_and_vars.extend(gvs)
+            elif (ii == 0):
+                D[ii] = l.lel_backward(X, A[ii], E, D[ii+1], Y)
+                gvs = l.lel_gv(X, A[ii], E, D[ii+1], Y)
+                grads_and_vars.extend(gvs)
+            else:
+                D[ii] = l.lel_backward(A[ii-1], A[ii], E, D[ii+1], Y)
+                gvs = l.lel_gv(A[ii-1], A[ii], E, D[ii+1], Y)
+                grads_and_vars.extend(gvs)
+                
+        return grads_and_vars
+        
+    ####################################################################
     
     def predict(self, X):
         A = [None] * self.num_layers
