@@ -66,9 +66,14 @@ from lib.ConvToFullyConnected import ConvToFullyConnected
 from lib.FullyConnected import FullyConnected
 from lib.Convolution import Convolution
 from lib.MaxPool import MaxPool
+from lib.AvgPool import AvgPool
 from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
+from lib.LELConv import LELConv
+from lib.LELFC import LELFC
+from lib.BatchNorm import BatchNorm
+from lib.Block import Block
 
 from lib.Activation import Activation
 from lib.Activation import Sigmoid
@@ -316,41 +321,36 @@ else:
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 
-l0 = Convolution(input_sizes=[batch_size, 64, 64, 3], filter_sizes=[3, 3, 3, 64], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv1", load=weights_conv, train=train_conv)
-l1 = Convolution(input_sizes=[batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 64], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv2", load=weights_conv, train=train_conv)
-l2 = MaxPool(size=[batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
-l3 = Convolution(input_sizes=[batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 128], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv3", load=weights_conv, train=train_conv)
-l4 = Convolution(input_sizes=[batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 128], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv4", load=weights_conv, train=train_conv)
-l5 = MaxPool(size=[batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
+l1 = Block(input_shape=[batch_size, 64, 64, 3], filter_shape=[3, 3, 3, 64], pool_shape=[1, 4, 4, 1], num_classes=1000, init=args.init, name='block1')
+l2 = Block(input_shape=[batch_size, 64, 64, 64], filter_shape=[3, 3, 64, 64], pool_shape=[1, 4, 4, 1], num_classes=1000, init=args.init, name='block2')
+l3 = AvgPool(size=[batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
-l6 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 256], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv5", load=weights_conv, train=train_conv)
-l7 = Convolution(input_sizes=[batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 256], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv6", load=weights_conv, train=train_conv)
-l8 = MaxPool(size=[batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
+l4 = Block(input_shape=[batch_size, 32, 32, 64], filter_shape=[3, 3, 64, 128], pool_shape=[1, 4, 4, 1], num_classes=1000, init=args.init, name='block3')
+l5 = Block(input_shape=[batch_size, 32, 32, 128], filter_shape=[3, 3, 128, 128], pool_shape=[1, 4, 4, 1], num_classes=1000, init=args.init, name='block4')
+l6 = AvgPool(size=[batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
-l9 = Convolution(input_sizes=[batch_size, 8, 8, 256], filter_sizes=[3, 3, 256, 512], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv7", load=weights_conv, train=train_conv)
-l10 = Convolution(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 512, 512], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv8", load=weights_conv, train=train_conv)
-l11 = MaxPool(size=[batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
+l7 = Block(input_shape=[batch_size, 16, 16, 128], filter_shape=[3, 3, 128, 256], pool_shape=[1, 4, 4, 1], num_classes=1000, init=args.init, name='block5')
+l8 = Block(input_shape=[batch_size, 16, 16, 256], filter_shape=[3, 3, 256, 256], pool_shape=[1, 4, 4, 1], num_classes=1000, init=args.init, name='block6')
+l9 = AvgPool(size=[batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
-l12 = ConvToFullyConnected(shape=[4, 4, 512])
+l10 = Block(input_shape=[batch_size, 8, 8, 256], filter_shape=[3, 3, 256, 512], pool_shape=[1, 4, 4, 1], num_classes=1000, init=args.init, name='block7')
+l11 = Block(input_shape=[batch_size, 8, 8, 512], filter_shape=[3, 3, 512, 512], pool_shape=[1, 4, 4, 1], num_classes=1000, init=args.init, name='block8')
+l12 = AvgPool(size=[batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
-l13 = FullyConnected(size=[4*4*512, 4096], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Relu(), bias=1.0, last_layer=False, name="fc1", load=weights_fc, train=train_fc)
+l13 = ConvToFullyConnected(input_shape=[4, 4, 512])
 
-l14 = Dropout(rate=dropout_rate)
-
-l15 = FullyConnected(size=[4096, num_classes], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=1.0, last_layer=True, name="fc2", load=weights_fc, train=train_fc)
+l14 = FullyConnected(input_shape=4*4*512, size=1000, init=args.init, alpha=learning_rate, bias=1.0, name="fc1", load=weights_fc, train=train_fc)
 
 ###############################################################
 
-model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15])
-# model = Model(layers=[l0, l1, l2, l3, l4, l5, l12, l13, l14, l15])
-# model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l12, l13, l14, l15])
+model = Model(layers=[l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14])
 
 predict = tf.nn.softmax(model.predict(X=features))
 
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt == "momentum":
     if args.dfa:
-        grads_and_vars = model.dfa_gvs(X=features, Y=labels)
+        grads_and_vars = model.lel_gvs(X=features, Y=labels)
     else:
         grads_and_vars = model.gvs(X=features, Y=labels)
         
@@ -367,7 +367,7 @@ if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt ==
 
 else:
     if args.dfa:
-        train = model.dfa(X=features, Y=labels)
+        train = model.lel(X=features, Y=labels)
     else:
         train = model.train(X=features, Y=labels)
 
@@ -428,11 +428,9 @@ for ii in range(0, epochs):
     train_correct = 0.0
     train_top5 = 0.0
     
-    # for j in range(0, batch_size * 10, batch_size):
     for j in range(0, len(train_filenames), batch_size):
         print (j)
         
-        # [_X, _total_correct, _total_top5, _] = sess.run([features, total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
         [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
 
         train_total += batch_size
@@ -443,8 +441,6 @@ for ii in range(0, epochs):
         train_acc_top5 = train_top5 / train_total
         
         if (j % (100 * batch_size) == 0):
-            # plt.imsave('a.jpg', _X[0])
-
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
             print (p)
             f = open(results_filename, "a")

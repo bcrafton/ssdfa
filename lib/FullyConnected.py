@@ -5,11 +5,11 @@ import math
 
 from lib.Layer import Layer 
 from lib.Activation import Activation
-from lib.Activation import Sigmoid
+from lib.Activation import Linear
 
 class FullyConnected(Layer):
 
-    def __init__(self, input_shape, size, init, activation, bias=0, alpha=0., name=None, load=None, train=True, fa=False):
+    def __init__(self, input_shape, size, init, activation=None, bias=0., alpha=0., name=None, load=None, train=True, fa=False):
 
         self.input_size = input_shape
         self.output_size = size
@@ -18,7 +18,7 @@ class FullyConnected(Layer):
         bias = np.ones(shape=self.output_size) * bias
 
         self.alpha = alpha
-        self.activation = activation
+        self.activation = Linear() if activation == None else activation
         self.name = name
         self._train = train
         self.fa = fa

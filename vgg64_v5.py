@@ -358,7 +358,7 @@ l5 = ConvToFullyConnected(input_shape=[4, 4, 512])
 
 # l7 = Dropout(rate=dropout_rate)
 
-l8 = FullyConnected(input_shape=4*4*512, size=1000, init=args.init, alpha=learning_rate, activation=Linear(), bias=1.0, name="fc2", load=weights_fc, train=train_fc)
+l8 = FullyConnected(input_shape=4*4*512, size=1000, init=args.init, alpha=learning_rate, bias=1.0, name="fc2", load=weights_fc, train=train_fc)
 
 ###############################################################
 
