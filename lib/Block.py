@@ -40,7 +40,8 @@ class Block(Layer):
 
     def get_weights(self):
         # shud just always return dictionaries and do ".update()" no lists. 
-        return self.block.get_weights()
+        # return self.block.get_weights()
+        return []
 
     def output_shape(self):
         assert(False)
@@ -84,10 +85,10 @@ class Block(Layer):
     ###################################################################   
     
     def lel_backward(self, AI, AO, E, DO, Y):
-        assert(False)
+        return self.block.lel_backward(AI, AO, E, DO, Y)
         
     def lel_gv(self, AI, AO, E, DO, Y):
-        assert(False)
+        return self.block.lel_gv(AI, AO, E, DO, Y)
         
     def lel(self, AI, AO, E, DO, Y): 
         assert(False)
