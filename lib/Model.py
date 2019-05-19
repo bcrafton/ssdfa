@@ -380,7 +380,7 @@ class Model:
         
     ####################################################################
 
-    def lel_backward(self, AI, AO, DO):
+    def lel_backward(self, AI, AO, E, DO, Y):
         
         X = AI
         
@@ -407,15 +407,15 @@ class Model:
             l = self.layers[ii]
                 
             if (ii == self.num_layers-1):
-                D[ii] = l.lel_backward(A[ii-1], A[ii], E, E)
+                D[ii] = l.lel_backward(A[ii-1], A[ii], E, E, Y)
             elif (ii == 0):
-                D[ii] = l.lel_backward(X, A[ii], E, D[ii+1])
+                D[ii] = l.lel_backward(X, A[ii], E, D[ii+1], Y)
             else:
-                D[ii] = l.lel_backward(A[ii-1], A[ii], E, D[ii+1])
+                D[ii] = l.lel_backward(A[ii-1], A[ii], E, D[ii+1], Y)
                 
         return D[0]
         
-    def lel_gv(self, AI, AO, DO):
+    def lel_gv(self, AI, AO, E, DO, Y):
     
         X = AI
     

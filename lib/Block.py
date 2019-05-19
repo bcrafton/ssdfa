@@ -28,14 +28,15 @@ class Block(Layer):
         self.num_classes = num_classes
         self.init = init
         self.name = name
-        self.pad = (self.fout - self.fin) / 2
+        self.pad = int((self.fout - self.fin) / 2)
+        print (self.fin, self.fout, self.pad)
 
         self.l0 = Convolution(input_sizes=self.input_shape, filter_sizes=self.filter_shape, init=self.init, strides=[1,1,1,1], padding="SAME", name=self.name + '_conv')
         self.l1 = BatchNorm(input_size=self.output_shape, name=self.name + '_bn')
         self.l2 = Relu()
         self.l3 = LELConv(input_shape=self.output_shape, pool_shape=self.pool_shape, num_classes=self.num_classes, name=self.name + '_fb')
 
-        self.block = Model(layers=[l0, l1, l2, l3])
+        self.block = Model(layers=[self.l0, self.l1, self.l2, self.l3])
 
     ###################################################################
 
@@ -82,7 +83,7 @@ class Block(Layer):
         
         pad_AI = tf.pad(AI, [[0, 0], [0, 0], [0, 0], [self.pad, self.pad]])
         
-        conv = self.l0.forward(X)
+        conv = self.l0.forward(AI)
         bn   = self.l1.forward(conv)
         relu = self.l2.forward(bn)
         lel  = self.l3.forward(relu)
@@ -96,7 +97,7 @@ class Block(Layer):
         
         pad_AI = tf.pad(AI, [[0, 0], [0, 0], [0, 0], [self.pad, self.pad]])
         
-        conv = self.l0.forward(X)
+        conv = self.l0.forward(AI)
         bn   = self.l1.forward(conv)
         relu = self.l2.forward(bn)
         lel  = self.l3.forward(relu)
@@ -108,9 +109,9 @@ class Block(Layer):
         
         gvs = []
         
-        dconv = self.l0.lel_backward(AI, conv, E, dbn, Y)
-        dbn   = self.l1.lel_backward(conv, bn, E, drelu, Y)
-        drelu = self.l2.lel_backward(bn, relu, E, dlel, Y)
+        dconv = self.l0.lel_gv(AI, conv, E, dbn, Y)
+        dbn   = self.l1.lel_gv(conv, bn, E, drelu, Y)
+        drelu = self.l2.lel_gv(bn, relu, E, dlel, Y)
         dlel  = self.l3.lel_gv(pad_AI + relu, lel, E, DO, Y)
         
         gvs.extend(dconv)
