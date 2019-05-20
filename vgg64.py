@@ -330,12 +330,12 @@ l4 = Block(input_shape=[batch_size, 32, 32, 64], filter_shape=[3, 3, 64, 128], p
 l5 = Block(input_shape=[batch_size, 32, 32, 128], filter_shape=[3, 3, 128, 128], pool_shape=[1, 4, 4, 1], num_classes=1000, init=args.init, name='block4')
 l6 = AvgPool(size=[batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
-l7 = Block(input_shape=[batch_size, 16, 16, 128], filter_shape=[3, 3, 128, 256], pool_shape=[1, 4, 4, 1], num_classes=1000, init=args.init, name='block5')
-l8 = Block(input_shape=[batch_size, 16, 16, 256], filter_shape=[3, 3, 256, 256], pool_shape=[1, 4, 4, 1], num_classes=1000, init=args.init, name='block6')
+l7 = Block(input_shape=[batch_size, 16, 16, 128], filter_shape=[3, 3, 128, 256], pool_shape=[1, 2, 2, 1], num_classes=1000, init=args.init, name='block5')
+l8 = Block(input_shape=[batch_size, 16, 16, 256], filter_shape=[3, 3, 256, 256], pool_shape=[1, 2, 2, 1], num_classes=1000, init=args.init, name='block6')
 l9 = AvgPool(size=[batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
-l10 = Block(input_shape=[batch_size, 8, 8, 256], filter_shape=[3, 3, 256, 512], pool_shape=[1, 4, 4, 1], num_classes=1000, init=args.init, name='block7')
-l11 = Block(input_shape=[batch_size, 8, 8, 512], filter_shape=[3, 3, 512, 512], pool_shape=[1, 4, 4, 1], num_classes=1000, init=args.init, name='block8')
+l10 = Block(input_shape=[batch_size, 8, 8, 256], filter_shape=[3, 3, 256, 512], pool_shape=[1, 2, 2, 1], num_classes=1000, init=args.init, name='block7')
+l11 = Block(input_shape=[batch_size, 8, 8, 512], filter_shape=[3, 3, 512, 512], pool_shape=[1, 2, 2, 1], num_classes=1000, init=args.init, name='block8')
 l12 = AvgPool(size=[batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
 l13 = ConvToFullyConnected(input_shape=[4, 4, 512])
@@ -429,7 +429,7 @@ for ii in range(0, epochs):
     train_top5 = 0.0
     
     for j in range(0, len(train_filenames), batch_size):
-        print (j)
+        # print (j)
         
         [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
 
@@ -465,7 +465,7 @@ for ii in range(0, epochs):
     val_top5 = 0.0
     
     for j in range(0, len(val_filenames), batch_size):
-        print (j)
+        # print (j)
 
         [_total_correct, _top5] = sess.run([total_correct, total_top5], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
         

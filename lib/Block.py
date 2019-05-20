@@ -28,8 +28,8 @@ class Block(Layer):
         self.num_classes = num_classes
         self.init = init
         self.name = name
-        self.pad = int((self.fout - self.fin) / 2)
-        print (self.fin, self.fout, self.pad)
+        # self.pad = int((self.fout - self.fin) / 2)
+        # print (self.fin, self.fout, self.pad)
 
         self.res_filter_shape = [1, 1, self.fin, self.fout]
         self.res = Convolution(input_sizes=self.input_shape, filter_sizes=self.res_filter_shape, init=self.init, strides=[1,1,1,1], padding="SAME", name=self.name + '_res_conv')
@@ -89,10 +89,17 @@ class Block(Layer):
         relu = self.l2.forward(bn)
         lel  = self.l3.forward(relu)
         
-        dlel = self.l3.lel_backward(res + relu, AO, E, DO, Y)
-        
-        return dlel
-        
+        dlel  = self.l3.lel_backward(res + relu, res + relu, None, None, Y)
+        drelu = self.l2.lel_backward(bn, relu, None, dlel + DO, Y)
+        dbn   = self.l1.lel_backward(conv, bn, None, drelu, Y)
+        dconv = self.l0.lel_backward(AI, conv, None, dbn, Y)
+        dres  = self.res.lel_backward(AI, res, None, dlel, Y)
+
+        # dlel = tf.Print(dlel, ['dlel', tf.shape(dlel), 'dres', tf.shape(dres)], message='', summarize=1000)
+        # dres = tf.Print(dres, ['dlel', tf.shape(dlel), 'dres', tf.shape(dres)], message='', summarize=1000)
+
+        return dres
+
     def lel_gv(self, AI, AO, E, DO, Y):
         
         res  = self.res.forward(AI)
@@ -101,21 +108,26 @@ class Block(Layer):
         relu = self.l2.forward(bn)
         lel  = self.l3.forward(relu)
         
-        dlel  = self.l3.lel_backward(res + relu, lel, E, DO, Y)
-        drelu = self.l2.lel_backward(bn, relu, E, dlel, Y)
-        dbn   = self.l1.lel_backward(conv, bn, E, drelu, Y)
-        dconv = self.l0.lel_backward(AI, conv, E, dbn, Y)
-        # dres = self.res.lel_backward(AI, res, E, dlel, Y)
+        dlel  = self.l3.lel_backward(res + relu, res + relu, None, None, Y)
+        drelu = self.l2.lel_backward(bn, relu, None, dlel + DO, Y)
+        dbn   = self.l1.lel_backward(conv, bn, None, drelu, Y)
+        dconv = self.l0.lel_backward(AI, conv, None, dbn, Y)
+        dres  = self.res.lel_backward(AI, res, None, dlel, Y)
         
+        # dlel  = tf.Print(dlel, [self.name, 'ai', tf.shape(AI), 'ao', tf.shape(AO), 'dlel', tf.shape(dlel), 'dres', tf.shape(dres), 'do', tf.shape(DO)], message='', summarize=1000)
+
+        # dres = DI
+        # drelu = tf.Print(drelu, [tf.shape(AI), tf.shape(AO), tf.shape(DO), tf.shape(dres)], message='', summarize=1000)
+
         gvs = []
         
-        dres  = self.res.lel_gv(AI, res, E, dlel, Y)
-        dconv = self.l0.lel_gv(AI, conv, E, dbn, Y)
-        dbn   = self.l1.lel_gv(conv, bn, E, drelu, Y)
-        drelu = self.l2.lel_gv(bn, relu, E, dlel, Y)
-        dlel  = self.l3.lel_gv(res + relu, lel, E, DO, Y)
+        dres  = self.res.lel_gv(AI, res, None, dlel, Y)
+        dconv = self.l0.lel_gv(AI, conv, None, dbn, Y)
+        dbn   = self.l1.lel_gv(conv, bn, None, drelu, Y)
+        drelu = self.l2.lel_gv(bn, relu, None, dlel + DO, Y)
+        dlel  = self.l3.lel_gv(res + relu, res + relu, None, None, Y)
 
-        gvs.extend(dlel)
+        gvs.extend(dres)
         gvs.extend(dconv)
         gvs.extend(dbn)
         gvs.extend(drelu)
