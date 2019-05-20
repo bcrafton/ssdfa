@@ -31,6 +31,9 @@ class Block(Layer):
         self.pad = int((self.fout - self.fin) / 2)
         print (self.fin, self.fout, self.pad)
 
+        self.res_filter_shape = [1, 1, self.fin, self.fout]
+        self.res = Convolution(input_sizes=self.input_shape, filter_sizes=self.res_filter_shape, init=self.init, strides=[1,1,1,1], padding="SAME", name=self.name + '_res_conv')
+
         self.l0 = Convolution(input_sizes=self.input_shape, filter_sizes=self.filter_shape, init=self.init, strides=[1,1,1,1], padding="SAME", name=self.name + '_conv')
         self.l1 = BatchNorm(input_size=self.output_shape, name=self.name + '_bn')
         self.l2 = Relu()
@@ -79,41 +82,40 @@ class Block(Layer):
     ###################################################################   
     
     def lel_backward(self, AI, AO, E, DO, Y):
-        # return self.block.lel_backward(AI, AO, E, DO, Y)
         
-        pad_AI = tf.pad(AI, [[0, 0], [0, 0], [0, 0], [self.pad, self.pad]])
-        
+        res  = self.res.forward(AI)
         conv = self.l0.forward(AI)
         bn   = self.l1.forward(conv)
         relu = self.l2.forward(bn)
         lel  = self.l3.forward(relu)
         
-        dlel = self.l3.lel_backward(pad_AI + relu, AO, E, DO, Y)
+        dlel = self.l3.lel_backward(res + relu, AO, E, DO, Y)
         
         return dlel
         
     def lel_gv(self, AI, AO, E, DO, Y):
-        # return self.block.lel_gv(AI, AO, E, DO, Y)
         
-        pad_AI = tf.pad(AI, [[0, 0], [0, 0], [0, 0], [self.pad, self.pad]])
-        
+        res  = self.res.forward(AI)
         conv = self.l0.forward(AI)
         bn   = self.l1.forward(conv)
         relu = self.l2.forward(bn)
         lel  = self.l3.forward(relu)
         
-        dlel  = self.l3.lel_backward(pad_AI + relu, lel, E, DO, Y)
+        dlel  = self.l3.lel_backward(res + relu, lel, E, DO, Y)
         drelu = self.l2.lel_backward(bn, relu, E, dlel, Y)
         dbn   = self.l1.lel_backward(conv, bn, E, drelu, Y)
         dconv = self.l0.lel_backward(AI, conv, E, dbn, Y)
+        # dres = self.res.lel_backward(AI, res, E, dlel, Y)
         
         gvs = []
         
+        dres  = self.res.lel_gv(AI, res, E, dlel, Y)
         dconv = self.l0.lel_gv(AI, conv, E, dbn, Y)
         dbn   = self.l1.lel_gv(conv, bn, E, drelu, Y)
         drelu = self.l2.lel_gv(bn, relu, E, dlel, Y)
-        dlel  = self.l3.lel_gv(pad_AI + relu, lel, E, DO, Y)
-        
+        dlel  = self.l3.lel_gv(res + relu, lel, E, DO, Y)
+
+        gvs.extend(dlel)
         gvs.extend(dconv)
         gvs.extend(dbn)
         gvs.extend(drelu)
