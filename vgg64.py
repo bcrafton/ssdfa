@@ -322,16 +322,16 @@ dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 
 
-l1 = Block(input_shape=[batch_size, 64, 64, 3], filter_shape=[3, 3, 3, 64], pool_shape=[1, 4, 4, 1], num_classes=1000, init=args.init, name='block1')
-l2 = Block(input_shape=[batch_size, 64, 64, 64], filter_shape=[3, 3, 64, 64], pool_shape=[1, 4, 4, 1], num_classes=1000, init=args.init, name='block2')
+l1 = Block(input_shape=[batch_size, 64, 64, 3], filter_shape=[3, 3, 3, 64], pool_shape=[1, 8, 8, 1], num_classes=1000, init=args.init, name='block1')
+l2 = Block(input_shape=[batch_size, 64, 64, 64], filter_shape=[3, 3, 64, 64], pool_shape=[1, 8, 8, 1], num_classes=1000, init=args.init, name='block2')
 l3 = AvgPool(size=[batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
 l4 = Block(input_shape=[batch_size, 32, 32, 64], filter_shape=[3, 3, 64, 128], pool_shape=[1, 4, 4, 1], num_classes=1000, init=args.init, name='block3')
 l5 = Block(input_shape=[batch_size, 32, 32, 128], filter_shape=[3, 3, 128, 128], pool_shape=[1, 4, 4, 1], num_classes=1000, init=args.init, name='block4')
 l6 = AvgPool(size=[batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
-l7 = Block(input_shape=[batch_size, 16, 16, 128], filter_shape=[3, 3, 128, 256], pool_shape=[1, 2, 2, 1], num_classes=1000, init=args.init, name='block5')
-l8 = Block(input_shape=[batch_size, 16, 16, 256], filter_shape=[3, 3, 256, 256], pool_shape=[1, 2, 2, 1], num_classes=1000, init=args.init, name='block6')
+l7 = Block(input_shape=[batch_size, 16, 16, 128], filter_shape=[3, 3, 128, 256], pool_shape=[1, 4, 4, 1], num_classes=1000, init=args.init, name='block5')
+l8 = Block(input_shape=[batch_size, 16, 16, 256], filter_shape=[3, 3, 256, 256], pool_shape=[1, 4, 4, 1], num_classes=1000, init=args.init, name='block6')
 l9 = AvgPool(size=[batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
 l10 = Block(input_shape=[batch_size, 8, 8, 256], filter_shape=[3, 3, 256, 512], pool_shape=[1, 2, 2, 1], num_classes=1000, init=args.init, name='block7')
