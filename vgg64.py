@@ -441,7 +441,7 @@ for ii in range(0, epochs):
         train_acc_top5 = train_top5 / train_total
         
         if (j % (100 * batch_size) == 0):
-            p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
+            p = "%d | train accuracy: %f %f" % (j, train_acc, train_acc_top5)
             print (p)
             f = open(results_filename, "a")
             f.write(p + "\n")
@@ -477,7 +477,7 @@ for ii in range(0, epochs):
         val_acc_top5 = val_top5 / val_total
         
         if (j % (100 * batch_size) == 0):
-            p = "val accuracy: %f %f" % (val_acc, val_acc_top5)
+            p = "%d | val accuracy: %f %f" % (j, val_acc, val_acc_top5)
             print (p)
             f = open(results_filename, "a")
             f.write(p + "\n")

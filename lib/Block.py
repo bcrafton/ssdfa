@@ -88,8 +88,8 @@ class Block(Layer):
         conv = self.l0.forward(AI)
         bn   = self.l1.forward(conv)
         relu = self.l2.forward(bn)
-        # res = tf.concat((relu, AI), axis=3)
-        res = tf.concat((relu, tf.zeros_like(AI)), axis=3)
+        res = tf.concat((relu, AI), axis=3)
+        # res = tf.concat((relu, tf.zeros_like(AI)), axis=3)
         # res = relu
 
         dlel  = self.l3.lel_backward(res, res, None, None, Y)
@@ -98,9 +98,9 @@ class Block(Layer):
         dbn   = self.l1.lel_backward(conv, bn, None, drelu, Y)
         dconv = self.l0.lel_backward(AI, conv, None, dbn, Y)
 
-        # return dlel[:, :, :, self.fout : (self.fout + self.fin)]
+        return dlel[:, :, :, self.fout : (self.fout + self.fin)]
         # return tf.zeros_like(dlel[:, :, :, self.fout : (self.fout + self.fin)])
-        return tf.zeros_like(AI)
+        # return tf.zeros_like(AI)
         # return tf.zeros_like(dlel)
 
     def lel_gv(self, AI, AO, E, DO, Y):
@@ -112,8 +112,8 @@ class Block(Layer):
         conv = self.l0.forward(AI)
         bn   = self.l1.forward(conv)
         relu = self.l2.forward(bn)
-        # res = tf.concat((relu, AI), axis=3)
-        res = tf.concat((relu, tf.zeros_like(AI)), axis=3)
+        res = tf.concat((relu, AI), axis=3)
+        # res = tf.concat((relu, tf.zeros_like(AI)), axis=3)
         # res = relu
 
         dlel  = self.l3.lel_backward(res, res, None, None, Y)
