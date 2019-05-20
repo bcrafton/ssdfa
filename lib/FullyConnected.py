@@ -95,7 +95,7 @@ class FullyConnected(Layer):
     ###################################################################
     
     def dfa_backward(self, AI, AO, E, DO):
-        return tf.ones(shape=(tf.shape(AI)))
+        return tf.ones_like(AI)
         
     def dfa_gv(self, AI, AO, E, DO):
         if not self._train:
@@ -128,8 +128,9 @@ class FullyConnected(Layer):
     ###################################################################
         
     def lel_backward(self, AI, AO, E, DO, Y):
-        return tf.zeros(shape=(tf.shape(AI)))
-        # return self.backward(AI, AO, DO)
+        DI = tf.zeros_like(AI)
+        # DI = self.backward(AI, AO, DO)
+        return DI
 
     def lel_gv(self, AI, AO, E, DO, Y):
         return self.gv(AI, AO, DO)

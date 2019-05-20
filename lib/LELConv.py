@@ -35,7 +35,7 @@ class LELConv(Layer):
         l3_input_shape = l2.output_shape()
         l3 = FullyConnected(input_shape=l3_input_shape, size=self.num_classes, init='alexnet', activation=Linear(), bias=0., name=self.name)
         
-        print (self.name, self.input_shape, l2_input_shape, l3_input_shape)
+        # print (self.name, self.input_shape, l2_input_shape, l3_input_shape)
 
         self.B = Model(layers=[l1, l2, l3])
         

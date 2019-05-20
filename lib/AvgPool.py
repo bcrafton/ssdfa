@@ -76,8 +76,9 @@ class AvgPool(Layer):
         with tf.control_dependencies([assert_op]):
             grad = gen_nn_ops.avg_pool_grad(orig_input_shape=self.size, grad=DO, ksize=self.ksize, strides=self.strides, padding=self.padding)
             # grad = tf.Print(grad, [tf.shape(AI), tf.shape(AO), tf.shape(DO)], message='', summarize=1000)
+            # grad = tf.Print(grad, ['pool', tf.reduce_sum(DO), tf.reduce_sum(grad)], message='', summarize=1000)
             return grad
-        
+
     def lel_gv(self, AI, AO, E, DO, Y):
         return []
         
