@@ -70,8 +70,6 @@ from lib.AvgPool import AvgPool
 from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
-from lib.LELConv import LELConv
-from lib.LELFC import LELFC
 from lib.BatchNorm import BatchNorm
 
 from lib.Activation import Activation
