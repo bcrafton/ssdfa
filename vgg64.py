@@ -66,9 +66,13 @@ from lib.ConvToFullyConnected import ConvToFullyConnected
 from lib.FullyConnected import FullyConnected
 from lib.Convolution import Convolution
 from lib.MaxPool import MaxPool
+from lib.AvgPool import AvgPool
 from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
+from lib.LELConv import LELConv
+from lib.LELFC import LELFC
+from lib.BatchNorm import BatchNorm
 
 from lib.Activation import Activation
 from lib.Activation import Sigmoid
@@ -103,25 +107,6 @@ def in_top_k(x, y, k):
 ##############################################
 
 def parse_function(filename, label):
-    '''
-    image_string = tf.read_file(filename)
-    image_decoded = tf.image.decode_jpeg(image_string, channels=3)          # (1)
-    image = tf.cast(image_decoded, tf.float32)
-
-    smallest_side = 256.0
-    height, width = tf.shape(image)[0], tf.shape(image)[1]
-    height = tf.to_float(height)
-    width = tf.to_float(width)
-
-    scale = tf.cond(tf.greater(height, width),
-                    lambda: smallest_side / width,
-                    lambda: smallest_side / height)
-    new_height = tf.to_int32(height * scale)
-    new_width = tf.to_int32(width * scale)
-
-    resized_image = tf.image.resize_images(image, [new_height, new_width])  # (2)
-    return resized_image, label
-    '''
     conv = tf.read_file(filename)
     return conv, label
 
@@ -140,53 +125,6 @@ def pre(fn):
     [fn] = re.findall('\d+.tfrecord', fn)
     [fn] = re.findall('\d+', fn)
     return int(fn)
-
-'''
-def get_val_dataset():
-    val_images = []
-    val_labels = []
-
-    print ("building validation dataset")
-
-    for subdir, dirs, files in os.walk('/home/bcrafton3/dfa/test/'):
-        for file in files:
-            val_images.append(os.path.join('/home/bcrafton3/dfa/test/', file))
-    
-    # val_images = sorted(val_images)
-    val_images = sorted(val_images, key=pre)
-    val_labels = np.load('/home/bcrafton3/dfa/val_labels.npy')
-
-    print (len(val_images), len(val_labels))
-    remainder = len(val_labels) % batch_size
-    val_images = val_images[:(-remainder)]
-    val_labels = val_labels[:(-remainder)]
-
-    print("val data is ready...")
-
-    return val_images, val_labels
-    
-def get_train_dataset():
-    train_images = []
-    train_labels = []
-
-    print ("building training dataset")
-
-    for subdir, dirs, files in os.walk('/home/bcrafton3/dfa/train/'):
-        for file in files:
-            train_images.append(os.path.join('/home/bcrafton3/dfa/train/', file))
-    
-    train_images = sorted(train_images, key=pre)
-    train_labels = np.load('/home/bcrafton3/dfa/train_labels.npy')
-
-    print (len(train_images), len(train_labels))
-    remainder = len(train_labels) % batch_size
-    train_images = train_images[:(-remainder)]
-    train_labels = train_labels[:(-remainder)]
-
-    print("train data is ready...")
-
-    return train_images, train_labels
-'''
 
 def get_val_filenames():
     val_filenames = []
@@ -246,8 +184,6 @@ filename = tf.placeholder(tf.string, shape=[None])
 
 ###############################################################
 
-# val_imgs, val_labs = get_val_dataset()
-
 val_dataset = tf.data.TFRecordDataset(filename)
 # val_dataset = tf.data.Dataset.from_tensor_slices((filename, label))
 # val_dataset = val_dataset.shuffle(len(val_filenames))
@@ -260,8 +196,6 @@ val_dataset = val_dataset.repeat()
 val_dataset = val_dataset.prefetch(8)
 
 ###############################################################
-
-# train_imgs, train_labs = get_train_dataset()
 
 train_dataset = tf.data.TFRecordDataset(filename)
 # train_dataset = tf.data.Dataset.from_tensor_slices((filename, label))
@@ -280,18 +214,8 @@ train_dataset = train_dataset.prefetch(8)
 handle = tf.placeholder(tf.string, shape=[])
 iterator = tf.data.Iterator.from_string_handle(handle, train_dataset.output_types, train_dataset.output_shapes)
 features, labels = iterator.get_next()
-
-# labels = tf.Print(labels, [labels], message='', summarize=1000)
-
-# features = tf.Print(features, [tf.keras.backend.std(features)], message='', summarize=1000)
-# features = tf.Print(features, [tf.shape(features)], message='features shape1 ', summarize=1000)
-# labels = tf.Print(labels, [tf.shape(labels)], message='labels shape1 ', summarize=1000)
-
 features = tf.reshape(features, (args.batch_size, 64, 64, 3))
 labels = tf.one_hot(labels, depth=num_classes)
-
-# features = tf.Print(features, [tf.shape(features)], message='features shape2 ', summarize=1000)
-# labels = tf.Print(labels, [tf.shape(labels)], message='labels shape2 ', summarize=1000)
 
 train_iterator = train_dataset.make_initializable_iterator()
 val_iterator = val_dataset.make_initializable_iterator()
@@ -304,53 +228,56 @@ weights_fc = None
 train_conv = True
 train_fc = True
 
-if args.act == 'tanh':
-    act = Tanh()
-elif args.act == 'relu':
-    act = Relu()
-else:
-    assert(False)
-
 ###############################################################
 
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 
-l0 = Convolution(input_sizes=[batch_size, 64, 64, 3], filter_sizes=[3, 3, 3, 64], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv1", load=weights_conv, train=train_conv)
-l1 = Convolution(input_sizes=[batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 64], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv2", load=weights_conv, train=train_conv)
-l2 = MaxPool(size=[batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
+l1_1 = Convolution(input_sizes=[batch_size, 64, 64, 3], filter_sizes=[3, 3, 3, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", activation=Relu(), name="conv1")
+l1_2 = BatchNorm(input_size=[args.batch_size, 64, 64, 64], name='conv1_bn')
+l1_3 = Convolution(input_sizes=[batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", activation=Relu(), name="conv2")
+l1_4 = BatchNorm(input_size=[args.batch_size, 64, 64, 64], name='conv2_bn')
+l1_5 = AvgPool(size=[batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
-l3 = Convolution(input_sizes=[batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 128], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv3", load=weights_conv, train=train_conv)
-l4 = Convolution(input_sizes=[batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 128], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv4", load=weights_conv, train=train_conv)
-l5 = MaxPool(size=[batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
+l2_1 = Convolution(input_sizes=[batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", activation=Relu(), name="conv3")
+l2_2 = BatchNorm(input_size=[args.batch_size, 32, 32, 128], name='conv3_bn')
+l2_3 = Convolution(input_sizes=[batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", activation=Relu(), name="conv4")
+l2_4 = BatchNorm(input_size=[args.batch_size, 32, 32, 128], name='conv4_bn')
+l2_5 = AvgPool(size=[batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
-l6 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 256], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv5", load=weights_conv, train=train_conv)
-l7 = Convolution(input_sizes=[batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 256], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv6", load=weights_conv, train=train_conv)
-l8 = MaxPool(size=[batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
+l3_1 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 256], init=args.init, strides=[1, 1, 1, 1], padding="SAME", activation=Relu(), name="conv5")
+l3_2 = BatchNorm(input_size=[args.batch_size, 16, 16, 256], name='conv5_bn')
+l3_3 = Convolution(input_sizes=[batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 256], init=args.init, strides=[1, 1, 1, 1], padding="SAME", activation=Relu(), name="conv6")
+l3_4 = BatchNorm(input_size=[args.batch_size, 16, 16, 256], name='conv6_bn')
+l3_5 = AvgPool(size=[batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
-l9 = Convolution(input_sizes=[batch_size, 8, 8, 256], filter_sizes=[3, 3, 256, 512], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv7", load=weights_conv, train=train_conv)
-l10 = Convolution(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 512, 512], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=args.bias, last_layer=False, name="conv8", load=weights_conv, train=train_conv)
-l11 = MaxPool(size=[batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
+l4_1 = Convolution(input_sizes=[batch_size, 8, 8, 256], filter_sizes=[3, 3, 256, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", activation=Relu(), name="conv7")
+l4_2 = BatchNorm(input_size=[args.batch_size, 8, 8, 512], name='conv7_bn')
+l4_3 = Convolution(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 512, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", activation=Relu(), name="conv8")
+l4_4 = BatchNorm(input_size=[args.batch_size, 8, 8, 512], name='conv8_bn')
+l4_5 = AvgPool(size=[batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
-l12 = ConvToFullyConnected(shape=[4, 4, 512])
+l5 = ConvToFullyConnected(input_shape=[4, 4, 512])
 
-l13 = FullyConnected(size=[4*4*512, 4096], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Relu(), bias=1.0, last_layer=False, name="fc1", load=weights_fc, train=train_fc)
-
-l14 = Dropout(rate=dropout_rate)
-
-l15 = FullyConnected(size=[4096, num_classes], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=1.0, last_layer=True, name="fc2", load=weights_fc, train=train_fc)
+l6 = FullyConnected(input_shape=4*4*512, size=1000, init=args.init, name="fc1", load=weights_fc, train=train_fc)
 
 ###############################################################
 
-model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15])
-# model = Model(layers=[l0, l1, l2, l3, l4, l5, l12, l13, l14, l15])
-# model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l12, l13, l14, l15])
+model = Model(layers=[                              \
+                      l1_1, l1_2, l1_3, l1_4, l1_5, \
+                      l2_1, l2_2, l2_3, l2_4, l2_5, \
+                      l3_1, l3_2, l3_3, l3_4, l3_5, \
+                      l4_1, l4_2, l4_3, l4_4, l4_5, \
+                      l5,                           \
+                      l6,                           \
+                      ])
 
 predict = tf.nn.softmax(model.predict(X=features))
+weights = model.get_weights()
 
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt == "momentum":
     if args.dfa:
-        grads_and_vars = model.dfa_gvs(X=features, Y=labels)
+        grads_and_vars = model.lel_gvs(X=features, Y=labels)
     else:
         grads_and_vars = model.gvs(X=features, Y=labels)
         
@@ -367,30 +294,20 @@ if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt ==
 
 else:
     if args.dfa:
-        train = model.dfa(X=features, Y=labels)
+        train = model.lel(X=features, Y=labels)
     else:
         train = model.train(X=features, Y=labels)
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
 
-# top5 = tf.nn.in_top_k(predictions=predict, targets=tf.argmax(labels,1), k=5)
 top5 = in_top_k(predict, tf.argmax(labels,1), k=5)
 total_top5 = tf.reduce_sum(tf.cast(top5, tf.float32))
 
-weights = model.get_weights()
-
-print (model.num_params())
-
 ###############################################################
 
-# config = tf.ConfigProto()
-# config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)
 config = tf.ConfigProto(allow_soft_placement=True)
 config.gpu_options.allow_growth=True
-
-# sess = tf.InteractiveSession(config=config)
-# tf.global_variables_initializer().run()
 sess = tf.Session(config=config)
 sess.run(tf.global_variables_initializer())
 
@@ -428,11 +345,9 @@ for ii in range(0, epochs):
     train_correct = 0.0
     train_top5 = 0.0
     
-    # for j in range(0, batch_size * 10, batch_size):
     for j in range(0, len(train_filenames), batch_size):
         print (j)
         
-        # [_X, _total_correct, _total_top5, _] = sess.run([features, total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
         [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
 
         train_total += batch_size
@@ -443,8 +358,6 @@ for ii in range(0, epochs):
         train_acc_top5 = train_top5 / train_total
         
         if (j % (100 * batch_size) == 0):
-            # plt.imsave('a.jpg', _X[0])
-
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
             print (p)
             f = open(results_filename, "a")
