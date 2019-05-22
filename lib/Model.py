@@ -132,16 +132,12 @@ class Model:
         for ii in range(self.num_layers):
             l = self.layers[ii]
             if ii == 0:
-                ret = l.forward(X)
-                ret = ret if (ret is not list) else ret[-1]
-                A[ii] = ret
+                A[ii] = l.forward(X)
             else:
-                ret = l.forward(A[ii-1])
-                ret = ret if (ret is not list) else ret[-1]
-                A[ii] = ret
+                A[ii] = l.forward(A[ii-1]['aout'])
 
-        E = tf.nn.softmax(A[self.num_layers-1]) - Y
-        N = tf.shape(A[self.num_layers-1])[0]
+        E = tf.nn.softmax(A[self.num_layers-1]['aout']) - Y
+        N = tf.shape(A[self.num_layers-1]['aout'])[0]
         N = tf.cast(N, dtype=tf.float32)
         E = E / N
             
@@ -149,16 +145,22 @@ class Model:
             l = self.layers[ii]
             
             if (ii == self.num_layers-1):
-                D[ii] = l.backward(A[ii-1], A[ii], E)
-                gvs = l.gv(A[ii-1], A[ii], E)
+                cache = A[ii]['cache']
+                D[ii] = l.backward(A[ii-1]['aout'], A[ii]['aout'], E, cache)
+                cache.update(D[ii]['cache'])
+                gvs = l.gv(A[ii-1]['aout'], A[ii]['aout'], E, cache)
                 grads_and_vars.extend(gvs)
             elif (ii == 0):
-                D[ii] = l.backward(X, A[ii], D[ii+1])
-                gvs = l.gv(X, A[ii], D[ii+1])
+                cache = A[ii]['cache']
+                D[ii] = l.backward(X, A[ii]['aout'], D[ii+1]['dout'], cache)
+                cache.update(D[ii]['cache'])
+                gvs = l.gv(X, A[ii]['aout'], D[ii+1]['dout'], cache)
                 grads_and_vars.extend(gvs)
             else:
-                D[ii] = l.backward(A[ii-1], A[ii], D[ii+1])
-                gvs = l.gv(A[ii-1], A[ii], D[ii+1])
+                cache = A[ii]['cache']
+                D[ii] = l.backward(A[ii-1]['aout'], A[ii]['aout'], D[ii+1]['dout'], cache)
+                cache.update(D[ii]['cache'])
+                gvs = l.gv(A[ii-1]['aout'], A[ii]['aout'], D[ii+1]['dout'], cache)
                 grads_and_vars.extend(gvs)
                 
         return grads_and_vars
@@ -301,9 +303,9 @@ class Model:
             if ii == 0:
                 A[ii] = l.forward(X)
             else:
-                A[ii] = l.forward(A[ii-1])
+                A[ii] = l.forward(A[ii-1]['aout'])
                 
-        return A[self.num_layers-1]
+        return A[self.num_layers-1]['aout']
         
     ####################################################################
     

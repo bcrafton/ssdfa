@@ -32,7 +32,8 @@ class Relu(Activation, Layer):
     #############################################
 
     def forward(self, x):
-        return tf.nn.relu(x)
+        A = tf.nn.relu(x)
+        return {'aout': A, 'cache': {}}
 
     def gradient(self, x):
         # pretty sure this gradient works for A and Z
@@ -48,10 +49,11 @@ class Relu(Activation, Layer):
 
     #############################################
 
-    def backward(self, AI, AO, DO):    
-        return tf.cast(AO > 0.0, dtype=tf.float32) * DO
+    def backward(self, AI, AO, DO, cache=None):    
+        DI = tf.cast(AO > 0.0, dtype=tf.float32) * DO
+        return {'dout': DI, 'cache': {}}
 
-    def gv(self, AI, AO, DO):    
+    def gv(self, AI, AO, DO, cache=None):
         return []
         
     def train(self, AI, AO, DO): 

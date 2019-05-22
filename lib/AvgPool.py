@@ -26,15 +26,15 @@ class AvgPool(Layer):
 
     ###################################################################
 
-    def forward(self, X):
+    def forward(self, X, cache=None):
         A = tf.nn.avg_pool(X, ksize=self.ksize, strides=self.strides, padding=self.padding)
         return {'aout':A, 'cache':{}}
         
-    def backward(self, AI, AO, DO):    
+    def backward(self, AI, AO, DO, cache=None):    
         DI = gen_nn_ops.avg_pool_grad(orig_input_shape=self.size, grad=DO, ksize=self.ksize, strides=self.strides, padding=self.padding)
         return {'dout':DI, 'cache':{}}
 
-    def gv(self, AI, AO, DO):    
+    def gv(self, AI, AO, DO, cache=None):    
         return []
         
     def train(self, AI, AO, DO): 

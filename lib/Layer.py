@@ -15,15 +15,15 @@ class Layer:
     def num_params(self):
         pass
 
-    def forward(self, X):
-        pass
+    ###################################################################
 
-    ###################################################################           
+    def forward(self, X, cache=None):
+        pass    
         
-    def backward(self, AI, AO, DO):    
+    def backward(self, AI, AO, DO, cache=None):    
         pass
 
-    def gv(self, AI, AO, DO):    
+    def gv(self, AI, AO, DO, cache=None):    
         pass
         
     def train(self, AI, AO, DO): 

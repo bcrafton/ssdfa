@@ -38,38 +38,30 @@ class ConvBlock(Layer):
 
     ###################################################################
 
-    def forward(self, X, cache=None):
+    def forward(self, X):
+
         conv = self.conv.forward(X)
-        bn   = self.bn.forward(conv)
-        relu = self.relu.forward(bn)
-        return {'aout':relu, 'cache':{'aout':[conv, bn, relu]}}
+        bn = self.bn.forward(conv['aout'])
+        relu = self.relu.forward(bn['aout'])
+
+        conv_aout = conv['aout']
+        bn_aout = bn['aout']
+        relu_aout = relu['aout']
+
+        return {'aout':relu_aout, 'cache':{'aout':[conv_aout, bn_aout, relu_aout]}}
         
-    def backward(self, AI, AO, DO, cache=None):    
-        if cache == None:
-            conv = self.conv.forward(X)
-            bn   = self.bn.forward(conv)
-            relu = self.relu.forward(bn)
-        else:
-            conv, bn, relu = cache['aout']
+    def backward(self, AI, AO, DO, cache):    
+        conv, bn, relu = cache['aout']
         
         drelu = self.relu.backward(bn, relu, DO)
-        dbn = self.bn.backward(conv, bn, drelu)
-        dconv = self.conv.backward(AI, conv, dbn)
+        dbn = self.bn.backward(conv, bn, drelu['dout'])
+        dconv = self.conv.backward(AI, conv, dbn['dout'])
+
+        return {'dout':dconv['dout'], 'cache':{'dout':[drelu['dout'], dbn['dout'], dconv['dout']]}}
         
-        return {'dout':dconv, 'cache':{'dout':[drelu, dbn, dconv]}}
-        
-    def gv(self, AI, AO, DO, cache=None):
-        if cache == None:
-            conv = self.conv.forward(X)
-            bn   = self.bn.forward(conv)
-            relu = self.relu.forward(bn)
-            
-            drelu = self.relu.backward(bn, relu, DO)
-            dbn = self.bn.backward(conv, bn, drelu)
-            dconv = self.conv.backward(AI, conv, dbn)
-        else:
-            conv, bn, relu = cache['aout']
-            drelu, dbn, dconv = cache['dout']
+    def gv(self, AI, AO, DO, cache):
+        conv, bn, relu = cache['aout']
+        drelu, dbn, dconv = cache['dout']
         
         dconv = self.conv.gv(AI, conv, dbn)
         dbn = self.bn.gv(conv, bn, drelu)
