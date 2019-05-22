@@ -17,7 +17,7 @@ class Layer:
 
     ###################################################################
 
-    def forward(self, X, cache=None):
+    def forward(self, X):
         pass    
         
     def backward(self, AI, AO, DO, cache=None):    

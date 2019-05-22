@@ -59,7 +59,7 @@ class BatchNorm(Layer):
 
     ###################################################################
 
-    def forward(self, X, cache=None):
+    def forward(self, X):
         mean = tf.reduce_mean(X, axis=self.dims)
         _, var = tf.nn.moments(X - mean, axes=self.dims)
         A = tf.nn.batch_normalization(x=X, mean=mean, variance=var, offset=self.beta, scale=self.gamma, variance_epsilon=self.eps)

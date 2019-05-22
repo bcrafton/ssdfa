@@ -54,7 +54,7 @@ class FullyConnected(Layer):
 
     ###################################################################
 
-    def forward(self, X, cache=None):
+    def forward(self, X):
         Z = tf.matmul(X, self.weights) 
         A = self.activation.forward(Z)
         return {'aout':A, 'cache':{}}

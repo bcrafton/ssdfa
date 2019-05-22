@@ -65,7 +65,7 @@ class Convolution(Layer):
 
     ###################################################################
 
-    def forward(self, X, cache=None):
+    def forward(self, X):
         Z = tf.nn.conv2d(X, self.filters, self.strides, self.padding)
         A = self.activation.forward(Z)
         return {'aout':A, 'cache':{}}
