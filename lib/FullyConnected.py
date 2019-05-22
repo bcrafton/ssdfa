@@ -52,45 +52,29 @@ class FullyConnected(Layer):
         bias_size = self.output_size
         return weights_size + bias_size
 
-    def forward(self, X):
-        Z = tf.matmul(X, self.weights) # + self.bias
-        A = self.activation.forward(Z)
-        return A
-
     ###################################################################
+
+    def forward(self, X, cache=None):
+        Z = tf.matmul(X, self.weights) 
+        A = self.activation.forward(Z)
+        return {'aout':A, 'cache':{}}
             
-    def backward(self, AI, AO, DO):
+    def backward(self, AI, AO, DO, cache=None):
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DI = tf.matmul(DO, tf.transpose(self.weights))
-        return DI
+        return {'dout':DI, 'cache':{}}
         
-    def gv(self, AI, AO, DO):
+    def gv(self, AI, AO, DO, cache=None):
         if not self._train:
             return []
-            
-        N = tf.shape(AI)[0]
-        N = tf.cast(N, dtype=tf.float32)
         
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DW = tf.matmul(tf.transpose(AI), DO) 
-        DB = tf.reduce_sum(DO, axis=0)
 
-        return [(DW, self.weights), (DB, self.bias)]
+        return [(DW, self.weights)]
 
     def train(self, AI, AO, DO):
-        if not self._train:
-            return []
-
-        N = tf.shape(AI)[0]
-        N = tf.cast(N, dtype=tf.float32)
-
-        DO = tf.multiply(DO, self.activation.gradient(AO))
-        DW = tf.matmul(tf.transpose(AI), DO) 
-        DB = tf.reduce_sum(DO, axis=0)
-
-        self.weights = self.weights.assign(tf.subtract(self.weights, tf.scalar_mul(self.alpha, DW)))
-        self.bias = self.bias.assign(tf.subtract(self.bias, tf.scalar_mul(self.alpha, DB)))
-        return [(DW, self.weights), (DB, self.bias)]
+        assert(False)
         
     ###################################################################
     

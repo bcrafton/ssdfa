@@ -132,10 +132,14 @@ class Model:
         for ii in range(self.num_layers):
             l = self.layers[ii]
             if ii == 0:
-                A[ii] = l.forward(X)
+                ret = l.forward(X)
+                ret = ret if (ret is not list) else ret[-1]
+                A[ii] = ret
             else:
-                A[ii] = l.forward(A[ii-1])
-            
+                ret = l.forward(A[ii-1])
+                ret = ret if (ret is not list) else ret[-1]
+                A[ii] = ret
+
         E = tf.nn.softmax(A[self.num_layers-1]) - Y
         N = tf.shape(A[self.num_layers-1])[0]
         N = tf.cast(N, dtype=tf.float32)

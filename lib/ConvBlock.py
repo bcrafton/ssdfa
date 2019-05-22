@@ -38,27 +38,38 @@ class ConvBlock(Layer):
 
     ###################################################################
 
-    def forward(self, X):
+    def forward(self, X, cache=None):
         conv = self.conv.forward(X)
         bn   = self.bn.forward(conv)
         relu = self.relu.forward(bn)
-        return [conv, bn, relu]
+        return {'aout':relu, 'cache':{'aout':[conv, bn, relu]}}
         
-    def backward(self, AI, AO, DO):    
-        [conv, bn, relu] = AO
-        
-        drelu = self.relu.backward(bn, relu, DO)
-        dbn = self.bn.backward(conv, bn, drelu)
-        dconv = self.conv.backward(AI, conv, dbn)
-        
-        return [dconv, dbn, drelu]
-        
-    def gv(self, AI, AO, DO):    
-        [conv, bn, relu] = AO
+    def backward(self, AI, AO, DO, cache=None):    
+        if cache == None:
+            conv = self.conv.forward(X)
+            bn   = self.bn.forward(conv)
+            relu = self.relu.forward(bn)
+        else:
+            conv, bn, relu = cache['aout']
         
         drelu = self.relu.backward(bn, relu, DO)
         dbn = self.bn.backward(conv, bn, drelu)
         dconv = self.conv.backward(AI, conv, dbn)
+        
+        return {'dout':dconv, 'cache':{'dout':[drelu, dbn, dconv]}}
+        
+    def gv(self, AI, AO, DO, cache=None):
+        if cache == None:
+            conv = self.conv.forward(X)
+            bn   = self.bn.forward(conv)
+            relu = self.relu.forward(bn)
+            
+            drelu = self.relu.backward(bn, relu, DO)
+            dbn = self.bn.backward(conv, bn, drelu)
+            dconv = self.conv.backward(AI, conv, dbn)
+        else:
+            conv, bn, relu = cache['aout']
+            drelu, dbn, dconv = cache['dout']
         
         dconv = self.conv.gv(AI, conv, dbn)
         dbn = self.bn.gv(conv, bn, drelu)

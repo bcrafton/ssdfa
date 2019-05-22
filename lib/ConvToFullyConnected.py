@@ -21,19 +21,21 @@ class ConvToFullyConnected(Layer):
     def num_params(self):
         return 0
 
-    def forward(self, X):
-        return tf.reshape(X, [tf.shape(X)[0], -1])
-        
     ###################################################################           
-        
-    def backward(self, AI, AO, DO):    
-        return tf.reshape(DO, [tf.shape(AI)[0]] + self.shape)
 
-    def gv(self, AI, AO, DO):    
+    def forward(self, X, cache=None):
+        A = tf.reshape(X, [tf.shape(X)[0], -1])
+        return {'aout':A, 'cache':{}}
+        
+    def backward(self, AI, AO, DO, cache=None):    
+        DI = tf.reshape(DO, [tf.shape(AI)[0]] + self.shape)
+        return {'dout':DI, 'cache':{}}
+
+    def gv(self, AI, AO, DO, cache=None):    
         return []
         
     def train(self, AI, AO, DO): 
-        return []
+        assert(False)
         
     ###################################################################
 
