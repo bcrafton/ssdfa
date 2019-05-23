@@ -41,7 +41,8 @@ class ResidualBlock(Layer):
 
     def forward(self, X):
         
-        block1 = self.block1.forward(X)
+        in1 = X 
+        block1 = self.block1.forward(in1)
         
         in2 = block1['aout']
         block2 = self.block2.forward(in2)
@@ -60,10 +61,15 @@ class ResidualBlock(Layer):
     def backward(self, AI, AO, DO, cache):    
         block1, block2, block3, block4 = cache['block1'], cache['block2'], cache['block3'], cache['block4']
         
-        dblock4 = self.block3.backward(block3['aout'], block4['aout'], DO, block4['cache'])
-        dblock3 = self.block2.backward(block2['aout'], block3['aout'], DO, block3['cache'])
-        dblock2 = self.block2.backward(block1['aout'], block2['aout'], DO, block2['cache'])
-        dblock1 = self.block1.backward(AI,             block1['aout'], DO, block1['cache'])
+        in1 = AI
+        in2 = block1['aout']
+        in3 = in2 + block2['aout']
+        in4 = in3 + block3['aout']
+
+        dblock4 = self.block3.backward(in4, block4['aout'], DO, block4['cache'])
+        dblock3 = self.block2.backward(in3, block3['aout'], DO, block3['cache'])
+        dblock2 = self.block2.backward(in2, block2['aout'], DO, block2['cache'])
+        dblock1 = self.block1.backward(in1, block1['aout'], DO, block1['cache'])
 
         dout = dblock1['dout']
         cache.update({'dblock1':dblock1, 'dblock2':dblock2, 'dblock3':dblock3, 'dblock4':dblock4})
@@ -74,10 +80,15 @@ class ResidualBlock(Layer):
         block1, block2, block3, block4 = cache['block1'], cache['block2'], cache['block3'], cache['block4']
         dblock1, dblock2, dblock3, dblock4 = cache['dblock1'], cache['dblock2'], cache['dblock3'], cache['dblock4']
         
-        dblock1 = self.block1.gv(AI,             block1['aout'], DO, dblock1['cache'])
-        dblock2 = self.block2.gv(block1['aout'], block2['aout'], DO, dblock2['cache'])
-        dblock3 = self.block3.gv(block2['aout'], block3['aout'], DO, dblock3['cache'])
-        dblock4 = self.block4.gv(block3['aout'], block4['aout'], DO, dblock4['cache'])
+        in1 = AI
+        in2 = block1['aout']
+        in3 = in2 + block2['aout']
+        in4 = in3 + block3['aout']
+
+        dblock1 = self.block1.gv(in1, block1['aout'], DO, dblock1['cache'])
+        dblock2 = self.block2.gv(in2, block2['aout'], DO, dblock2['cache'])
+        dblock3 = self.block3.gv(in3, block3['aout'], DO, dblock3['cache'])
+        dblock4 = self.block4.gv(in4, block4['aout'], DO, dblock4['cache'])
         
         grads = []
         grads.extend(dblock1)
