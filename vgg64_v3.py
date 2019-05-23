@@ -238,7 +238,9 @@ learning_rate = tf.placeholder(tf.float32, shape=())
 # probably need to put l0 back...
 # they all have initial 3x3x3x64 layer. 
 
-l1 = ResidualBlock(input_shape=[batch_size, 64, 64, 3], filter_shape=[3, 64], init=args.init, name='dense_block_1')
+l0 = ConvBlock(input_shape=[batch_size, 64, 64, 3], filter_shape=[3, 3, 3, 64], init=args.init, name='conv1')
+
+l1 = ResidualBlock(input_shape=[batch_size, 64, 64, 64], filter_shape=[64, 64], init=args.init, name='dense_block_1')
 l2 = AvgPool(size=[batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
 l3 = ResidualBlock(input_shape=[batch_size, 32, 32, 64], filter_shape=[64, 128], init=args.init, name='dense_block_2')

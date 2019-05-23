@@ -43,16 +43,16 @@ class ResidualBlock(Layer):
         
         block1 = self.block1.forward(X)
         
-        in2 = block1 
+        in2 = block1['aout']
         block2 = self.block2.forward(in2)
         
-        in3 = in2 + block2
+        in3 = in2 + block2['aout']
         block3 = self.block3.forward(in3)
         
-        in4 = in3 + block3
+        in4 = in3 + block3['aout']
         block4 = self.block4.forward(in4)
 
-        aout = in4 + block4 
+        aout = in4 + block4['aout']
         cache = {'block1':block1, 'block2':block2, 'block3':block3, 'block4':block4}
         
         return {'aout':aout, 'cache':cache}
