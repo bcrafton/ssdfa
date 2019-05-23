@@ -48,7 +48,7 @@ class ResidualBlock(Layer):
             
         block1 = self.block1.forward(in1)
         
-        in2 = block1['aout']
+        in2 = in1 + block1['aout']
         block2 = self.block2.forward(in2)
         
         in3 = in2 + block2['aout']
@@ -68,17 +68,19 @@ class ResidualBlock(Layer):
         else:
             in1 = AI
             
-        in2 = block1['aout']
+        in2 = in1 + block1['aout']
         in3 = in2 + block2['aout']
 
         dblock3 = self.block3.backward(in3, block3['aout'], DO, block3['cache'])
         dblock2 = self.block2.backward(in2, block2['aout'], DO, block2['cache'])
         dblock1 = self.block1.backward(in1, block1['aout'], DO, block1['cache'])
 
-        # dout = dblock1['dout']
-        dout = tf.reshape(DO, [self.batch, self.h, self.w, self.fin, 2])
-        dout = tf.reduce_mean(dout, axis=4)
-        
+        if self.fin < self.fout:
+            dout = tf.reshape(DO, [self.batch, self.h, self.w, self.fin, 2])
+            dout = tf.reduce_mean(dout, axis=4)
+        else:
+            dout = DO
+
         cache.update({'dblock1':dblock1, 'dblock2':dblock2, 'dblock3':dblock3})
         
         return {'dout':dout, 'cache':cache}
@@ -93,7 +95,7 @@ class ResidualBlock(Layer):
         else:
             in1 = AI
             
-        in2 = block1['aout']
+        in2 = in1 + block1['aout']
         in3 = in2 + block2['aout']
 
         dblock1 = self.block1.gv(in1, block1['aout'], DO, dblock1['cache'])
