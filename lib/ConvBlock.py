@@ -59,7 +59,7 @@ class ConvBlock(Layer):
         
     def gv(self, AI, AO, DO, cache):
         conv, bn, relu = cache['conv'], cache['bn'], cache['relu']
-        drelu, dbn, dconv = cache['dconv'], cache['dbn'], cache['drelu']
+        drelu, dbn, dconv = cache['drelu'], cache['dbn'], cache['dconv']
         
         dconv = self.conv.gv(AI, conv, dbn)
         dbn = self.bn.gv(conv, bn, drelu)

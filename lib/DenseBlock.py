@@ -19,9 +19,9 @@ class DenseBlock(Layer):
         self.init = init
         self.name = name
         
-        self.block1 = ConvBlock(input_shape=self.input_shape, filter_shape=self.filter_shape, init=args.init, name=self.name + '_conv_block_1')
-        self.block2 = ConvBlock(input_shape=self.input_shape, filter_shape=self.filter_shape, init=args.init, name=self.name + '_conv_block_2')
-        self.block3 = ConvBlock(input_shape=self.input_shape, filter_shape=self.filter_shape, init=args.init, name=self.name + '_conv_block_3')
+        self.block1 = ConvBlock(input_shape=self.input_shape, filter_shape=self.filter_shape, init=self.init, name=self.name + '_conv_block_1')
+        self.block2 = ConvBlock(input_shape=self.input_shape, filter_shape=self.filter_shape, init=self.init, name=self.name + '_conv_block_2')
+        self.block3 = ConvBlock(input_shape=self.input_shape, filter_shape=self.filter_shape, init=self.init, name=self.name + '_conv_block_3')
 
     ###################################################################
 
