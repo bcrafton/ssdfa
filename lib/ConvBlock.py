@@ -44,11 +44,7 @@ class ConvBlock(Layer):
         bn = self.bn.forward(conv['aout'])
         relu = self.relu.forward(bn['aout'])
 
-        conv_aout = conv['aout']
-        bn_aout = bn['aout']
-        relu_aout = relu['aout']
-
-        return {'aout':relu_aout, 'cache':{'aout':[conv_aout, bn_aout, relu_aout]}}
+        return {'aout':relu_aout, 'cache':{'aout':[conv['aout'], bn['aout'], relu['aout']]}}
         
     def backward(self, AI, AO, DO, cache):    
         conv, bn, relu = cache['aout']
