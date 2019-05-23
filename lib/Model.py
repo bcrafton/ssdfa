@@ -145,22 +145,16 @@ class Model:
             l = self.layers[ii]
             
             if (ii == self.num_layers-1):
-                cache = A[ii]['cache']
-                D[ii] = l.backward(A[ii-1]['aout'], A[ii]['aout'], E, cache)
-                cache.update(D[ii]['cache'])
-                gvs = l.gv(A[ii-1]['aout'], A[ii]['aout'], E, cache)
+                D[ii] = l.backward(A[ii-1]['aout'], A[ii]['aout'], E, A[ii]['cache'])
+                gvs = l.gv(A[ii-1]['aout'], A[ii]['aout'], E, D[ii]['cache'])
                 grads_and_vars.extend(gvs)
             elif (ii == 0):
-                cache = A[ii]['cache']
-                D[ii] = l.backward(X, A[ii]['aout'], D[ii+1]['dout'], cache)
-                cache.update(D[ii]['cache'])
-                gvs = l.gv(X, A[ii]['aout'], D[ii+1]['dout'], cache)
+                D[ii] = l.backward(X, A[ii]['aout'], D[ii+1]['dout'], A[ii]['cache'])
+                gvs = l.gv(X, A[ii]['aout'], D[ii+1]['dout'], D[ii]['cache'])
                 grads_and_vars.extend(gvs)
             else:
-                cache = A[ii]['cache']
-                D[ii] = l.backward(A[ii-1]['aout'], A[ii]['aout'], D[ii+1]['dout'], cache)
-                cache.update(D[ii]['cache'])
-                gvs = l.gv(A[ii-1]['aout'], A[ii]['aout'], D[ii+1]['dout'], cache)
+                D[ii] = l.backward(A[ii-1]['aout'], A[ii]['aout'], D[ii+1]['dout'], A[ii]['cache'])
+                gvs = l.gv(A[ii-1]['aout'], A[ii]['aout'], D[ii+1]['dout'], D[ii]['cache'])
                 grads_and_vars.extend(gvs)
                 
         return grads_and_vars

@@ -44,20 +44,22 @@ class ConvBlock(Layer):
         bn = self.bn.forward(conv['aout'])
         relu = self.relu.forward(bn['aout'])
 
-        return {'aout':relu_aout, 'cache':{'aout':[conv['aout'], bn['aout'], relu['aout']]}}
+        cache = {'conv':conv['aout'], 'bn':bn['aout'], 'relu':relu['aout']}
+        return {'aout':relu['aout'], 'cache':cache}
         
     def backward(self, AI, AO, DO, cache):    
-        conv, bn, relu = cache['aout']
+        conv, bn, relu = cache['conv'], cache['bn'], cache['relu']
         
         drelu = self.relu.backward(bn, relu, DO)
         dbn = self.bn.backward(conv, bn, drelu['dout'])
         dconv = self.conv.backward(AI, conv, dbn['dout'])
-
-        return {'dout':dconv['dout'], 'cache':{'dout':[drelu['dout'], dbn['dout'], dconv['dout']]}}
+        
+        cache.update({'dconv':dconv['dout'], 'dbn':dbn['dout'], 'drelu':drelu['dout']})
+        return {'dout':dconv['dout'], 'cache':cache}
         
     def gv(self, AI, AO, DO, cache):
-        conv, bn, relu = cache['aout']
-        drelu, dbn, dconv = cache['dout']
+        conv, bn, relu = cache['conv'], cache['bn'], cache['relu']
+        drelu, dbn, dconv = cache['dconv'], cache['dbn'], cache['drelu']
         
         dconv = self.conv.gv(AI, conv, dbn)
         dbn = self.bn.gv(conv, bn, drelu)
