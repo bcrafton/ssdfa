@@ -71,6 +71,7 @@ from lib.FullyConnected import FullyConnected
 from lib.Convolution import Convolution
 from lib.MaxPool import MaxPool
 from lib.AvgPool import AvgPool
+from lib.UpSample import UpSample
 from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
@@ -235,29 +236,29 @@ train_fc = True
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 
-# probably need to put l0 back...
-# they all have initial 3x3x3x64 layer. 
+l0 = ConvBlock(input_shape=[batch_size, 64, 64, 3], filter_shape=[3, 3, 3, 64], init=args.init, name='conv_block_0')
 
-l0 = ConvBlock(input_shape=[batch_size, 64, 64, 3], filter_shape=[3, 3, 3, 64], init=args.init, name='conv1')
-
-l1 = ResidualBlock(input_shape=[batch_size, 64, 64, 64], filter_shape=[64, 64], init=args.init, name='dense_block_1')
+l1 = ResidualBlock(input_shape=[batch_size, 64, 64, 64], filter_shape=[3, 3, 64, 64], init=args.init, name='dense_block_1')
 l2 = AvgPool(size=[batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
+l3 = UpSample(input_shape=[batch_size, 32, 32, 64], ksize=2)
 
-l3 = ResidualBlock(input_shape=[batch_size, 32, 32, 64], filter_shape=[64, 128], init=args.init, name='dense_block_2')
-l4 = AvgPool(size=[batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
+l4 = ResidualBlock(input_shape=[batch_size, 32, 32, 128], filter_shape=[3, 3, 128, 128], init=args.init, name='dense_block_2')
+l5 = AvgPool(size=[batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
+l6 = UpSample(input_shape=[batch_size, 16, 16, 128], ksize=2)
 
-l5 = ResidualBlock(input_shape=[batch_size, 16, 16, 128], filter_shape=[128, 256], init=args.init, name='dense_block_3')
-l6 = AvgPool(size=[batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
+l7 = ResidualBlock(input_shape=[batch_size, 16, 16, 256], filter_shape=[3, 3, 256, 256], init=args.init, name='dense_block_3')
+l8 = AvgPool(size=[batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
+l9 = UpSample(input_shape=[batch_size, 8, 8, 256], ksize=2)
 
-l7 = ResidualBlock(input_shape=[batch_size, 8, 8, 256], filter_shape=[256, 512], init=args.init, name='dense_block_4')
-l8 = AvgPool(size=[batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
+l10 = ResidualBlock(input_shape=[batch_size, 8, 8, 512], filter_shape=[3, 3, 512, 512], init=args.init, name='dense_block_4')
+l11 = AvgPool(size=[batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
-l9 = ConvToFullyConnected(input_shape=[4, 4, 512])
-l10 = FullyConnected(input_shape=4*4*512, size=1000, init=args.init, name="fc1", load=weights_fc, train=train_fc)
+l12 = ConvToFullyConnected(input_shape=[4, 4, 512])
+l13 = FullyConnected(input_shape=4*4*512, size=1000, init=args.init, name="fc1", load=weights_fc, train=train_fc)
 
 ###############################################################
 
-model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10])
+model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13])
 
 predict = tf.nn.softmax(model.predict(X=features))
 weights = model.get_weights()

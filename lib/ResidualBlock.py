@@ -12,20 +12,16 @@ class ResidualBlock(Layer):
         self.batch, self.h, self.w, self.fin = self.input_shape
         
         self.filter_shape = filter_shape
-        self.fin, self.fout = self.filter_shape
-        self.filter_shape_trans = [1, 1, self.fin, self.fout]
-        self.filter_shape_body = [3, 3, self.fout, self.fout]
-
+        self.fh, self.fw, self.fin, self.fout = self.filter_shape
+        
         self.output_shape = [self.batch, self.h, self.w, self.fout]
         
         self.init = init
         self.name = name
         
-        self.block1 = ConvBlock(input_shape=self.input_shape, filter_shape=self.filter_shape_body, init=self.init, name=self.name + '_conv_block_1')
-        self.block2 = ConvBlock(input_shape=self.input_shape, filter_shape=self.filter_shape_body, init=self.init, name=self.name + '_conv_block_2')
-        self.block3 = ConvBlock(input_shape=self.input_shape, filter_shape=self.filter_shape_body, init=self.init, name=self.name + '_conv_block_3')
-
-        self.nonsense = False
+        self.block1 = ConvBlock(input_shape=self.input_shape, filter_shape=self.filter_shape, init=self.init, name=self.name + '_conv_block_1')
+        self.block2 = ConvBlock(input_shape=self.input_shape, filter_shape=self.filter_shape, init=self.init, name=self.name + '_conv_block_2')
+        self.block3 = ConvBlock(input_shape=self.input_shape, filter_shape=self.filter_shape, init=self.init, name=self.name + '_conv_block_3')
 
     ###################################################################
 
@@ -41,13 +37,7 @@ class ResidualBlock(Layer):
     ###################################################################
 
     def forward(self, X):
-        
-        if self.fin < self.fout:
-            in1 = tf.stack([X, X], axis=3)
-            in1 = tf.reshape(in1, (self.batch, self.h, self.w, self.fout))
-        else:
-            in1 = X
-            
+        in1 = X
         block1 = self.block1.forward(in1)
         
         in2 = in1 + block1['aout']
@@ -64,12 +54,7 @@ class ResidualBlock(Layer):
     def backward(self, AI, AO, DO, cache):    
         block1, block2, block3 = cache['block1'], cache['block2'], cache['block3']
         
-        if self.fin < self.fout:
-            in1 = tf.stack([AI, AI], axis=3)
-            in1 = tf.reshape(in1, (self.batch, self.h, self.w, self.fout))
-        else:
-            in1 = AI
-            
+        in1 = AI
         in2 = in1 + block1['aout']
         in3 = in2 + block2['aout']
 
@@ -77,47 +62,20 @@ class ResidualBlock(Layer):
         dblock2 = self.block2.backward(in2, block2['aout'], DO, block2['cache'])
         dblock1 = self.block1.backward(in1, block1['aout'], DO, block1['cache'])
 
-        if self.nonsense:
-            dblock3 = self.block3.backward(in3, block3['aout'], DO, block3['cache'])
-            dblock2 = self.block2.backward(in2, block2['aout'], DO, block2['cache'])
-            dblock1 = self.block1.backward(in1, block1['aout'], DO, block1['cache'])
-            
-            if self.fin < self.fout:
-                dout = tf.reshape(DO, [self.batch, self.h, self.w, self.fin, 2])
-                dout = tf.reduce_mean(dout, axis=4)
-            else:
-                dout = DO
-        else:
-            dblock3 = self.block3.backward(in3, block3['aout'], DO,              block3['cache'])
-            dblock2 = self.block2.backward(in2, block2['aout'], dblock3['dout'], block2['cache'])
-            dblock1 = self.block1.backward(in1, block1['aout'], dblock2['dout'], block1['cache'])
-            dout = dblock1['dout']
-
         cache.update({'dblock1':dblock1, 'dblock2':dblock2, 'dblock3':dblock3})
-        
-        return {'dout':dout, 'cache':cache}
+        return {'dout':dblock1['dout'], 'cache':cache}
         
     def gv(self, AI, AO, DO, cache):
         block1, block2, block3 = cache['block1'], cache['block2'], cache['block3']
         dblock1, dblock2, dblock3 = cache['dblock1'], cache['dblock2'], cache['dblock3']
-        
-        if self.fin < self.fout:
-            in1 = tf.stack([AI, AI], axis=3)
-            in1 = tf.reshape(in1, (self.batch, self.h, self.w, self.fout))
-        else:
-            in1 = AI
-            
+
+        in1 = AI
         in2 = in1 + block1['aout']
         in3 = in2 + block2['aout']
 
-        if self.nonsense:
-            dblock1 = self.block1.gv(in1, block1['aout'], DO, dblock1['cache'])
-            dblock2 = self.block2.gv(in2, block2['aout'], DO, dblock2['cache'])
-            dblock3 = self.block3.gv(in3, block3['aout'], DO, dblock3['cache'])
-        else:
-            dblock1 = self.block1.gv(in1, block1['aout'], DO,              dblock1['cache'])
-            dblock2 = self.block2.gv(in2, block2['aout'], dblock3['dout'], dblock2['cache'])
-            dblock3 = self.block3.gv(in3, block3['aout'], dblock2['dout'], dblock3['cache'])
+        dblock1 = self.block1.gv(in1, block1['aout'], DO, dblock1['cache'])
+        dblock2 = self.block2.gv(in2, block2['aout'], DO, dblock2['cache'])
+        dblock3 = self.block3.gv(in3, block3['aout'], DO, dblock3['cache'])
         
         grads = []
         grads.extend(dblock1)
