@@ -23,6 +23,8 @@ class ResidualBlock(Layer):
         self.block2 = ConvBlock(input_shape=self.input_shape, filter_shape=self.filter_shape, init=self.init, name=self.name + '_conv_block_2')
         self.block3 = ConvBlock(input_shape=self.input_shape, filter_shape=self.filter_shape, init=self.init, name=self.name + '_conv_block_3')
 
+        self.nonsense = False
+
     ###################################################################
 
     def get_weights(self):
@@ -58,9 +60,14 @@ class ResidualBlock(Layer):
         in2 = in1 + block1['aout']
         in3 = in2 + block2['aout']
 
-        dblock3 = self.block3.backward(in3, block3['aout'], DO, block3['cache'])
-        dblock2 = self.block2.backward(in2, block2['aout'], DO, block2['cache'])
-        dblock1 = self.block1.backward(in1, block1['aout'], DO, block1['cache'])
+        if self.nonsense:
+            dblock3 = self.block3.backward(in3, block3['aout'], DO, block3['cache'])
+            dblock2 = self.block2.backward(in2, block2['aout'], DO, block2['cache'])
+            dblock1 = self.block1.backward(in1, block1['aout'], DO, block1['cache'])
+        else:
+            dblock3 = self.block3.backward(in3, block3['aout'], DO,              block3['cache'])
+            dblock2 = self.block2.backward(in2, block2['aout'], dblock3['dout'], block2['cache'])
+            dblock1 = self.block1.backward(in1, block1['aout'], dblock2['dout'], block1['cache'])
 
         cache.update({'dblock1':dblock1, 'dblock2':dblock2, 'dblock3':dblock3})
         return {'dout':dblock1['dout'], 'cache':cache}
@@ -73,10 +80,15 @@ class ResidualBlock(Layer):
         in2 = in1 + block1['aout']
         in3 = in2 + block2['aout']
 
-        dblock1 = self.block1.gv(in1, block1['aout'], DO, dblock1['cache'])
-        dblock2 = self.block2.gv(in2, block2['aout'], DO, dblock2['cache'])
-        dblock3 = self.block3.gv(in3, block3['aout'], DO, dblock3['cache'])
-        
+        if self.nonsense:
+            dblock1 = self.block1.gv(in1, block1['aout'], DO, dblock1['cache'])
+            dblock2 = self.block2.gv(in2, block2['aout'], DO, dblock2['cache'])
+            dblock3 = self.block3.gv(in3, block3['aout'], DO, dblock3['cache'])
+        else:
+            dblock1 = self.block1.gv(in1, block1['aout'], dblock2['dout'], dblock1['cache'])
+            dblock2 = self.block2.gv(in2, block2['aout'], dblock3['dout'], dblock2['cache'])
+            dblock3 = self.block3.gv(in3, block3['aout'], DO,              dblock3['cache'])
+
         grads = []
         grads.extend(dblock1)
         grads.extend(dblock2)
