@@ -81,7 +81,7 @@ mobile_net_64 = {'benchmark':'MobileNet64.py', 'epochs':100, 'batch_size':128, '
 
 ################################################
 
-vgg64 = {'benchmark':'vgg64_v3.py', 'epochs':100, 'batch_size':64, 'alpha':[0.02, 0.01], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':0, 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':None}
+vgg64 = {'benchmark':'vgg64_v3.py', 'epochs':100, 'batch_size':64, 'alpha':[0.03, 0.01, 0.003, 0.001], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':0, 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':None}
 vgg64_mlp = {'benchmark':'vgg64_mlp.py', 'epochs':100, 'batch_size':64, 'alpha':[0.01], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.25], 'dfa':0, 'sparse':0, 'rank':0, 'init':['sqrt_fan_in'], 'opt':'adam', 'load':None}
 
 ################################################
