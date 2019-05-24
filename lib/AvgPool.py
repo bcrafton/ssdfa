@@ -30,9 +30,13 @@ class AvgPool(Layer):
         A = tf.nn.avg_pool(X, ksize=self.ksize, strides=self.strides, padding=self.padding)
         return {'aout':A, 'cache':{}}
         
-    def backward(self, AI, AO, DO, cache=None):    
-        DI = gen_nn_ops.avg_pool_grad(orig_input_shape=self.size, grad=DO, ksize=self.ksize, strides=self.strides, padding=self.padding)
-        return {'dout':DI, 'cache':{}}
+    def backward(self, AI, AO, DO, cache=None):
+        shape_AO = tf.shape(AO)[3]
+        shape_DO = tf.shape(DO)[3]
+        assert_op = tf.assert_equal(shape_AO, shape_DO)
+        with tf.control_dependencies([assert_op]):
+            DI = gen_nn_ops.avg_pool_grad(orig_input_shape=self.size, grad=DO, ksize=self.ksize, strides=self.strides, padding=self.padding)
+            return {'dout':DI, 'cache':{}}
 
     def gv(self, AI, AO, DO, cache=None):    
         return []
