@@ -61,7 +61,7 @@ import scipy.misc
 
 from lib.Model import Model
 
-from lib.DenseBlock import DenseBlock
+from lib.Conv3Block import Conv3Block
 from lib.ConvBlock import ConvBlock
 
 from lib.Layer import Layer 
@@ -237,19 +237,19 @@ learning_rate = tf.placeholder(tf.float32, shape=())
 
 l0 = ConvBlock(input_shape=[batch_size, 64, 64, 3], filter_shape=[3, 3, 3, 64], init=args.init, name='conv_block_0')
 
-l1 = DenseBlock(input_shape=[batch_size, 64, 64, 64], filter_shape=[3, 3, 64, 64], init=args.init, name='dense_block_1')
+l1 = Conv3Block(input_shape=[batch_size, 64, 64, 64], filter_shape=[3, 3, 64, 64], init=args.init, name='dense_block_1')
 l2 = AvgPool(size=[batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 l3 = UpSample(input_shape=[batch_size, 32, 32, 64], ksize=2)
 
-l4 = DenseBlock(input_shape=[batch_size, 32, 32, 128], filter_shape=[3, 3, 128, 128], init=args.init, name='dense_block_2')
+l4 = Conv3Block(input_shape=[batch_size, 32, 32, 128], filter_shape=[3, 3, 128, 128], init=args.init, name='dense_block_2')
 l5 = AvgPool(size=[batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 l6 = UpSample(input_shape=[batch_size, 16, 16, 128], ksize=2)
 
-l7 = DenseBlock(input_shape=[batch_size, 16, 16, 256], filter_shape=[3, 3, 256, 256], init=args.init, name='dense_block_3')
+l7 = Conv3Block(input_shape=[batch_size, 16, 16, 256], filter_shape=[3, 3, 256, 256], init=args.init, name='dense_block_3')
 l8 = AvgPool(size=[batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 l9 = UpSample(input_shape=[batch_size, 8, 8, 256], ksize=2)
 
-l10 = DenseBlock(input_shape=[batch_size, 8, 8, 512], filter_shape=[3, 3, 512, 512], init=args.init, name='dense_block_4')
+l10 = Conv3Block(input_shape=[batch_size, 8, 8, 512], filter_shape=[3, 3, 512, 512], init=args.init, name='dense_block_4')
 l11 = AvgPool(size=[batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
 l12 = ConvToFullyConnected(input_shape=[4, 4, 512])

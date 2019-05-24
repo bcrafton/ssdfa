@@ -61,7 +61,7 @@ import scipy.misc
 
 from lib.Model import Model
 
-from lib.DenseBlock import DenseBlock
+from lib.Conv3Block import Conv3Block
 from lib.ResidualBlock import ResidualBlock
 from lib.ConvBlock import ConvBlock
 

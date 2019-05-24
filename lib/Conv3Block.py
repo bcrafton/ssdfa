@@ -5,7 +5,7 @@ import numpy as np
 from lib.Layer import Layer 
 from lib.ConvBlock import ConvBlock
 
-class DenseBlock(Layer):
+class Conv3Block(Layer):
 
     def __init__(self, input_shape, filter_shape, init, name):
         self.input_shape = input_shape
