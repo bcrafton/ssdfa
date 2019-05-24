@@ -7,9 +7,9 @@ from tensorflow.python.ops import gen_nn_ops
 from lib.Layer import Layer 
 
 class UpSample(Layer):
-    def __init__(self, size, ksize):
-        self.size = size
-        self.batch_size, self.h, self.w, self.fin = self.size
+    def __init__(self, input_shape, ksize):
+        self.input_shape = input_shape
+        self.batch, self.h, self.w, self.fin = self.input_shape
         self.ksize = ksize
 
     ###################################################################
@@ -24,21 +24,21 @@ class UpSample(Layer):
 
     def forward(self, X):
         if self.ksize > 1:
-            ret = tf.stack([X] * self.ksize, axis=3)
-            ret = tf.reshape(ret, (self.batch, self.h, self.w, self.fin * self.ksize))
+            A = tf.stack([X] * self.ksize, axis=3)
+            A = tf.reshape(A, (self.batch, self.h, self.w, self.fin * self.ksize))
         else:
-            ret = X
-            
-        return ret
+            A = X
+          
+        return {'aout':A, 'cache':{}}
         
     def backward(self, AI, AO, DO, cache=None):
         if self.ksize > 1:
-            dout = tf.reshape(DO, [self.batch, self.h, self.w, self.fin, self.ksize])
-            dout = tf.reduce_mean(dout, axis=4)
+            DI = tf.reshape(DO, [self.batch, self.h, self.w, self.fin, self.ksize])
+            DI = tf.reduce_mean(DI, axis=4)
         else:
-            dout = DO
+            DI = DO
             
-        return dout
+        return {'dout':DI, 'cache':{}}
 
     def gv(self, AI, AO, DO, cache=None):    
         return []

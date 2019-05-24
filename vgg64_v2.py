@@ -10,7 +10,7 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=100)
-parser.add_argument('--batch_size', type=int, default=128)
+parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--alpha', type=float, default=1e-2)
 parser.add_argument('--l2', type=float, default=0.)
 parser.add_argument('--decay', type=float, default=1.)
@@ -70,6 +70,7 @@ from lib.FullyConnected import FullyConnected
 from lib.Convolution import Convolution
 from lib.MaxPool import MaxPool
 from lib.AvgPool import AvgPool
+from lib.UpSample import UpSample
 from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
@@ -238,26 +239,25 @@ l0 = ConvBlock(input_shape=[batch_size, 64, 64, 3], filter_shape=[3, 3, 3, 64], 
 
 l1 = DenseBlock(input_shape=[batch_size, 64, 64, 64], filter_shape=[3, 3, 64, 64], init=args.init, name='dense_block_1')
 l2 = AvgPool(size=[batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
-l3 = Convolution(input_sizes=[batch_size, 32, 32, 64], filter_sizes=[1, 1, 64, 128], init=args.init, strides=[1,1,1,1], padding="SAME", name='conv1')
+l3 = UpSample(input_shape=[batch_size, 32, 32, 64], ksize=2)
 
 l4 = DenseBlock(input_shape=[batch_size, 32, 32, 128], filter_shape=[3, 3, 128, 128], init=args.init, name='dense_block_2')
 l5 = AvgPool(size=[batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
-l6 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[1, 1, 128, 256], init=args.init, strides=[1,1,1,1], padding="SAME", name='conv2')
+l6 = UpSample(input_shape=[batch_size, 16, 16, 128], ksize=2)
 
 l7 = DenseBlock(input_shape=[batch_size, 16, 16, 256], filter_shape=[3, 3, 256, 256], init=args.init, name='dense_block_3')
 l8 = AvgPool(size=[batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
-l9 = Convolution(input_sizes=[batch_size, 8, 8, 256], filter_sizes=[1, 1, 256, 256], init=args.init, strides=[1,1,1,1], padding="SAME", name='conv3')
+l9 = UpSample(input_shape=[batch_size, 8, 8, 256], ksize=2)
 
-l10 = DenseBlock(input_shape=[batch_size, 8, 8, 256], filter_shape=[3, 3, 256, 256], init=args.init, name='dense_block_4')
-l11 = AvgPool(size=[batch_size, 8, 8, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
-l12 = Convolution(input_sizes=[batch_size, 4, 4, 256], filter_sizes=[1, 1, 256, 512], init=args.init, strides=[1,1,1,1], padding="SAME", name='conv4')
+l10 = DenseBlock(input_shape=[batch_size, 8, 8, 512], filter_shape=[3, 3, 512, 512], init=args.init, name='dense_block_4')
+l11 = AvgPool(size=[batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
-l13 = ConvToFullyConnected(input_shape=[4, 4, 512])
-l14 = FullyConnected(input_shape=4*4*512, size=1000, init=args.init, name="fc1", load=weights_fc, train=train_fc)
+l12 = ConvToFullyConnected(input_shape=[4, 4, 512])
+l13 = FullyConnected(input_shape=4*4*512, size=1000, init=args.init, name="fc1", load=weights_fc, train=train_fc)
 
 ###############################################################
 
-model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14])
+model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13])
 
 predict = tf.nn.softmax(model.predict(X=features))
 weights = model.get_weights()
