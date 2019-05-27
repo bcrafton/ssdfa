@@ -61,22 +61,22 @@ class Relu(Activation, Layer):
 
     ###################################################################
 
-    def lel_backward(self, AI, AO, E, DO):
+    def dfa_backward(self, AI, AO, E, DO):
         return self.backward(AI, AO, DO)
 
-    def lel_gv(self, AI, AO, E, DO):
+    def dfa_gv(self, AI, AO, E, DO):
         return self.gv(AI, AO, DO)
 
-    def lel(self, AI, AO, E, DO):
+    def dfa(self, AI, AO, E, DO):
         return self.train(AI, AO, DO)
 
     ###################################################################    
 
-    def lel_backward(self, AI, AO, E, DO, Y):
-        return self.backward(AI, AO, DO)
+    def lel_backward(self, AI, AO, E, DO, Y, cache):
+        return self.backward(AI, AO, DO, cache)
 
-    def lel_gv(self, AI, AO, E, DO, Y):
-        return self.gv(AI, AO, DO)
+    def lel_gv(self, AI, AO, E, DO, Y, cache):
+        return self.gv(AI, AO, DO, cache)
 
     def lel(self, AI, AO, E, DO, Y):
         return self.train(AI, AO, DO)
