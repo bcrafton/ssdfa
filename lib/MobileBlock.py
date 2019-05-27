@@ -5,6 +5,11 @@ import numpy as np
 from lib.Layer import Layer 
 from lib.ConvBlock import ConvBlock
 
+from lib.ConvolutionDW import ConvolutionDW
+from lib.Convolution import Convolution
+from lib.BatchNorm import BatchNorm
+from lib.Activation import Relu
+
 class MobileBlock(Layer):
 
     def __init__(self, input_shape, filter_shape, strides, init, name):
@@ -47,13 +52,13 @@ class MobileBlock(Layer):
 
     def forward(self, X):
 
-        conv_dw = self.conv.forward(X)
-        bn_dw   = self.bn.forward(conv_dw['aout'])
-        relu_dw = self.relu.forward(bn_dw['aout'])
+        conv_dw = self.conv_dw.forward(X)
+        bn_dw   = self.bn_dw.forward(conv_dw['aout'])
+        relu_dw = self.relu_dw.forward(bn_dw['aout'])
 
-        conv_pw = self.conv.forward(relu_dw['aout'])
-        bn_pw   = self.bn.forward(conv_pw['aout'])
-        relu_pw = self.relu.forward(bn_pw['aout'])
+        conv_pw = self.conv_pw.forward(relu_dw['aout'])
+        bn_pw   = self.bn_pw.forward(conv_pw['aout'])
+        relu_pw = self.relu_pw.forward(bn_pw['aout'])
 
         cache = {'conv_dw':conv_dw['aout'], 'bn_dw':bn_dw['aout'], 'relu_dw':relu_dw['aout'],
                  'conv_pw':conv_pw['aout'], 'bn_pw':bn_pw['aout'], 'relu_pw':relu_pw['aout']}
@@ -61,6 +66,7 @@ class MobileBlock(Layer):
         return {'aout':relu_pw['aout'], 'cache':cache}
         
     def backward(self, AI, AO, DO, cache):    
+        
         conv_dw, bn_dw, relu_dw = cache['conv_dw'], cache['bn_dw'], cache['relu_dw']
         conv_pw, bn_pw, relu_pw = cache['conv_pw'], cache['bn_pw'], cache['relu_pw']
         
@@ -82,6 +88,7 @@ class MobileBlock(Layer):
         return {'dout':dconv_dw['dout'], 'cache':cache}
         
     def gv(self, AI, AO, DO, cache):
+
         conv_dw, bn_dw, relu_dw = cache['conv_dw'], cache['bn_dw'], cache['relu_dw']
         conv_pw, bn_pw, relu_pw = cache['conv_pw'], cache['bn_pw'], cache['relu_pw']
         
@@ -90,12 +97,11 @@ class MobileBlock(Layer):
 
         ##########################################
 
+        dconv_dw = self.conv_dw.gv(AI, conv_dw, dbn_dw)
+        dbn_dw   = self.bn_dw.gv(conv_dw, bn_dw, drelu_dw)
 
-        dconv_dw = self.conv_dw.gv(AI, conv_dw, dbn_dw['dout'])
-        dbn_dw   = self.bn_dw.gv(conv_dw, bn_dw, drelu_dw['dout'])
-
-        dconv_pw = self.conv_pw.gv(relu_dw, conv_pw, dbn_pw['dout'])
-        dbn_pw   = self.bn_pw.gv(conv_pw, bn_pw, drelu_pw['dout'])
+        dconv_pw = self.conv_pw.gv(relu_dw, conv_pw, dbn_pw)
+        dbn_pw   = self.bn_pw.gv(conv_pw, bn_pw, drelu_pw)
 
         ##########################################
         

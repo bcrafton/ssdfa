@@ -4,6 +4,7 @@ import numpy as np
 import math
 
 from lib.Layer import Layer
+from lib.Activation import Linear
 
 class ConvolutionDW(Layer):
 
@@ -56,14 +57,14 @@ class ConvolutionDW(Layer):
     def forward(self, X):
         Z = tf.nn.depthwise_conv2d(X, self.filters, self.strides, self.padding) # + tf.reshape(self.bias, [1, 1, self.fout])
         A = self.activation.forward(Z)
-        return A
+        return {'aout':A, 'cache':{}}
         
-    def backward(self, AI, AO, DO): 
+    def backward(self, AI, AO, DO, cache=None): 
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DI = tf.nn.depthwise_conv2d_native_backprop_input(input_sizes=self.input_sizes, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
-        return DI
+        return {'dout':DI, 'cache':{}}
 
-    def gv(self, AI, AO, DO):
+    def gv(self, AI, AO, DO, cache=None):
         if not self._train:
             return []
     
