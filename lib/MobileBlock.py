@@ -4,11 +4,7 @@ import numpy as np
 
 from lib.Layer import Layer 
 from lib.ConvBlock import ConvBlock
-
-from lib.ConvolutionDW import ConvolutionDW
-from lib.Convolution import Convolution
-from lib.BatchNorm import BatchNorm
-from lib.Activation import Relu
+from lib.ConvDWBlock import ConvDWBlock
 
 class MobileBlock(Layer):
 
@@ -28,8 +24,8 @@ class MobileBlock(Layer):
         input_shape_1 = [self.batch, self.h,            self.w,            self.fin]
         input_shape_2 = [self.batch, self.h // self.sh, self.w // self.sw, self.fin]
         
-        conv_dw = ConvDWBlock(input_shape=input_shape_1, filter_shape=[3, 3, self.fin, 1], strides=self.strides, init=args.init, name='_conv_block_dw')
-        conv_pw = ConvBlock(input_shape=input_shape_2, filter_shape=[1, 1, self.fin, self.fout], strides=[1,1,1,1], init=args.init, name='_conv_block_pw')
+        self.conv_dw = ConvDWBlock(input_shape=input_shape_1, filter_shape=[3, 3, self.fin, 1], strides=self.strides, init=self.init, name='_conv_block_dw')
+        self.conv_pw = ConvBlock(input_shape=input_shape_2, filter_shape=[1, 1, self.fin, self.fout], strides=[1,1,1,1], init=self.init, name='_conv_block_pw')
         
     ###################################################################
 
@@ -47,9 +43,9 @@ class MobileBlock(Layer):
     def forward(self, X):
 
         conv_dw = self.conv_dw.forward(X)
-        conv_pw = self.conv_pw.forward(relu_dw['aout'])
+        conv_pw = self.conv_pw.forward(conv_dw['aout'])
 
-        cache = {'conv_dw':conv_dw, 'conv_pw':conv_pw['aout']}
+        cache = {'conv_dw':conv_dw, 'conv_pw':conv_pw}
         return {'aout':conv_pw['aout'], 'cache':cache}
         
     def backward(self, AI, AO, DO, cache):    
@@ -58,12 +54,12 @@ class MobileBlock(Layer):
         
         ##########################################3
         
-        dconv_pw = self.conv_pw.backward(conv_dw['aout'], conv_pw['aout'], DO)
-        dconv_dw = self.conv_dw.backward(AI,              conv_dw['aout'], dconv_pw['dout'])
+        dconv_pw = self.conv_pw.backward(conv_dw['aout'], conv_pw['aout'], DO,               conv_pw['cache'])
+        dconv_dw = self.conv_dw.backward(AI,              conv_dw['aout'], dconv_pw['dout'], conv_dw['cache'])
 
         ##########################################
 
-        cache.update({'dconv_dw':dconv_dw['dout'], 'dconv_pw':dconv_pw['dout']})
+        cache.update({'dconv_dw':dconv_dw, 'dconv_pw':dconv_pw})
         return {'dout':dconv_dw['dout'], 'cache':cache}
         
     def gv(self, AI, AO, DO, cache):
@@ -73,8 +69,8 @@ class MobileBlock(Layer):
         
         ##########################################
 
-        dconv_dw = self.conv_dw.gv(AI,              conv_dw['aout'], dconv_pw['dout'])
-        dconv_pw = self.conv_pw.gv(conv_dw['aout'], conv_pw['aout'], DO)
+        dconv_dw = self.conv_dw.gv(AI,              conv_dw['aout'], dconv_pw['dout'], dconv_dw['cache'])
+        dconv_pw = self.conv_pw.gv(conv_dw['aout'], conv_pw['aout'], DO,               dconv_pw['cache'])
 
         ##########################################
         
