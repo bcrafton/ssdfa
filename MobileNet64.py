@@ -72,6 +72,7 @@ from lib.FeedbackConv import FeedbackConv
 from lib.BatchNorm import BatchNorm
 from lib.ConvBlock import ConvBlock
 from lib.MobileBlock import MobileBlock
+from lib.LELConv import LELConv
 
 from lib.Activation import Activation
 from lib.Activation import Sigmoid
@@ -235,7 +236,8 @@ else:
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 
-l1 = ConvBlock(input_shape=[batch_size, 64, 64, 3], filter_shape=[3, 3, 3, 32], strides=[1,1,1,1], pool_shape=[1,8,8,1], init=args.init, name='block1')
+l1_1 = ConvBlock(input_shape=[batch_size, 64, 64, 3], filter_shape=[3, 3, 3, 32], strides=[1,1,1,1], init=args.init, name='block1')
+l1_2 = LELConv(input_shape=[batch_size, 64, 64, 32], pool_shape=[1,8,8,1], num_classes=1000, name='block1_fb')
 
 l2 = MobileBlock(input_shape=[batch_size, 64, 64, 32],  filter_shape=[32, 64],   strides=[1,2,2,1], pool_shape=[1,8,8,1], init=args.init, name='block2')
 l3 = MobileBlock(input_shape=[batch_size, 32, 32, 64],  filter_shape=[64, 128],  strides=[1,1,1,1], pool_shape=[1,8,8,1], init=args.init, name='block3')
@@ -256,7 +258,7 @@ l13 = FullyConnected(input_shape=1024, size=1000, init=args.init, name="fc1")
 
 ###############################################################
 
-model = Model(layers=[l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13])
+model = Model(layers=[l1_1, l1_2, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13])
 
 predict = tf.nn.softmax(model.predict(X=features))
 

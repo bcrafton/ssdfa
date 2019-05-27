@@ -56,11 +56,11 @@ class LELConv(Layer):
                 
     ###################################################################           
         
-    def backward(self, AI, AO, DO):    
+    def backward(self, AI, AO, DO, cache=None):    
         DI = self.B.backwards(AI, Y)
         return {'dout':DI, 'cache':cache}
 
-    def gv(self, AI, AO, DO):    
+    def gv(self, AI, AO, DO, cache=None):    
         gvs = self.B.gvs(AI, Y)
         return gvs
         
