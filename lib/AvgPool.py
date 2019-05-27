@@ -69,10 +69,10 @@ class AvgPool(Layer):
         
     ###################################################################   
     
-    def lel_backward(self, AI, AO, E, DO, Y):
-        return self.backward(AI, AO, DO)
+    def lel_backward(self, AI, AO, E, DO, Y, cache):
+        return self.backward(AI, AO, DO, cache)
 
-    def lel_gv(self, AI, AO, E, DO, Y):
+    def lel_gv(self, AI, AO, E, DO, Y, cache):
         return []
         
     def lel(self, AI, AO, E, DO, Y): 

@@ -106,11 +106,41 @@ class MobileBlock(Layer):
         
     ###################################################################   
     
-    def lel_backward(self, AI, AO, E, DO, Y):
-        assert(False)
+    def lel_backward(self, AI, AO, E, DO, Y, cache):
+    
+        conv_dw, conv_pw, lel = cache['conv_dw'], cache['conv_pw'], cache['lel']
+        
+        ##########################################3
+        
+        dlel     = self.lel.lel_backward(    conv_pw['aout'], lel['aout'],     DO,               lel['cache'])
+        dconv_pw = self.conv_pw.lel_backward(conv_dw['aout'], conv_pw['aout'], dlel['dout'],     conv_pw['cache'])
+        dconv_dw = self.conv_dw.lel_backward(AI,              conv_dw['aout'], dconv_pw['dout'], conv_dw['cache'])
 
-    def lel_gv(self, AI, AO, E, DO, Y):
-        assert(False)
+        ##########################################
+
+        cache.update({'dconv_dw':dconv_dw, 'dconv_pw':dconv_pw, 'dlel':dlel})
+        return {'dout':dconv_dw['dout'], 'cache':cache}
+
+    def lel_gv(self, AI, AO, E, DO, Y, cache):
+
+        conv_dw,  conv_pw, lel  = cache['conv_dw'],  cache['conv_pw'], cache['lel']
+        dconv_dw, dconv_pw, dlel = cache['dconv_dw'], cache['dconv_pw'], cache['dlel']
+        
+        ##########################################
+
+        dconv_dw = self.conv_dw.lel_gv(AI,              conv_dw['aout'], dconv_pw['dout'], dconv_dw['cache'])
+        dconv_pw = self.conv_pw.lel_gv(conv_dw['aout'], conv_pw['aout'], dlel['dout'],     dconv_pw['cache'])
+        dlel     = self.lel.lel_gv(    conv_pw['aout'], lel['aout'],     DO,               dlel['cache'])
+        
+        ##########################################
+        
+        grads = []
+
+        grads.extend(dconv_dw)
+        grads.extend(dconv_pw)
+        grads.extend(dlel)
+
+        return grads
         
     def lel(self, AI, AO, E, DO, Y): 
         assert(False)
