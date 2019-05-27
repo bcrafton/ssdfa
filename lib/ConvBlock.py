@@ -24,7 +24,7 @@ class ConvBlock(Layer):
         self.init = init
         self.name = name
         
-        self.conv = Convolution(input_sizes=self.input_shape, filter_sizes=self.filter_shape, init=self.init, strides=[1,1,1,1], padding="SAME", name=self.name + '_conv')
+        self.conv = Convolution(input_sizes=self.input_shape, filter_sizes=self.filter_shape, init=self.init, strides=self.strides, padding="SAME", name=self.name + '_conv')
         self.bn = BatchNorm(input_size=self.output_shape, name=self.name + '_bn')
         self.relu = Relu()
 
