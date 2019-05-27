@@ -19,6 +19,7 @@ class BatchNorm(Layer):
             self.dims = [0]
         elif len(self.input_size) == 4:
             self.dims = [0, 1, 2]
+            print (self.input_size)
         else:
             assert(False)
         self.size = self.input_size[-1]

@@ -23,12 +23,13 @@ class ConvDWBlock(Layer):
 
         self.output_shape = [self.batch, self.h // self.sh, self.w // self.sw, self.fout]
         # print (self.output_shape, self.fout) 
+        # print (self.filter_shape)
 
         self.init = init
         self.name = name
         
-        self.conv = Convolution(input_sizes=self.input_shape, filter_sizes=[self.fh, self.fw, self.fin, self.fout], init=self.init, strides=self.strides, padding="SAME", name=self.name + '_conv')
-        # self.conv = ConvolutionDW(input_sizes=self.input_shape, filter_sizes=self.filter_shape, init=self.init, strides=self.strides, padding="SAME", name=self.name + '_conv')
+        # self.conv = Convolution(input_sizes=self.input_shape, filter_sizes=[self.fh, self.fw, self.fin, self.fout], init=self.init, strides=self.strides, padding="SAME", name=self.name + '_conv')
+        self.conv = ConvolutionDW(input_sizes=self.input_shape, filter_sizes=self.filter_shape, init=self.init, strides=self.strides, padding="SAME", name=self.name + '_conv')
         self.bn = BatchNorm(input_size=self.output_shape, name=self.name + '_bn')
         self.relu = Relu()
 

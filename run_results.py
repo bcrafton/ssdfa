@@ -16,7 +16,7 @@ cmd_args = parser.parse_args()
 ##############################################
 
 num_gpus = 4
-counter = 0
+counter = 2
 
 def run_command(param):
     global num_gpus, counter

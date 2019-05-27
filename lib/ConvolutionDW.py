@@ -13,8 +13,10 @@ class ConvolutionDW(Layer):
         self.input_sizes = input_sizes
         self.filter_sizes = filter_sizes
         self.batch_size, self.h, self.w, self.fin = self.input_sizes
-        self.fh, self.fw, self.fin, self.fout = self.filter_sizes
-        
+        # ah we copy and pasted the "Convolution" header here and erased this part causing the error with bias
+        self.fh, self.fw, self.fin, self.factor = self.filter_sizes
+        self.fout = self.fin * self.factor
+
         bias = np.ones(shape=self.fout) * bias
         
         self.strides = strides
@@ -55,7 +57,7 @@ class ConvolutionDW(Layer):
         return filter_weights_size + bias_weights_size
                 
     def forward(self, X):
-        Z = tf.nn.depthwise_conv2d(X, self.filters, self.strides, self.padding) # + tf.reshape(self.bias, [1, 1, self.fout])
+        Z = tf.nn.depthwise_conv2d(X, self.filters, self.strides, self.padding)
         A = self.activation.forward(Z)
         return {'aout':A, 'cache':{}}
         
@@ -70,8 +72,8 @@ class ConvolutionDW(Layer):
     
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DF = tf.nn.depthwise_conv2d_native_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
-        DB = tf.reduce_sum(DO, axis=[0, 1, 2])
-        return [(DF, self.filters), (DB, self.bias)]     
+
+        return [(DF, self.filters)]     
 
     ################################################################### 
         
