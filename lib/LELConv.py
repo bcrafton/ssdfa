@@ -28,7 +28,7 @@ class LELConv(Layer):
         self.num_classes = num_classes
         self.name = name
 
-        l0 = Convolution(input_sizes=self.input_shape, filter_sizes=self.filter_sizes, init='alexnet', strides=[1,1,1,1], padding="SAME", activation=Relu())
+        # l0 = Convolution(input_sizes=self.input_shape, filter_sizes=self.filter_sizes, init='alexnet', strides=[1,1,1,1], padding="SAME", activation=Relu())
 
         l1 = AvgPool(size=self.input_shape, ksize=self.ksize, strides=self.ksize, padding='SAME')
 
@@ -38,7 +38,7 @@ class LELConv(Layer):
         l3_input_shape = l2.output_shape()
         l3 = FullyConnected(input_shape=l3_input_shape, size=self.num_classes, init='alexnet', activation=Linear(), bias=0., name=self.name)
         
-        self.B = Model(layers=[l0, l1, l2, l3])
+        self.B = Model(layers=[l1, l2, l3])
         
     ###################################################################
     
@@ -82,8 +82,7 @@ class LELConv(Layer):
     ###################################################################   
         
     def lel_backward(self, AI, AO, E, DO, Y):
-        DO = self.B.backwards(AI, Y) * DO
-        # DO = self.B.backwards(DO, Y)
+        DO = self.B.backwards(AI, Y)
         return DO
         
     def lel_gv(self, AI, AO, E, DO, Y):

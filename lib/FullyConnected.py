@@ -5,11 +5,11 @@ import math
 
 from lib.Layer import Layer 
 from lib.Activation import Activation
-from lib.Activation import Sigmoid
+from lib.Activation import Linear
 
 class FullyConnected(Layer):
 
-    def __init__(self, input_shape, size, init, activation, bias=0, alpha=0., name=None, load=None, train=True, fa=False):
+    def __init__(self, input_shape, size, init, activation=None, bias=0., alpha=0., name=None, load=None, train=True):
 
         self.input_size = input_shape
         self.output_size = size
@@ -18,10 +18,9 @@ class FullyConnected(Layer):
         bias = np.ones(shape=self.output_size) * bias
 
         self.alpha = alpha
-        self.activation = activation
+        self.activation = Linear() if activation == None else activation
         self.name = name
         self._train = train
-        self.fa = fa
 
         if load:
             print ("Loading Weights: " + self.name)
@@ -39,12 +38,9 @@ class FullyConnected(Layer):
             else:
                 # glorot
                 assert(False)
-
-        fb = np.copy(weights)
         
         self.weights = tf.Variable(weights, dtype=tf.float32)
         self.bias = tf.Variable(bias, dtype=tf.float32)
-        self.fb = tf.Variable(fb, dtype=tf.float32)
 
     ###################################################################
         
@@ -57,7 +53,7 @@ class FullyConnected(Layer):
         return weights_size + bias_size
 
     def forward(self, X):
-        Z = tf.matmul(X, self.weights) + self.bias
+        Z = tf.matmul(X, self.weights) # + self.bias
         A = self.activation.forward(Z)
         return A
 
@@ -65,12 +61,7 @@ class FullyConnected(Layer):
             
     def backward(self, AI, AO, DO):
         DO = tf.multiply(DO, self.activation.gradient(AO))
-        
-        if self.fa:
-            DI = tf.matmul(DO, tf.transpose(self.fb))
-        else:
-            DI = tf.matmul(DO, tf.transpose(self.weights))
-        
+        DI = tf.matmul(DO, tf.transpose(self.weights))
         return DI
         
     def gv(self, AI, AO, DO):
@@ -137,39 +128,13 @@ class FullyConnected(Layer):
     ###################################################################
         
     def lel_backward(self, AI, AO, E, DO, Y):
-        # DI = tf.ones(shape=(tf.shape(AI)))
-        DO = self.activation.gradient(AO)
-        DI = tf.matmul(DO, tf.transpose(tf.abs(self.weights)))
-        return DI
+        return tf.zeros(shape=(tf.shape(AI)))
+        # return self.backward(AI, AO, DO)
 
     def lel_gv(self, AI, AO, E, DO, Y):
-        if not self._train:
-            return []
-
-        N = tf.shape(AI)[0]
-        N = tf.cast(N, dtype=tf.float32)
-
-        DO = tf.multiply(DO, self.activation.gradient(AO))
-        DW = tf.matmul(tf.transpose(AI), DO) 
-        DB = tf.reduce_sum(DO, axis=0)
-        
-        return [(DW, self.weights), (DB, self.bias)]
+        return self.gv(AI, AO, DO)
         
     def lel(self, AI, AO, E, DO, Y):
-        if not self._train:
-            return []
-
-        N = tf.shape(AI)[0]
-        N = tf.cast(N, dtype=tf.float32)
-
-        DO = tf.multiply(DO, self.activation.gradient(AO))
-        DW = tf.matmul(tf.transpose(AI), DO) 
-        DB = tf.reduce_sum(DO, axis=0)
-
-        self.weights = self.weights.assign(tf.subtract(self.weights, tf.scalar_mul(self.alpha, DW)))
-        self.bias = self.bias.assign(tf.subtract(self.bias, tf.scalar_mul(self.alpha, DB)))
-        
-        return [(DW, self.weights), (DB, self.bias)]
-        
+        return self.train(AI, AO, DO)
         
         
