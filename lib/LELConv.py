@@ -57,12 +57,10 @@ class LELConv(Layer):
     ###################################################################           
         
     def backward(self, AI, AO, DO, cache=None):    
-        DI = self.B.backwards(AI, Y)
-        return {'dout':DI, 'cache':cache}
+        return {'dout':DO, 'cache':{}}
 
     def gv(self, AI, AO, DO, cache=None):    
-        gvs = self.B.gvs(AI, Y)
-        return gvs
+        return []
         
     def train(self, AI, AO, DO): 
         return []
@@ -81,13 +79,15 @@ class LELConv(Layer):
     ###################################################################   
         
     def lel_backward(self, AI, AO, E, DO, Y):
-        assert(False)
+        DI = self.B.backwards(AI, Y)
+        return {'dout':DI, 'cache':{}}
         
     def lel_gv(self, AI, AO, E, DO, Y):
-        assert(False)
+        gvs = self.B.gvs(AI, Y)
+        return gvs
 
     def lel(self, AI, AO, E, DO, Y): 
-        assert(False)
+        return []
         
     ###################################################################
         

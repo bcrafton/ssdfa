@@ -59,7 +59,30 @@ class Relu(Activation, Layer):
     def train(self, AI, AO, DO): 
         return []
 
-    #############################################
+    ###################################################################
+
+    def lel_backward(self, AI, AO, E, DO):
+        return self.backward(AI, AO, DO)
+
+    def lel_gv(self, AI, AO, E, DO):
+        return self.gv(AI, AO, DO)
+
+    def lel(self, AI, AO, E, DO):
+        return self.train(AI, AO, DO)
+
+    ###################################################################    
+
+    def lel_backward(self, AI, AO, E, DO, Y):
+        return self.backward(AI, AO, DO)
+
+    def lel_gv(self, AI, AO, E, DO, Y):
+        return self.gv(AI, AO, DO)
+
+    def lel(self, AI, AO, E, DO, Y):
+        return self.train(AI, AO, DO)
+
+    ###################################################################
+
 
 # https://theclevermachine.wordpress.com/tag/tanh-function/ 
 class Tanh(Activation):

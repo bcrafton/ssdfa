@@ -123,6 +123,7 @@ class Convolution(Layer):
         
     def lel(self, AI, AO, E, DO, Y): 
         return self.train(AI, AO, DO)
+
     ################################################################### 
         
         

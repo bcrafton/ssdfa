@@ -264,7 +264,7 @@ predict = tf.nn.softmax(model.predict(X=features))
 
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt == "momentum":
     if args.dfa:
-        grads_and_vars = model.dfa_gvs(X=features, Y=labels)
+        grads_and_vars = model.lel_gvs(X=features, Y=labels)
     else:
         grads_and_vars = model.gvs(X=features, Y=labels)
         
@@ -281,7 +281,7 @@ if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt ==
 
 else:
     if args.dfa:
-        train = model.dfa(X=features, Y=labels)
+        train = model.lel(X=features, Y=labels)
     else:
         train = model.train(X=features, Y=labels)
 

@@ -90,13 +90,13 @@ class ConvBlock(Layer):
     ###################################################################   
     
     def lel_backward(self, AI, AO, E, DO, Y):
-        assert(False)
+        return self.backward(AI, AO, DO)
 
     def lel_gv(self, AI, AO, E, DO, Y):
-        assert(False)
+        return self.gv(AI, AO, DO)
         
     def lel(self, AI, AO, E, DO, Y): 
-        assert(False)
+        return self.train(AI, AO, DO)
         
     ###################################################################   
     

@@ -75,6 +75,16 @@ class ConvolutionDW(Layer):
 
         return [(DF, self.filters)]     
 
-    ################################################################### 
-        
+    ###################################################################    
+
+    def lel_backward(self, AI, AO, E, DO, Y):
+        return self.backward(AI, AO, DO)
+
+    def lel_gv(self, AI, AO, E, DO, Y):
+        return self.gv(AI, AO, DO)
+
+    def lel(self, AI, AO, E, DO, Y):
+        return self.train(AI, AO, DO)
+    
+    ###################################################################
         

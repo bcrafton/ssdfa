@@ -112,9 +112,7 @@ class FullyConnected(Layer):
     ###################################################################
         
     def lel_backward(self, AI, AO, E, DO, Y):
-        # DI = tf.zeros_like(AI)
-        DI = self.backward(AI, AO, DO)
-        return DI
+        return self.backward(AI, AO, DO)
 
     def lel_gv(self, AI, AO, E, DO, Y):
         return self.gv(AI, AO, DO)
