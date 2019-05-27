@@ -7,31 +7,27 @@ from lib.Layer import Layer
 
 class ConvolutionDW(Layer):
 
-    def __init__(self, input_sizes, filter_sizes, init, strides, padding, alpha, activation, bias, name=None, load=None, train=True):
+    def __init__(self, input_sizes, filter_sizes, init, strides, padding, alpha=0., activation=None, bias=0., name=None, load=None, train=True):
 
         self.input_sizes = input_sizes
-        self.batch_size, self.h, self.w, self.fin = self.input_sizes
         self.filter_sizes = filter_sizes
-        self.fh, self.fw, self.fin, self.mult = filter_sizes
-        self.fout = self.fin * self.mult
+        self.batch_size, self.h, self.w, self.fin = self.input_sizes
+        self.fh, self.fw, self.fin, self.fout = self.filter_sizes
         
         bias = np.ones(shape=self.fout) * bias
         
         self.strides = strides
         self.padding = padding
         self.alpha = alpha
-        self.activation = activation
+        self.activation = Linear() if activation == None else activation
         self.name = name
         self._train = train
-
+        
         if load:
             print ("Loading Weights: " + self.name)
             weight_dict = np.load(load, encoding='latin1').item()
             filters = weight_dict[self.name]
-            if list(np.shape(filters)) != self.filter_sizes:
-                print (np.shape(filters), self.filter_sizes)
-                assert(list(np.shape(filters)) == self.filter_sizes)
-            # bias = weight_dict[self.name + '_bias']
+            bias = weight_dict[self.name + '_bias']
         else:
             if init == "zero":
                 filters = np.zeros(shape=self.filter_sizes)
