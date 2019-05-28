@@ -4,9 +4,12 @@ import numpy as np
 np.set_printoptions(threshold=1000)
 
 class Model:
-    def __init__(self, layers : tuple):
+    def __init__(self, layers, nbatch, nclass):
         self.num_layers = len(layers)
         self.layers = layers
+        self.nbatch = nbatch
+        self.nclass = nclass
+        self.bias = tf.Variable(np.zeros(shape=(self.nbatch, self.nclass)), dtype=tf.float32)
         
     def num_params(self):
         param_sum = 0
@@ -135,11 +138,11 @@ class Model:
                 A[ii] = l.forward(X)
             else:
                 A[ii] = l.forward(A[ii-1])
-            
-        E = tf.nn.softmax(A[self.num_layers-1]) - Y
-        N = tf.shape(A[self.num_layers-1])[0]
-        N = tf.cast(N, dtype=tf.float32)
-        E = E / N
+
+        pred = A[self.num_layers-1] + self.bias
+        loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=Y, logits=pred)
+        grads = tf.gradients(loss, [self.bias])
+        E = grads[0] / self.nbatch
             
         for ii in range(self.num_layers-1, -1, -1):
             l = self.layers[ii]

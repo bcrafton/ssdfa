@@ -80,13 +80,13 @@ learning_rate = tf.placeholder(tf.float32, shape=())
 X = tf.placeholder(tf.float32, [None, 784])
 Y = tf.placeholder(tf.float32, [None, 10])
 
-l0 = FullyConnected(size=[784, 400], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Tanh(), bias=args.bias, l2=args.l2, last_layer=False, name="fc1")
+l0 = FullyConnected(size=[784, 400], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Relu(), bias=args.bias, l2=args.l2, last_layer=False, name="fc1")
 l1 = Dropout(rate=dropout_rate)
 l2 = FeedbackFC(size=[784, 400], num_classes=10, sparse=args.sparse, rank=args.rank, name="fc1_fb")
 
 l3 = FullyConnected(size=[400, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, l2=args.l2, last_layer=True, name="fc2")
 
-model = Model(layers=[l0, l1, l2, l3])
+model = Model(layers=[l0, l1, l2, l3], nbatch=args.batch_size, nclass=10)
 
 ##############################################
 
