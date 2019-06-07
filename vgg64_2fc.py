@@ -71,7 +71,6 @@ from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
 from lib.BatchNorm import BatchNorm
-from lib.LELConv import LELConv
 
 from lib.Activation import Activation
 from lib.Activation import Sigmoid
@@ -235,42 +234,44 @@ learning_rate = tf.placeholder(tf.float32, shape=())
 l1_1 = Convolution(input_sizes=[batch_size, 64, 64, 3], filter_sizes=[3, 3, 3, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv1")
 l1_2 = BatchNorm(input_size=[args.batch_size, 64, 64, 64], name='conv1_bn')
 l1_3 = Relu()
-l1_4 = LELConv(input_shape=[args.batch_size, 64, 64, 64], pool_shape=[1, 8, 8, 1], num_classes=1000, name='conv1_fb')
-l1_5 = Convolution(input_sizes=[batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1, 2, 2, 1], padding="SAME", name="conv2")
-l1_6 = BatchNorm(input_size=[args.batch_size, 64, 64, 64], name='conv2_bn')
-l1_7 = Relu()
-l1_8 = LELConv(input_shape=[args.batch_size, 64, 64, 64], pool_shape=[1, 8, 8, 1], num_classes=1000, name='conv2_fb')
+l1_4 = Convolution(input_sizes=[batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv2")
+l1_5 = BatchNorm(input_size=[args.batch_size, 64, 64, 64], name='conv2_bn')
+l1_6 = Relu()
+l1_7 = AvgPool(size=[batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
 l2_1 = Convolution(input_sizes=[batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv3")
 l2_2 = BatchNorm(input_size=[args.batch_size, 32, 32, 128], name='conv3_bn')
 l2_3 = Relu()
-l2_4 = LELConv(input_shape=[args.batch_size, 32, 32, 128], pool_shape=[1, 4, 4, 1], num_classes=1000, name='conv1_fb')
-l2_5 = Convolution(input_sizes=[batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 128], init=args.init, strides=[1, 2, 2, 1], padding="SAME", name="conv4")
-l2_6 = BatchNorm(input_size=[args.batch_size, 32, 32, 128], name='conv4_bn')
-l2_7 = Relu()
-l2_8 = LELConv(input_shape=[args.batch_size, 32, 32, 128], pool_shape=[1, 4, 4, 1], num_classes=1000, name='conv2_fb')
+l2_4 = Convolution(input_sizes=[batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv4")
+l2_5 = BatchNorm(input_size=[args.batch_size, 32, 32, 128], name='conv4_bn')
+l2_6 = Relu()
+l2_7 = AvgPool(size=[batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
 l3_1 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 256], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv5")
 l3_2 = BatchNorm(input_size=[args.batch_size, 16, 16, 256], name='conv5_bn')
 l3_3 = Relu()
-l3_4 = LELConv(input_shape=[args.batch_size, 16, 16, 256], pool_shape=[1, 4, 4, 1], num_classes=1000, name='conv1_fb')
-l3_5 = Convolution(input_sizes=[batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 256], init=args.init, strides=[1, 2, 2, 1], padding="SAME", name="conv6")
-l3_6 = Relu()
-l3_7 = BatchNorm(input_size=[args.batch_size, 16, 16, 256], name='conv6_bn')
-l3_8 = LELConv(input_shape=[args.batch_size, 16, 16, 256], pool_shape=[1, 4, 4, 1], num_classes=1000, name='conv2_fb')
+l3_4 = Convolution(input_sizes=[batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 256], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv6")
+l3_5 = Relu()
+l3_6 = BatchNorm(input_size=[args.batch_size, 16, 16, 256], name='conv6_bn')
+l3_7 = AvgPool(size=[batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
 l4_1 = Convolution(input_sizes=[batch_size, 8, 8, 256], filter_sizes=[3, 3, 256, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv7")
 l4_2 = BatchNorm(input_size=[args.batch_size, 8, 8, 512], name='conv7_bn')
 l4_3 = Relu()
-l4_4 = LELConv(input_shape=[args.batch_size, 8, 8, 512], pool_shape=[1, 2, 2, 1], num_classes=1000, name='conv1_fb')
-l4_5 = Convolution(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 512, 512], init=args.init, strides=[1, 2, 2, 1], padding="SAME", name="conv8")
-l4_6 = Relu()
-l4_7 = BatchNorm(input_size=[args.batch_size, 8, 8, 512], name='conv8_bn')
-l4_8 = LELConv(input_shape=[args.batch_size, 8, 8, 512], pool_shape=[1, 2, 2, 1], num_classes=1000, name='conv2_fb')
+l4_4 = Convolution(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 512, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv8")
+l4_5 = Relu()
+l4_6 = BatchNorm(input_size=[args.batch_size, 8, 8, 512], name='conv8_bn')
+l4_7 = AvgPool(size=[batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="VALID")
 
 l5 = ConvToFullyConnected(input_shape=[4, 4, 512])
 
-l6 = FullyConnected(input_shape=4*4*512, size=1000, init=args.init, name="fc1", load=weights_fc, train=train_fc)
+l6_1 = FullyConnected(input_shape=4*4*512, size=4096, init=args.init, name="fc1")
+# def need a batch norm here.
+l6_2 = Relu()
+
+l7 = Dropout(rate=dropout_rate)
+
+l8 = FullyConnected(input_shape=4096, size=1000, init=args.init, name="fc2")
 
 ###############################################################
 
@@ -280,7 +281,9 @@ model = Model(layers=[                                          \
                       l3_1, l3_2, l3_3, l3_4, l3_5, l3_6, l3_7, \
                       l4_1, l4_2, l4_3, l4_4, l4_5, l4_6, l4_7, \
                       l5,                                       \
-                      l6,                                       \
+                      l6_1, l6_2,                               \
+                      l7,                                       \
+                      l8                                        \
                       ])
 
 predict = tf.nn.softmax(model.predict(X=features))
