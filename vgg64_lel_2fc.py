@@ -270,7 +270,13 @@ l4_8 = LELConv(input_shape=[args.batch_size, 8, 8, 512], pool_shape=[1, 2, 2, 1]
 
 l5 = ConvToFullyConnected(input_shape=[4, 4, 512])
 
-l6 = FullyConnected(input_shape=4*4*512, size=1000, init=args.init, name="fc1", load=weights_fc, train=train_fc)
+l6_1 = FullyConnected(input_shape=4*4*512, size=4096, init=args.init, name="fc1")
+# def need a batch norm here.
+l6_2 = Relu()
+
+l7 = Dropout(rate=dropout_rate)
+
+l8 = FullyConnected(input_shape=4096, size=1000, init=args.init, name="fc2")
 
 ###############################################################
 
@@ -280,7 +286,9 @@ model = Model(layers=[                                                \
                       l3_1, l3_2, l3_3, l3_4, l3_5, l3_6, l3_7, l3_8, \
                       l4_1, l4_2, l4_3, l4_4, l4_5, l4_6, l4_7, l4_8, \
                       l5,                                             \
-                      l6,                                             \
+                      l6_1, l6_2,                                     \
+                      l7,                                             \
+                      l8                                              \
                       ])
 
 predict = tf.nn.softmax(model.predict(X=features))
