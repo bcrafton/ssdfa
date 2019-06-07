@@ -237,18 +237,18 @@ l1_2 = BatchNorm(input_size=[args.batch_size, 64, 64, 64], name='conv1_bn')
 l1_3 = Relu()
 l1_4 = LELConv(input_shape=[args.batch_size, 64, 64, 64], pool_shape=[1, 8, 8, 1], num_classes=1000, name='conv1_fb')
 l1_5 = Convolution(input_sizes=[batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1, 2, 2, 1], padding="SAME", name="conv2")
-l1_6 = BatchNorm(input_size=[args.batch_size, 64, 64, 64], name='conv2_bn')
+l1_6 = BatchNorm(input_size=[args.batch_size, 32, 32, 64], name='conv2_bn')
 l1_7 = Relu()
-l1_8 = LELConv(input_shape=[args.batch_size, 64, 64, 64], pool_shape=[1, 8, 8, 1], num_classes=1000, name='conv2_fb')
+l1_8 = LELConv(input_shape=[args.batch_size, 32, 32, 64], pool_shape=[1, 8, 8, 1], num_classes=1000, name='conv2_fb')
 
 l2_1 = Convolution(input_sizes=[batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv3")
 l2_2 = BatchNorm(input_size=[args.batch_size, 32, 32, 128], name='conv3_bn')
 l2_3 = Relu()
 l2_4 = LELConv(input_shape=[args.batch_size, 32, 32, 128], pool_shape=[1, 4, 4, 1], num_classes=1000, name='conv1_fb')
 l2_5 = Convolution(input_sizes=[batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 128], init=args.init, strides=[1, 2, 2, 1], padding="SAME", name="conv4")
-l2_6 = BatchNorm(input_size=[args.batch_size, 32, 32, 128], name='conv4_bn')
+l2_6 = BatchNorm(input_size=[args.batch_size, 16, 16, 128], name='conv4_bn')
 l2_7 = Relu()
-l2_8 = LELConv(input_shape=[args.batch_size, 32, 32, 128], pool_shape=[1, 4, 4, 1], num_classes=1000, name='conv2_fb')
+l2_8 = LELConv(input_shape=[args.batch_size, 16, 16, 128], pool_shape=[1, 4, 4, 1], num_classes=1000, name='conv2_fb')
 
 l3_1 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 256], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv5")
 l3_2 = BatchNorm(input_size=[args.batch_size, 16, 16, 256], name='conv5_bn')
@@ -256,8 +256,8 @@ l3_3 = Relu()
 l3_4 = LELConv(input_shape=[args.batch_size, 16, 16, 256], pool_shape=[1, 4, 4, 1], num_classes=1000, name='conv1_fb')
 l3_5 = Convolution(input_sizes=[batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 256], init=args.init, strides=[1, 2, 2, 1], padding="SAME", name="conv6")
 l3_6 = Relu()
-l3_7 = BatchNorm(input_size=[args.batch_size, 16, 16, 256], name='conv6_bn')
-l3_8 = LELConv(input_shape=[args.batch_size, 16, 16, 256], pool_shape=[1, 4, 4, 1], num_classes=1000, name='conv2_fb')
+l3_7 = BatchNorm(input_size=[args.batch_size, 8, 8, 256], name='conv6_bn')
+l3_8 = LELConv(input_shape=[args.batch_size, 8, 8, 256], pool_shape=[1, 4, 4, 1], num_classes=1000, name='conv2_fb')
 
 l4_1 = Convolution(input_sizes=[batch_size, 8, 8, 256], filter_sizes=[3, 3, 256, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv7")
 l4_2 = BatchNorm(input_size=[args.batch_size, 8, 8, 512], name='conv7_bn')
@@ -265,8 +265,8 @@ l4_3 = Relu()
 l4_4 = LELConv(input_shape=[args.batch_size, 8, 8, 512], pool_shape=[1, 2, 2, 1], num_classes=1000, name='conv1_fb')
 l4_5 = Convolution(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 512, 512], init=args.init, strides=[1, 2, 2, 1], padding="SAME", name="conv8")
 l4_6 = Relu()
-l4_7 = BatchNorm(input_size=[args.batch_size, 8, 8, 512], name='conv8_bn')
-l4_8 = LELConv(input_shape=[args.batch_size, 8, 8, 512], pool_shape=[1, 2, 2, 1], num_classes=1000, name='conv2_fb')
+l4_7 = BatchNorm(input_size=[args.batch_size, 4, 4, 512], name='conv8_bn')
+l4_8 = LELConv(input_shape=[args.batch_size, 4, 4, 512], pool_shape=[1, 2, 2, 1], num_classes=1000, name='conv2_fb')
 
 l5 = ConvToFullyConnected(input_shape=[4, 4, 512])
 
@@ -431,22 +431,22 @@ for ii in range(0, epochs):
     if phase == 0:
         phase = 1
     elif phase == 1:
-        dacc = train_accs[-1] - train_accs[-2]
+        dacc = val_accs[-1] - val_accs[-2]
         if dacc <= 0.01:
             alpha = 0.1 * args.alpha
             phase = 2
     elif phase == 2:
-        dacc = train_accs[-1] - train_accs[-2]
+        dacc = val_accs[-1] - val_accs[-2]
         if dacc <= 0.001:
             alpha = 0.01 * args.alpha
             phase = 3
     elif phase == 3:
-        dacc = train_accs[-1] - train_accs[-2]
+        dacc = val_accs[-1] - val_accs[-2]
         if dacc <= 0.0001:
             alpha = 0.001 * args.alpha
             phase = 4
     elif phase == 4:
-        dacc = train_accs[-1] - train_accs[-2]
+        dacc = val_accs[-1] - val_accs[-2]
         if dacc <= 0.00001:
             alpha = 0.0001 * args.alpha
             phase = 5
