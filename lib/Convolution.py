@@ -21,6 +21,8 @@ class Convolution(Layer):
         bias = np.ones(shape=self.fout) * bias
         
         self.strides = strides
+        _, self.sh, self.sw, _ = self.strides
+
         self.padding = padding
         self.alpha = alpha
         self.activation = Linear() if activation == None else activation

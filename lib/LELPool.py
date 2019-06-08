@@ -18,8 +18,6 @@ from lib.AvgPool import AvgPool
 from lib.Activation import Relu
 from lib.Activation import Linear
 
-from lib.BatchNorm import BatchNorm
-
 class LELConv(Layer):
 
     def __init__(self, input_shape, pool_shape, num_classes, name=None):
@@ -29,21 +27,15 @@ class LELConv(Layer):
         self.num_classes = num_classes
         self.name = name
 
-        l0 = AvgPool(size=self.input_shape, ksize=self.pool_shape, strides=self.pool_shape, padding='SAME')
+        l1 = AvgPool(size=self.input_shape, ksize=self.pool_shape, strides=self.pool_shape, padding='SAME')
 
-        l1_input_shape = [self.batch_size] + l0.output_shape()
-        l1 = Convolution(input_sizes=l1_input_shape, filter_sizes=[1, 1, self.fin, self.fin], init='alexnet', strides=[1, 1, 1, 1], padding="SAME", name=self.name + "_conv")
-
-        l2_input_shape = [self.batch_size] + l1.output_shape()
-        l2 = BatchNorm(input_size=l2_input_shape, name=self.name + '_conv_bn')
-
+        l2_input_shape = l1.output_shape()
+        l2 = ConvToFullyConnected(input_shape=l2_input_shape)
+        
         l3_input_shape = l2.output_shape()
-        l3 = ConvToFullyConnected(input_shape=l3_input_shape)
+        l3 = FullyConnected(input_shape=l3_input_shape, size=self.num_classes, init='alexnet', activation=Linear(), bias=0., name=self.name)
         
-        l4_input_shape = l3.output_shape()
-        l4 = FullyConnected(input_shape=l4_input_shape, size=self.num_classes, init='alexnet', activation=Linear(), bias=0., name=self.name)
-        
-        self.B = Model(layers=[l0, l1, l2, l3, l4])
+        self.B = Model(layers=[l1, l2, l3])
         
     ###################################################################
     
