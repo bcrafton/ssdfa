@@ -91,7 +91,7 @@ vgg64_mlp = {'benchmark':'vgg64_mlp.py', 'epochs':5, 'batch_size':64, 'alpha':[0
 
 vgg64_2fc = {'benchmark':'vgg64_2fc.py', 'epochs':30, 'batch_size':64, 'alpha':[0.03, 0.01], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':[0, 1], 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':None}
 
-vgg64_lel_2fc = {'benchmark':'vgg64_lel_2fc.py', 'epochs':10, 'batch_size':64, 'alpha':[0.01, 0.03, 0.05], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':[1], 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':None}
+vgg64_lel_2fc = {'benchmark':'vgg64_lel_2fc.py', 'epochs':30, 'batch_size':64, 'alpha':[0.01, 0.03, 0.05], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':[1], 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':None}
 
 ################################################
 
