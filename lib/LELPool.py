@@ -14,9 +14,10 @@ from lib.ConvToFullyConnected import ConvToFullyConnected
 from lib.FullyConnected import FullyConnected
 from lib.Convolution import Convolution
 from lib.MaxPool import MaxPool
-from lib.AvgPool import AvgPool
 from lib.Activation import Relu
 from lib.Activation import Linear
+
+from lib.AvgPoolZ import AvgPool
 
 class LELConv(Layer):
 
