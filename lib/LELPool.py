@@ -19,7 +19,7 @@ from lib.Activation import Linear
 
 from lib.AvgPoolZ import AvgPool
 
-class LELConv(Layer):
+class LELPool(Layer):
 
     def __init__(self, input_shape, pool_shape, num_classes, name=None):
         self.input_shape = input_shape
