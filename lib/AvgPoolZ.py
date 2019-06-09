@@ -32,6 +32,7 @@ class AvgPool(Layer):
         self.oh = self.h   // self.kh
         self.ow = self.w   // self.kw
         self.oz = self.fin // self.kz
+        self.scale = self.kw * self.kw * self.kz
 
     ###################################################################
 
@@ -49,6 +50,7 @@ class AvgPool(Layer):
         
         A = tf.reshape(X, [self.batch_size, self.kh, self.oh, self.kw, self.ow, self.kz, self.oz])
         A = tf.reduce_mean(A, [1, 3, 5])
+
         return {'aout':A, 'cache':{}}
             
     ###################################################################           
@@ -56,11 +58,11 @@ class AvgPool(Layer):
     def backward(self, AI, AO, DO, cache=None):    
         # DI = gen_nn_ops.avg_pool_grad(orig_input_shape=self.size, grad=DO, ksize=self.ksize, strides=self.strides, padding=self.padding)
         
-        DI = tf.reshape(DO, [self.batch_size, 1, self.oh, 1, self.ow, 1, self.oz])
-
-        DI = tf.zeros(shape=[self.batch_size, self.kh, self.oh, self.kw, self.ow, self.kz, self.oz]) + (1. / (self.kw * self.kw * self.kz)) * DI
-
+        DI = tf.reshape(DO, [self.batch_size, self.oh, 1, self.ow, 1, self.oz, 1])
+        DI = tf.tile(DI, [1, 1, self.kh, 1, self.kw, 1, self.kz])
+        DI = 1. / self.scale * DI
         DI = tf.reshape(DI, [self.batch_size, self.h, self.w, self.fin])
+
         return {'dout':DI, 'cache':{}}
 
     def gv(self, AI, AO, DO, cache=None):    
