@@ -372,13 +372,8 @@ for ii in range(0, epochs):
     for j in range(0, len(train_filenames), batch_size):
         print (j)
         
-        [_total_correct, _total_top5, gvs, _] = sess.run([total_correct, total_top5, grads_and_vars, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
-        '''
-        for ii in range(len(gvs)):
-            shape = np.shape(gvs[ii][0])
-            if len(shape) == 4:
-                print (shape, np.std(gvs[ii][0]))
-        '''
+        [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
+
         train_total += batch_size
         train_correct += _total_correct
         train_top5 += _total_top5

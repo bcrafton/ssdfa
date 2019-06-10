@@ -350,7 +350,11 @@ for ii in range(0, epochs):
         losses.append(_loss)
         
         if (j % (args.batch_size * 100) == 0):
-            print (np.average(losses))
+            p = "loss: %f" % (np.average(losses))
+            print (p)
+            f = open(results_filename, "a")
+            f.write(p + "\n")
+            f.close()
 
     ##################################################################
 
