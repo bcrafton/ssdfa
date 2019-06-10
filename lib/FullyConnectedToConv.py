@@ -8,9 +8,9 @@ from lib.Layer import Layer
 class FullyConnectedToConv(Layer):
 
     def __init__(self, input_shape, output_shape):
-        self.shape_in = shape_in
+        self.input_shape = input_shape
         self.batch, self.size = self.input_shape
-        self.shape_out = shape_out
+        self.output_shape = output_shape
         tmp, self.h, self.w, self.c = self.output_shape
         assert(self.batch == tmp)
         

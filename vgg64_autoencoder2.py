@@ -248,8 +248,8 @@ l4_3 = Relu()
 
 #### 
 
-l5_1 = FullyConnectedToConv(input_shape=[args.batch_size, 4096], output_shape=[args.batch_size, 8, 8, 256])
-l5_2 = FullyConnected(input_shape=4096, size=8*8*256, init=args.init, name="fc1")
+l5_1 = FullyConnected(input_shape=4096, size=8*8*256, init=args.init, name="fc2")
+l5_2 = FullyConnectedToConv(input_shape=[args.batch_size, 8*8*256], output_shape=[args.batch_size, 8, 8, 256])
 
 l6_1 = Convolution(input_sizes=[args.batch_size, 8, 8, 256], filter_sizes=[3, 3, 256, 256], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv7")
 l6_2 = Convolution(input_sizes=[args.batch_size, 8, 8, 256], filter_sizes=[3, 3, 256, 128], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv8")
