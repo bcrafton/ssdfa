@@ -10,7 +10,7 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=100)
-parser.add_argument('--batch_size', type=int, default=128)
+parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--alpha', type=float, default=1e-2)
 parser.add_argument('--l2', type=float, default=0.)
 parser.add_argument('--decay', type=float, default=1.)
@@ -68,15 +68,9 @@ from lib.Convolution import Convolution
 from lib.AvgPool import AvgPool
 from lib.UpSample import UpSample
 from lib.Dropout import Dropout
-from lib.FeedbackFC import FeedbackFC
-from lib.FeedbackConv import FeedbackConv
 
 from lib.Activation import Activation
-from lib.Activation import Sigmoid
 from lib.Activation import Relu
-from lib.Activation import Tanh
-from lib.Activation import Softmax
-from lib.Activation import LeakyRelu
 from lib.Activation import Linear
 
 ##############################################
@@ -263,13 +257,13 @@ l6_3 = UpSample(input_shape=[args.batch_size, 32, 32, 3], ksize=2)
 
 ###############################################################
 
-model = Model(layers=[                              \
-                      l1_1, l1_2, l1_3, l1_4, l1_5, \
-                      l2_1, l2_2, l2_3, l2_4, l2_5, \
-                      l3_1, l3_2, l3_3, l3_4, l3_5, \
-                      l4_1, l4_2, l4_3,             \
-                      l5_1, l5_1, l5_3,             \
-                      l6_1, l6_2, l6_3              \
+model = Model(layers=[                              
+                      l1_1, l1_2, l1_3, l1_4, l1_5, 
+                      l2_1, l2_2, l2_3, l2_4, l2_5, 
+                      l3_1, l3_2, l3_3, l3_4, l3_5, 
+                      l4_1, l4_2, l4_3,             
+                      l5_1, l5_2, l5_3,             
+                      l6_1, l6_2, l6_3              
                       ])
 
 grads_and_vars, loss = model.gvs(X=features, Y=features)
