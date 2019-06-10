@@ -71,8 +71,7 @@ from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
 from lib.BatchNorm import BatchNorm
 
-from lib.AvgPoolZ import AvgPool
-from lib.LELPool import LELPool
+# from lib.AvgPoolZ import AvgPool
 from lib.LELPool import LELPool
 
 from lib.Activation import Activation
@@ -237,11 +236,11 @@ learning_rate = tf.placeholder(tf.float32, shape=())
 l1_1 = Convolution(input_sizes=[batch_size, 64, 64, 3], filter_sizes=[3, 3, 3, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv1")
 l1_2 = BatchNorm(input_size=[args.batch_size, 64, 64, 64], name='conv1_bn')
 l1_3 = Relu()
-l1_4 = LELPool(input_shape=[args.batch_size, 64, 64, 64], pool_shape=[1, 4, 4, 1], num_classes=1000, name='conv1_fb')
+l1_4 = LELPool(input_shape=[args.batch_size, 64, 64, 64], pool_shape=[1, 8, 8, 1], num_classes=1000, name='conv1_fb')
 l1_5 = Convolution(input_sizes=[batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1, 2, 2, 1], padding="SAME", name="conv2")
 l1_6 = BatchNorm(input_size=[args.batch_size, 32, 32, 64], name='conv2_bn')
 l1_7 = Relu()
-l1_8 = LELPool(input_shape=[args.batch_size, 32, 32, 64], pool_shape=[1, 4, 4, 1], num_classes=1000, name='conv2_fb')
+l1_8 = LELPool(input_shape=[args.batch_size, 32, 32, 64], pool_shape=[1, 8, 8, 1], num_classes=1000, name='conv2_fb')
 
 l2_1 = Convolution(input_sizes=[batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv3")
 l2_2 = BatchNorm(input_size=[args.batch_size, 32, 32, 128], name='conv3_bn')
@@ -255,11 +254,11 @@ l2_8 = LELPool(input_shape=[args.batch_size, 16, 16, 128], pool_shape=[1, 4, 4, 
 l3_1 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 256], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv5")
 l3_2 = BatchNorm(input_size=[args.batch_size, 16, 16, 256], name='conv5_bn')
 l3_3 = Relu()
-l3_4 = LELPool(input_shape=[args.batch_size, 16, 16, 256], pool_shape=[1, 2, 2, 1], num_classes=1000, name='conv1_fb')
+l3_4 = LELPool(input_shape=[args.batch_size, 16, 16, 256], pool_shape=[1, 4, 4, 1], num_classes=1000, name='conv1_fb')
 l3_5 = Convolution(input_sizes=[batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 256], init=args.init, strides=[1, 2, 2, 1], padding="SAME", name="conv6")
 l3_6 = Relu()
 l3_7 = BatchNorm(input_size=[args.batch_size, 8, 8, 256], name='conv6_bn')
-l3_8 = LELPool(input_shape=[args.batch_size, 8, 8, 256], pool_shape=[1, 2, 2, 1], num_classes=1000, name='conv2_fb')
+l3_8 = LELPool(input_shape=[args.batch_size, 8, 8, 256], pool_shape=[1, 4, 4, 1], num_classes=1000, name='conv2_fb')
 
 l4_1 = Convolution(input_sizes=[batch_size, 8, 8, 256], filter_sizes=[3, 3, 256, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv7")
 l4_2 = BatchNorm(input_size=[args.batch_size, 8, 8, 512], name='conv7_bn')
