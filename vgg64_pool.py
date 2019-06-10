@@ -185,11 +185,6 @@ filename = tf.placeholder(tf.string, shape=[None])
 ###############################################################
 
 val_dataset = tf.data.TFRecordDataset(filename)
-# val_dataset = tf.data.Dataset.from_tensor_slices((filename, label))
-# val_dataset = val_dataset.shuffle(len(val_filenames))
-# val_dataset.list_files(shuffle=True)
-# val_dataset = val_dataset.map(parse_function, num_parallel_calls=4)
-# val_dataset = val_dataset.map(preprocess, num_parallel_calls=4)
 val_dataset = val_dataset.map(extract_fn, num_parallel_calls=4)
 val_dataset = val_dataset.batch(batch_size)
 val_dataset = val_dataset.repeat()
@@ -198,12 +193,6 @@ val_dataset = val_dataset.prefetch(8)
 ###############################################################
 
 train_dataset = tf.data.TFRecordDataset(filename)
-# train_dataset = tf.data.Dataset.from_tensor_slices((filename, label))
-# train_dataset = train_dataset.shuffle(len(train_filenames))
-# train_dataset = train_dataset.shuffle(50000)
-# train_dataset.list_files(shuffle=True)
-# train_dataset = train_dataset.map(parse_function, num_parallel_calls=4)
-# train_dataset = train_dataset.map(preprocess, num_parallel_calls=4)
 train_dataset = train_dataset.map(extract_fn, num_parallel_calls=4)
 train_dataset = train_dataset.batch(batch_size)
 train_dataset = train_dataset.repeat()
@@ -232,6 +221,8 @@ train_fc = True
 
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
+
+X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), features)
 
 l1_1 = Convolution(input_sizes=[batch_size, 64, 64, 3], filter_sizes=[3, 3, 3, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv1")
 l1_2 = BatchNorm(input_size=[args.batch_size, 64, 64, 64], name='conv1_bn')
@@ -296,14 +287,14 @@ model = Model(layers=[                                                      \
                       l8                                                    \
                       ])
 
-predict = tf.nn.softmax(model.predict(X=features))
+predict = tf.nn.softmax(model.predict(X=X))
 weights = model.get_weights()
 
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt == "momentum":
     if args.dfa:
-        grads_and_vars = model.lel_gvs(X=features, Y=labels)
+        grads_and_vars = model.lel_gvs(X=X, Y=labels)
     else:
-        grads_and_vars = model.gvs(X=features, Y=labels)
+        grads_and_vars = model.gvs(X=X, Y=labels)
         
     if args.opt == "adam":
         train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
@@ -318,9 +309,9 @@ if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt ==
 
 else:
     if args.dfa:
-        train = model.lel(X=features, Y=labels)
+        train = model.lel(X=X, Y=labels)
     else:
-        train = model.train(X=features, Y=labels)
+        train = model.train(X=X, Y=labels)
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
