@@ -133,7 +133,7 @@ def get_val_filenames():
 
     np.random.shuffle(val_filenames)    
 
-    remainder = len(val_filenames) % batch_size
+    remainder = len(val_filenames) % args.batch_size
     val_filenames = val_filenames[:(-remainder)]
 
     return val_filenames
@@ -149,7 +149,7 @@ def get_train_filenames():
     
     np.random.shuffle(train_filenames)
 
-    remainder = len(train_filenames) % batch_size
+    remainder = len(train_filenames) % args.batch_size
     train_filenames = train_filenames[:(-remainder)]
 
     return train_filenames
@@ -183,7 +183,7 @@ filename = tf.placeholder(tf.string, shape=[None])
 
 val_dataset = tf.data.TFRecordDataset(filename)
 val_dataset = val_dataset.map(extract_fn, num_parallel_calls=4)
-val_dataset = val_dataset.batch(batch_size)
+val_dataset = val_dataset.batch(args.batch_size)
 val_dataset = val_dataset.repeat()
 val_dataset = val_dataset.prefetch(8)
 
@@ -191,7 +191,7 @@ val_dataset = val_dataset.prefetch(8)
 
 train_dataset = tf.data.TFRecordDataset(filename)
 train_dataset = train_dataset.map(extract_fn, num_parallel_calls=4)
-train_dataset = train_dataset.batch(batch_size)
+train_dataset = train_dataset.batch(args.batch_size)
 train_dataset = train_dataset.repeat()
 train_dataset = train_dataset.prefetch(8)
 
@@ -229,36 +229,36 @@ learning_rate = tf.placeholder(tf.float32, shape=())
 
 ####
 
-l1_1 = Convolution(input_sizes=[batch_size, 64, 64, 3], filter_sizes=[3, 3, 3, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv1")
+l1_1 = Convolution(input_sizes=[args.batch_size, 64, 64, 3], filter_sizes=[3, 3, 3, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv1")
 l1_2 = Relu()
-l1_3 = Convolution(input_sizes=[batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv2")
+l1_3 = Convolution(input_sizes=[args.batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv2")
 l1_4 = Relu()
 l1_5 = AvgPool(size=[args.batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l2_1 = Convolution(input_sizes=[batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv3")
+l2_1 = Convolution(input_sizes=[args.batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 128], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv3")
 l2_2 = Relu()
-l2_3 = Convolution(input_sizes=[batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv4")
+l2_3 = Convolution(input_sizes=[args.batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 128], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv4")
 l2_4 = Relu()
 l2_5 = AvgPool(size=[args.batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l3_1 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 256], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv5")
+l3_1 = Convolution(input_sizes=[args.batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 256], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv5")
 l3_2 = Relu()
-l3_3 = Convolution(input_sizes=[batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 256], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv6")
+l3_3 = Convolution(input_sizes=[args.batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 256], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv6")
 l3_4 = Relu()
 l3_5 = AvgPool(size=[args.batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
 #### 
 
-l4_1 = Convolution(input_sizes=[args.batch_size, 8, 8, 256], filter_sizes=[3, 3, 256, 256], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv1")
-l4_2 = Convolution(input_sizes=[args.batch_size, 8, 8, 256], filter_sizes=[3, 3, 256, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv2")
+l4_1 = Convolution(input_sizes=[args.batch_size, 8, 8, 256], filter_sizes=[3, 3, 256, 256], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv7")
+l4_2 = Convolution(input_sizes=[args.batch_size, 8, 8, 256], filter_sizes=[3, 3, 256, 128], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv8")
 l4_3 = UpSample(input_shape=[args.batch_size, 8, 8, 128], ksize=2)
 
-l5_1 = Convolution(input_sizes=[args.batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv1")
-l5_2 = Convolution(input_sizes=[args.batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv2")
+l5_1 = Convolution(input_sizes=[args.batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 128], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv9")
+l5_2 = Convolution(input_sizes=[args.batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv10")
 l5_3 = UpSample(input_shape=[args.batch_size, 16, 16, 64], ksize=2)
 
-l6_1 = Convolution(input_sizes=[args.batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv1")
-l6_2 = Convolution(input_sizes=[args.batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 3], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv2")
+l6_1 = Convolution(input_sizes=[args.batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv11")
+l6_2 = Convolution(input_sizes=[args.batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 3], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv12")
 l6_3 = UpSample(input_shape=[args.batch_size, 32, 32, 3], ksize=2)
 
 ###############################################################
@@ -307,12 +307,12 @@ for ii in range(0, epochs):
     sess.run(train_iterator.initializer, feed_dict={filename: train_filenames})
     
     losses = []
-    for j in range(0, len(train_filenames), batch_size):
+    for j in range(0, len(train_filenames), args.batch_size):
 
         [_, _loss] = sess.run([train, loss], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
         losses.append(_loss)
         
-        if (j % (batch_size * 100) == 0):
+        if (j % (args.batch_size * 100) == 0):
             print (np.average(losses))
 
     ##################################################################
