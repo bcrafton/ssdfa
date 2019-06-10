@@ -71,7 +71,7 @@ from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
 from lib.BatchNorm import BatchNorm
 
-# from lib.AvgPoolZ import AvgPool
+from lib.AvgPool import AvgPool
 from lib.LELPool import LELPool
 
 from lib.Activation import Activation
