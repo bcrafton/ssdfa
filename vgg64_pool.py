@@ -271,7 +271,7 @@ l4_5 = Convolution(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 512,
 l4_6 = BatchNorm(input_size=[args.batch_size, 8, 8, 512], name='conv8_bn')
 l4_7 = Relu()
 l4_8 = LELPool(input_shape=[args.batch_size, 8, 8, 512], pool_shape=[1, 2, 2, 1], num_classes=1000, name='conv8_fb')
-l4_7 = AvgPool(size=[args.batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+l4_9 = AvgPool(size=[args.batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
 l5 = ConvToFullyConnected(input_shape=[4, 4, 512])
 
@@ -285,15 +285,15 @@ l8 = FullyConnected(input_shape=4096, size=1000, init=args.init, name="fc2")
 
 ###############################################################
 
-model = Model(layers=[                                                \
-                      l1_1, l1_2, l1_3, l1_4, l1_5, l1_6, l1_7, l1_8, \
-                      l2_1, l2_2, l2_3, l2_4, l2_5, l2_6, l2_7, l2_8, \
-                      l3_1, l3_2, l3_3, l3_4, l3_5, l3_6, l3_7, l3_8, \
-                      l4_1, l4_2, l4_3, l4_4, l4_5, l4_6, l4_7, l4_8, \
-                      l5,                                             \
-                      l6_1, l6_2,                                     \
-                      l7,                                             \
-                      l8                                              \
+model = Model(layers=[                                                      \
+                      l1_1, l1_2, l1_3, l1_4, l1_5, l1_6, l1_7, l1_8, l1_9, \
+                      l2_1, l2_2, l2_3, l2_4, l2_5, l2_6, l2_7, l2_8, l2_9, \
+                      l3_1, l3_2, l3_3, l3_4, l3_5, l3_6, l3_7, l3_8, l3_9, \
+                      l4_1, l4_2, l4_3, l4_4, l4_5, l4_6, l4_7, l4_8, l4_9, \
+                      l5,                                                   \
+                      l6_1, l6_2,                                           \
+                      l7,                                                   \
+                      l8                                                    \
                       ])
 
 predict = tf.nn.softmax(model.predict(X=features))
