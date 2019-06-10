@@ -4,9 +4,11 @@ import numpy as np
 np.set_printoptions(threshold=1000)
 
 class Model:
-    def __init__(self, layers : tuple):
+    def __init__(self, layers, shape_y):
         self.num_layers = len(layers)
         self.layers = layers
+        self.shape_y = shape_y
+        self.bias = tf.Variable(np.zeros(shape=self.shape_y), dtype=tf.float32)
         
     def num_params(self):
         param_sum = 0
@@ -29,11 +31,17 @@ class Model:
             else:
                 A[ii] = l.forward(A[ii-1]['aout'])
 
+        '''
         N = tf.shape(A[self.num_layers-1]['aout'])[0]
         N = tf.cast(N, dtype=tf.float32)
         E = (A[self.num_layers-1]['aout'] - Y) / N
         loss = tf.reduce_sum(tf.pow(E, 2)) 
-
+        '''
+        pred = A[self.num_layers-1]['aout'] + self.bias
+        loss = tf.losses.mean_squared_error(labels=X, predictions=pred)
+        grads = tf.gradients(loss, [self.bias])
+        E = grads[0]
+         
         for ii in range(self.num_layers-1, -1, -1):
             l = self.layers[ii]
 

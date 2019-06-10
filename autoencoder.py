@@ -88,12 +88,15 @@ l5 = Convolution(input_sizes=[args.batch_size, 32, 32, 96], filter_sizes=[5, 5, 
 
 ##############################################
 
-model = Model(layers=[l1_1, l1_2, l1_3, \
-                      l2_1, l2_2, l2_3, \
-                      l3_1, l3_2,       \
-                      l4_1, l4_2,       \
-                      l5                \
-                     ])
+layers = [
+l1_1, l1_2, l1_3, 
+l2_1, l2_2, l2_3, 
+l3_1, l3_2,
+l4_1, l4_2,
+l5
+]
+          
+model = Model(layers=layers, shape_y=[args.batch_size, 32, 32, 3])
                      
 grads_and_vars, loss = model.gvs(X=X, Y=X)
 train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
@@ -137,7 +140,8 @@ for ii in range(args.epochs):
     for jj in range(int(TRAIN_EXAMPLES / args.batch_size)):
         xs = x_train[jj*args.batch_size:(jj+1)*args.batch_size]
         ys = y_train[jj*args.batch_size:(jj+1)*args.batch_size]
-        [_, _gvs] = sess.run([train, grads_and_vars], feed_dict={dropout_rate: args.dropout, learning_rate: lr, X: xs})
+        [_, _loss] = sess.run([train, loss], feed_dict={dropout_rate: args.dropout, learning_rate: lr, X: xs})
+        print (_loss)
     
     #############################
 

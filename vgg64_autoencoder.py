@@ -257,14 +257,16 @@ l6_3 = UpSample(input_shape=[args.batch_size, 32, 32, 3], ksize=2)
 
 ###############################################################
 
-model = Model(layers=[                              
-                      l1_1, l1_2, l1_3, l1_4, l1_5, 
-                      l2_1, l2_2, l2_3, l2_4, l2_5, 
-                      l3_1, l3_2, l3_3, l3_4, l3_5, 
-                      l4_1, l4_2, l4_3,             
-                      l5_1, l5_2, l5_3,             
-                      l6_1, l6_2, l6_3              
-                      ])
+layers=[                              
+l1_1, l1_2, l1_3, l1_4, l1_5, 
+l2_1, l2_2, l2_3, l2_4, l2_5, 
+l3_1, l3_2, l3_3, l3_4, l3_5, 
+l4_1, l4_2, l4_3,             
+l5_1, l5_2, l5_3,             
+l6_1, l6_2, l6_3              
+]
+
+model = Model(layers=layers, shape_y=[args.batch_size, 64, 64, 3])
 
 grads_and_vars, loss = model.gvs(X=features, Y=features)
 train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
