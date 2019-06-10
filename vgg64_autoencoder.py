@@ -65,7 +65,7 @@ from lib.Layer import Layer
 from lib.ConvToFullyConnected import ConvToFullyConnected
 from lib.FullyConnected import FullyConnected
 from lib.Convolution import Convolution
-from lib.MaxPool import MaxPool
+from lib.AvgPool import AvgPool
 from lib.UpSample import UpSample
 from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
@@ -81,7 +81,6 @@ from lib.Activation import Linear
 
 ##############################################
 
-batch_size = args.batch_size
 num_classes = 1000
 epochs = args.epochs
 data_augmentation = False
@@ -250,25 +249,30 @@ l3_5 = AvgPool(size=[args.batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=
 
 #### 
 
-l4_1 = Convolution(input_sizes=[batch_size, 8, 8, 256], filter_sizes=[3, 3, 256, 256], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv1")
-l4_2 = Convolution(input_sizes=[batch_size, 8, 8, 256], filter_sizes=[3, 3, 256, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv2")
+l4_1 = Convolution(input_sizes=[args.batch_size, 8, 8, 256], filter_sizes=[3, 3, 256, 256], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv1")
+l4_2 = Convolution(input_sizes=[args.batch_size, 8, 8, 256], filter_sizes=[3, 3, 256, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv2")
 l4_3 = UpSample(input_shape=[args.batch_size, 8, 8, 128], ksize=2)
 
-l5_1 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv1")
-l5_2 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv2")
+l5_1 = Convolution(input_sizes=[args.batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv1")
+l5_2 = Convolution(input_sizes=[args.batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv2")
 l5_3 = UpSample(input_shape=[args.batch_size, 16, 16, 64], ksize=2)
 
-l6_1 = Convolution(input_sizes=[batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv1")
-l6_2 = Convolution(input_sizes=[batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 3], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv2")
+l6_1 = Convolution(input_sizes=[args.batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv1")
+l6_2 = Convolution(input_sizes=[args.batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 3], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv2")
 l6_3 = UpSample(input_shape=[args.batch_size, 32, 32, 3], ksize=2)
 
 ###############################################################
 
-model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16, l17])
-predict = tf.nn.softmax(model.predict(X=features))
-weights = model.get_weights()
+model = Model(layers=[                              \
+                      l1_1, l1_2, l1_3, l1_4, l1_5, \
+                      l2_1, l2_2, l2_3, l2_4, l2_5, \
+                      l3_1, l3_2, l3_3, l3_4, l3_5, \
+                      l4_1, l4_2, l4_3,             \
+                      l5_1, l5_1, l5_3,             \
+                      l6_1, l6_2, l6_3              \
+                      ])
 
-grads_and_vars, loss = model.gvs(X=X, Y=X)
+grads_and_vars, loss = model.gvs(X=features, Y=features)
 train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
 
 ###############################################################
