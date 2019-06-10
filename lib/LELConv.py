@@ -32,7 +32,7 @@ class LELConv(Layer):
         l0 = AvgPool(size=self.input_shape, ksize=self.pool_shape, strides=self.pool_shape, padding='SAME')
 
         l1_input_shape = [self.batch_size] + l0.output_shape()
-        l1 = Convolution(input_sizes=l1_input_shape, filter_sizes=[1, 1, self.fin, self.fin], init='alexnet', strides=[1, 1, 1, 1], padding="SAME", name=self.name + "_conv")
+        l1 = Convolution(input_sizes=l1_input_shape, filter_sizes=[1, 1, self.fin, self.fin], init='alexnet', strides=[1, 1, 1, 1], padding="SAME", name=self.name + "_conv", train=False)
 
         l2_input_shape = [self.batch_size] + l1.output_shape()
         l2 = BatchNorm(input_size=l2_input_shape, name=self.name + '_conv_bn')
