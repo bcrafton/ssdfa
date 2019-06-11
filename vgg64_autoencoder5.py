@@ -205,11 +205,8 @@ val_iterator = val_dataset.make_initializable_iterator()
 
 ###############################################################
 
-weights_conv = ''
+weights_conv = args.load
 weights_fc = None
-
-train_conv = True
-train_fc = True
 
 if args.act == 'tanh':
     act = Tanh()
@@ -228,34 +225,34 @@ learning_rate = tf.placeholder(tf.float32, shape=())
 X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), features)
 
 l1_1 = Convolution(input_sizes=[args.batch_size, 64, 64, 3], filter_sizes=[3, 3, 3, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv1", load=weights_conv, train=False)
-l1_2 = BatchNorm(input_size=[args.batch_size, 64, 64, 64], name='conv1_bn', load=weights_conv, train=False)
+l1_2 = BatchNorm(input_size=[args.batch_size, 64, 64, 64], name='conv1_bn')
 l1_3 = Relu()
 l1_4 = Convolution(input_sizes=[args.batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv2", load=weights_conv, train=False)
-l1_5 = BatchNorm(input_size=[args.batch_size, 32, 32, 64], name='conv2_bn', load=weights_conv, train=False)
+l1_5 = BatchNorm(input_size=[args.batch_size, 32, 32, 64], name='conv2_bn')
 l1_6 = Relu()
 l1_7 = AvgPool(size=[args.batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
 l2_1 = Convolution(input_sizes=[args.batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 128], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv3", load=weights_conv, train=False)
-l2_2 = BatchNorm(input_size=[args.batch_size, 32, 32, 128], name='conv3_bn', load=weights_conv, train=False)
+l2_2 = BatchNorm(input_size=[args.batch_size, 32, 32, 128], name='conv3_bn')
 l2_3 = Relu()
 l2_4 = Convolution(input_sizes=[args.batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 128], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv4", load=weights_conv, train=False)
-l2_5 = BatchNorm(input_size=[args.batch_size, 16, 16, 128], name='conv4_bn', load=weights_conv, train=False)
+l2_5 = BatchNorm(input_size=[args.batch_size, 16, 16, 128], name='conv4_bn')
 l2_6 = Relu()
 l2_7 = AvgPool(size=[args.batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
 l3_1 = Convolution(input_sizes=[args.batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 256], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv5", load=weights_conv, train=False)
-l3_2 = BatchNorm(input_size=[args.batch_size, 16, 16, 256], name='conv5_bn', load=weights_conv, train=False)
+l3_2 = BatchNorm(input_size=[args.batch_size, 16, 16, 256], name='conv5_bn')
 l3_3 = Relu()
 l3_4 = Convolution(input_sizes=[args.batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 256], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv6", load=weights_conv, train=False)
-l3_5 = BatchNorm(input_size=[args.batch_size, 16, 16, 256], name='conv6_bn', load=weights_conv, train=False)
+l3_5 = BatchNorm(input_size=[args.batch_size, 16, 16, 256], name='conv6_bn')
 l3_6 = Relu()
 l3_7 = AvgPool(size=[args.batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
 l4_1 = Convolution(input_sizes=[args.batch_size, 8, 8, 256], filter_sizes=[3, 3, 256, 512], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv7", load=weights_conv, train=False)
-l4_2 = BatchNorm(input_size=[args.batch_size, 8, 8, 512], name='conv7_bn', load=weights_conv, train=False)
+l4_2 = BatchNorm(input_size=[args.batch_size, 8, 8, 512], name='conv7_bn')
 l4_3 = Relu()
 l4_4 = Convolution(input_sizes=[args.batch_size, 8, 8, 512], filter_sizes=[3, 3, 512, 512], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv8", load=weights_conv, train=False)
-l4_5 = BatchNorm(input_size=[args.batch_size, 8, 8, 512], name='conv8_bn', load=weights_conv, train=False)
+l4_5 = BatchNorm(input_size=[args.batch_size, 8, 8, 512], name='conv8_bn')
 l4_6 = Relu()
 l4_7 = AvgPool(size=[args.batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
@@ -350,7 +347,7 @@ for ii in range(0, epochs):
         losses.append(_loss)
         
         if (j % (args.batch_size * 100) == 0):
-            p = "loss: %f" % (np.average(losses))
+            p = "%d: loss: %f" % (ii, np.average(losses))
             print (p)
             f = open(results_filename, "a")
             f.write(p + "\n")
