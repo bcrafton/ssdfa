@@ -259,7 +259,7 @@ l4_4 = Convolution(input_sizes=[args.batch_size, 8, 8, 512], filter_sizes=[3, 3,
 l4_5 = BatchNorm(input_size=[args.batch_size, 8, 8, 512], name='conv8_bn')
 l4_6 = Relu()
 # l4_7 = AvgPool(size=[args.batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
-
+'''
 l5_1 = ConvToFullyConnected(input_shape=[8, 8, 512])
 l5_2 = FullyConnected(input_shape=8*8*512, size=4096, init=args.init, name="fc1")
 l5_3 = Relu()
@@ -268,7 +268,7 @@ l5_3 = Relu()
 
 l6_1 = FullyConnected(input_shape=4096, size=8*8*512, init=args.init, name="fc2")
 l6_2 = FullyConnectedToConv(input_shape=[args.batch_size, 8*8*512], output_shape=[args.batch_size, 8, 8, 512])
-
+'''
 l7_1 = Convolution(input_sizes=[args.batch_size, 8, 8, 512], filter_sizes=[3, 3, 512, 512], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv9")
 l7_2 = BatchNorm(input_size=[args.batch_size, 8, 8, 512], name='conv9_bn')
 l7_3 = Convolution(input_sizes=[args.batch_size, 8, 8, 512], filter_sizes=[3, 3, 512, 256], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv10")
@@ -300,8 +300,8 @@ l1_1, l1_2, l1_3, l1_4, l1_5, l1_6, l1_7,
 l2_1, l2_2, l2_3, l2_4, l2_5, l2_6, l2_7, 
 l3_1, l3_2, l3_3, l3_4, l3_5, l3_6, l3_7, 
 l4_1, l4_2, l4_3, l4_4, l4_5, l4_6, #l4_7, 
-l5_1, l5_2, l5_3,
-l6_1, l6_2,
+# l5_1, l5_2, l5_3,
+# l6_1, l6_2,
 l7_1, l7_2, l7_3, l7_4, l7_5,
 l8_1, l8_2, l8_3, l8_4, l8_5,
 l9_1, l9_2, l9_3, l9_4, l9_5,
@@ -352,7 +352,7 @@ for ii in range(0, epochs):
             [_, _loss, _predict] = sess.run([train, loss, predict], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
             losses.append(_loss)
 
-            name = str(ii * len(train_filenames) + jj * args.batch_size) + '.jpg'
+            name = str(ii * len(train_filenames) + jj * args.batch_size) + '_' + str(args.alpha) + '.jpg'
             img = np.reshape(_predict[0], (64, 64))
             plt.imsave(name, img)
             
