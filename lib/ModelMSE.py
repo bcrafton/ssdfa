@@ -39,6 +39,22 @@ class Model:
         '''
         pred = A[self.num_layers-1]['aout'] + self.bias
         loss = tf.losses.mean_squared_error(labels=X, predictions=pred)
+        #####
+        '''
+        mse_loss = tf.losses.mean_squared_error(labels=X, predictions=pred)
+
+        X_sm = tf.nn.softmax(X)
+        pred_sm = tf.nn.softmax(pred)
+        kl_loss = X_sm * tf.log(X_sm / pred_sm)
+        kl_loss = tf.where(tf.not_equal(X_sm, tf.zeros_like(X_sm)), kl_loss, tf.zeros_like(X_sm))
+        kl_loss = tf.reduce_sum(kl_loss)
+
+        loss = mse_loss + kl_loss
+        # loss = tf.Print(loss, [kl_loss, mse_loss, tf.not_equal(X_sm, tf.zeros_like(X_sm))], message='', summarize=100)
+        # loss = tf.Print(loss, [pred], message='lol', summarize=100)
+        '''
+        #####
+
         grads = tf.gradients(loss, [self.bias])
         E = grads[0]
          
