@@ -342,11 +342,12 @@ for ii in range(0, epochs):
     sess.run(train_iterator.initializer, feed_dict={filename: train_filenames})
     
     losses = []
-    for j in range(0, len(train_filenames), args.batch_size):
+    for jj in range(0, len(train_filenames), args.batch_size):
         
-        if (j % (args.batch_size * 100) == 0):
+        if (jj % (args.batch_size * 100) == 0):
             [_, _loss, _predict] = sess.run([train, loss, predict], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
-            
+            losses.append(_loss)
+
             name = str(ii * len(train_filenames) + jj * args.batch_size) + '.jpg'
             plt.imsave(name, _predict[0])
             
@@ -357,8 +358,7 @@ for ii in range(0, epochs):
             f.close()
         else:
             [_, _loss] = sess.run([train, loss], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
-
-        losses.append(_loss)
+            losses.append(_loss)
 
     ##################################################################
 
