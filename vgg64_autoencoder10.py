@@ -309,6 +309,7 @@ l10_1, l10_2, l10_3, l10_4, #l10_5
 ]
 
 model = Model(layers=layers, shape_y=[args.batch_size, 64, 64, 1])
+predict = model.predict(X=X)
 
 grads_and_vars, loss = model.gvs(X=X, Y=X)
 train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
@@ -345,17 +346,23 @@ for ii in range(0, epochs):
     sess.run(train_iterator.initializer, feed_dict={filename: train_filenames})
     
     losses = []
-    for j in range(0, len(train_filenames), args.batch_size):
-
-        [_, _loss] = sess.run([train, loss], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
-        losses.append(_loss)
+    for jj in range(0, len(train_filenames), args.batch_size):
         
-        if (j % (args.batch_size * 100) == 0):
-            p = "loss: %f" % (np.average(losses))
+        if (jj % (args.batch_size * 100) == 0):
+            [_, _loss, _predict] = sess.run([train, loss, predict], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
+            losses.append(_loss)
+
+            name = str(ii * len(train_filenames) + jj * args.batch_size) + '.jpg'
+            plt.imsave(name, _predict[0])
+            
+            p = "%d: loss: %f" % (ii, np.average(losses))
             print (p)
             f = open(results_filename, "a")
             f.write(p + "\n")
             f.close()
+        else:
+            [_, _loss] = sess.run([train, loss], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
+            losses.append(_loss)
 
     ##################################################################
 
