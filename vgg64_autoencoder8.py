@@ -348,7 +348,7 @@ for ii in range(0, epochs):
             [_, _loss, _predict] = sess.run([train, loss, predict], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
             losses.append(_loss)
 
-            name = str(ii * len(train_filenames) + jj * args.batch_size) + '.jpg'
+            name = args.load + '_' + str(ii * len(train_filenames) + jj * args.batch_size) + '.jpg'
             plt.imsave(name, _predict[0])
             
             p = "%d: loss: %f" % (ii, np.average(losses))
