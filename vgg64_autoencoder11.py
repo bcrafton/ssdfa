@@ -349,12 +349,14 @@ for ii in range(0, epochs):
     for jj in range(0, len(train_filenames), args.batch_size):
         
         if (jj % (args.batch_size * 100) == 0):
-            [_, _loss, _predict] = sess.run([train, loss, predict], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
+            [_, _loss, _X, _predict] = sess.run([train, loss, X, predict], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
             losses.append(_loss)
 
             name = str(ii * len(train_filenames) + jj * args.batch_size) + '_' + str(args.alpha) + '.jpg'
-            img = np.reshape(_predict[0], (64, 64))
-            plt.imsave(name, img)
+            img1 = np.reshape(_X[0],       (64, 64))
+            img2 = np.reshape(_predict[0], (64, 64))
+            concat = np.concatenate((img1, img2), axis=1)
+            plt.imsave(name, concat)
             
             p = "%d: loss: %f" % (ii, np.average(losses))
             print (p)
