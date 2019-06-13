@@ -206,6 +206,17 @@ val_iterator = val_dataset.make_initializable_iterator()
 ###############################################################
 
 weights_conv = args.load
+if weights_conv == None:
+    weights_conv = np.load('vgg64_bp.npy').item()
+    for key in weights_conv:
+        mean = np.mean(weights_conv[key])
+        std = np.std(weights_conv[key])
+        shape = np.shape(weights_conv[key])
+        weights_conv[key] = np.random.normal(loc=mean, scale=std, size=shape)
+    
+    np.save('random.npy', weights_conv)
+    weights_conv = 'random.npy'
+
 weights_fc = None
 
 train_conv = True

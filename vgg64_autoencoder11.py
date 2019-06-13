@@ -369,4 +369,6 @@ for ii in range(0, epochs):
 
     ##################################################################
 
-
+    if args.save:
+        [w] = sess.run([weights], feed_dict={handle: train_handle, dropout_rate: 0.0, learning_rate: 0.0})
+        np.save(args.name, w)
