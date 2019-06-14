@@ -323,9 +323,9 @@ class Model:
             if ii == 0:
                 A[ii] = l.forward(X)
             else:
-                A[ii] = l.forward(A[ii-1])
+                A[ii] = l.forward(A[ii-1]['aout'])
                 
-        return A[N]
+        return A[N]['aout']
         
         
         

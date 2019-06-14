@@ -6,14 +6,14 @@ import sys
 ##############################################
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--epochs', type=int, default=100)
-parser.add_argument('--batch_size', type=int, default=32)
+parser.add_argument('--epochs', type=int, default=10)
+parser.add_argument('--batch_size', type=int, default=50)
 parser.add_argument('--alpha', type=float, default=1e-2)
 parser.add_argument('--l2', type=float, default=0.)
 parser.add_argument('--decay', type=float, default=1.)
 parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--dropout', type=float, default=0.0)
-parser.add_argument('--act', type=str, default='tanh')
+parser.add_argument('--act', type=str, default='relu')
 parser.add_argument('--bias', type=float, default=0.)
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--dfa', type=int, default=0)
@@ -45,6 +45,7 @@ from lib.ConvToFullyConnected import ConvToFullyConnected
 from lib.FullyConnected import FullyConnected
 from lib.Convolution import Convolution
 from lib.MaxPool import MaxPool
+from lib.AvgPool import AvgPool
 from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
@@ -96,6 +97,7 @@ X = tf.placeholder(tf.float32, [None, 28, 28, 1])
 X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), X)
 Y = tf.placeholder(tf.float32, [None, 10])
 
+'''
 l0 = Convolution(input_sizes=[batch_size, 28, 28, 1], filter_sizes=[3, 3, 1, 32], num_classes=10, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, name='conv1', load=weights_conv, train=train_conv)
 l1 = FeedbackConv(size=[batch_size, 28, 28, 32], num_classes=10, sparse=args.sparse, rank=args.rank, name='conv1_fb')
 
@@ -112,11 +114,34 @@ l9 = FeedbackFC(size=[14*14*64, 128], num_classes=10, sparse=args.sparse, rank=a
 l10 = FullyConnected(size=[128, 10], num_classes=10, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, name='fc2', load=weights_fc, train=train_fc)
 
 model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10])
+'''
+
+l1_1 = Convolution(input_sizes=[batch_size, 28, 28, 1], filter_sizes=[3, 3, 1, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv1")
+l1_2 = Relu()
+l1_3 = Convolution(input_sizes=[batch_size, 28, 28, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv2")
+l1_4 = Relu()
+l1_5 = AvgPool(size=[batch_size, 28, 28, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+
+l2_1 = Convolution(input_sizes=[batch_size, 14, 14, 64], filter_sizes=[3, 3, 64, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv3")
+l2_2 = Relu()
+l2_3 = Convolution(input_sizes=[batch_size, 14, 14, 128], filter_sizes=[3, 3, 128, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv4")
+l2_4 = Relu()
+l2_5 = AvgPool(size=[batch_size, 14, 14, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+
+l3_1 = ConvToFullyConnected(input_shape=[7, 7, 128])
+l3_2 = FullyConnected(input_shape=7*7*128, size=10, init=args.init, name="fc1")
+
+layers = [
+l1_1, l1_2, l1_3, l1_4, l1_5,
+l2_1, l2_2, l2_3, l2_4, l2_5,
+l3_1, l3_2
+]
+model = Model(layers=layers)
 
 ##############################################
 
 predict = model.predict(X=X)
-
+upto = model.up_to(X=X, N=9)
 weights = model.get_weights()
 
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay":
@@ -184,13 +209,20 @@ for ii in range(EPOCHS):
     _count = 0
     _total_correct = 0
     
+    feature_maps = []
+    labels = []
     for jj in range(int(TRAIN_EXAMPLES / BATCH_SIZE)):
         xs = x_train[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
         ys = y_train[jj*BATCH_SIZE:(jj+1)*BATCH_SIZE]
-        _correct, _ = sess.run([total_correct, train], feed_dict={batch_size: BATCH_SIZE, dropout_rate: args.dropout, learning_rate: lr, X: xs, Y: ys})
+        _correct, _, _upto = sess.run([total_correct, train, upto], feed_dict={batch_size: BATCH_SIZE, dropout_rate: args.dropout, learning_rate: lr, X: xs, Y: ys})
+        
+        # print (np.shape(_upto))
         
         _total_correct += _correct
         _count += BATCH_SIZE
+        
+        feature_maps.append(_upto)
+        labels.append(ys)
 
     train_acc = 1.0 * _total_correct / _count
     train_accs.append(train_acc)
@@ -219,13 +251,25 @@ for ii in range(EPOCHS):
     f.write(str(test_acc) + "\n")
     f.close()
 
-##############################################
+###########################
 
-if args.save:
-    [w] = sess.run([weights], feed_dict={})
-    w['train_acc'] = train_accs
-    w['test_acc'] = test_accs
-    np.save(args.name, w)
-    
-##############################################
+feature_maps = np.concatenate(feature_maps, axis=0)
+labels = np.concatenate(labels, axis=0)
+
+ones = np.where(labels==1)
+twos = np.where(labels==2)
+
+ones_img = feature_maps[ones]
+twos_img = feature_maps[twos]
+
+np.save('conv_ones', ones_img)
+np.save('conv_twos', twos_img)
+
+
+
+
+
+
+
+
 
