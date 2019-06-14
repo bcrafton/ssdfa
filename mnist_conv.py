@@ -256,6 +256,7 @@ for ii in range(EPOCHS):
 feature_maps = np.concatenate(feature_maps, axis=0)
 labels = np.concatenate(labels, axis=0)
 
+labels = np.argmax(labels, axis=1)
 ones = np.where(labels==1)
 twos = np.where(labels==2)
 
@@ -265,11 +266,17 @@ twos_img = feature_maps[twos]
 np.save('conv_ones', ones_img)
 np.save('conv_twos', twos_img)
 
+###########################
 
+y_train = np.argmax(y_train, axis=1)
+ones = np.where(y_train == 1)
+twos = np.where(y_train == 2)
 
+ones_img = x_train[ones]
+twos_img = x_train[twos]
 
+np.save('ones', ones_img)
+np.save('twos', twos_img)
 
-
-
-
+###########################
 
