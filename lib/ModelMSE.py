@@ -4,12 +4,14 @@ import numpy as np
 np.set_printoptions(threshold=1000)
 
 class Model:
-    def __init__(self, layers, shape_y):
+    def __init__(self, layers, shape_y, kl=0.001):
         self.num_layers = len(layers)
         self.layers = layers
         self.shape_y = shape_y
+        self.batch, self.h, self.w, self.c = self.shape_y
         self.bias = tf.Variable(np.zeros(shape=self.shape_y), dtype=tf.float32)
-        
+        self.kl = kl
+
     def num_params(self):
         param_sum = 0
         for ii in range(self.num_layers):
@@ -39,6 +41,22 @@ class Model:
         '''
         pred = A[self.num_layers-1]['aout'] + self.bias
         loss = tf.losses.mean_squared_error(labels=X, predictions=pred)
+        #####
+        '''
+        mse_loss = tf.losses.mean_squared_error(labels=X, predictions=pred)
+
+        X_sm = tf.nn.softmax(tf.reshape(X, (self.batch, -1)))
+        pred_sm = tf.nn.softmax(tf.reshape(pred, (self.batch, -1)))
+        kl_loss = X_sm * tf.log(X_sm / pred_sm)
+        kl_loss = tf.where(tf.not_equal(X_sm, tf.zeros_like(X_sm)), kl_loss, tf.zeros_like(X_sm))
+        kl_loss = tf.reduce_sum(kl_loss)
+        kl_loss = self.kl * kl_loss
+
+        loss = mse_loss + kl_loss
+        # loss = tf.Print(loss, [kl_loss, mse_loss], message='', summarize=100)
+        '''
+        #####
+
         grads = tf.gradients(loss, [self.bias])
         E = grads[0]
          
@@ -69,16 +87,16 @@ class Model:
     
     def predict(self, X):
         A = [None] * self.num_layers
-        
+
         for ii in range(self.num_layers):
             l = self.layers[ii]
             if ii == 0:
                 A[ii] = l.forward(X)
             else:
-                A[ii] = l.forward(A[ii-1])
-                
-        return A[self.num_layers-1]
-        
+                A[ii] = l.forward(A[ii-1]['aout'])
+
+        return A[self.num_layers-1]['aout']
+
     ####################################################################
     
     def get_weights(self):
