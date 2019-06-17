@@ -16,18 +16,22 @@ from lib.Convolution import Convolution
 from lib.MaxPool import MaxPool
 from lib.Activation import Relu
 from lib.Activation import Linear
+from lib.Dropout import Dropout
 
 # from lib.AvgPoolZ import AvgPool
 from lib.AvgPool import AvgPool
 
 class LELPool(Layer):
 
-    def __init__(self, input_shape, pool_shape, num_classes, name=None):
+    def __init__(self, input_shape, pool_shape, num_classes, dropout_rate=0., name=None):
         self.input_shape = input_shape
         self.batch_size, self.h, self.w, self.fin = self.input_shape
         self.pool_shape = pool_shape
         self.num_classes = num_classes
+        self.dropout_rate = dropout_rate
         self.name = name
+
+        l0 = Dropout(rate=dropout_rate)
 
         l1 = AvgPool(size=self.input_shape, ksize=self.pool_shape, strides=self.pool_shape, padding='SAME')
 
@@ -37,7 +41,8 @@ class LELPool(Layer):
         l3_input_shape = l2.output_shape()
         l3 = FullyConnected(input_shape=l3_input_shape, size=self.num_classes, init='alexnet', activation=Linear(), bias=0., name=self.name)
         
-        self.B = Model(layers=[l1, l2, l3])
+        # self.B = Model(layers=[l1, l0, l2, l3])
+        self.B = Model(layers=[l0, l1, l2, l3])
         
     ###################################################################
     
