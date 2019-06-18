@@ -23,7 +23,6 @@ parser.add_argument('--dfa', type=int, default=1)
 parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
 parser.add_argument('--init', type=str, default="alexnet")
-parser.add_argument('--opt', type=str, default="adam")
 parser.add_argument('--save', type=int, default=0)
 parser.add_argument('--name', type=str, default="vgg64x64")
 parser.add_argument('--load', type=str, default=None)
@@ -290,28 +289,12 @@ model = Model(layers=[                                                      \
 predict = tf.nn.softmax(model.predict(X=X))
 weights = model.get_weights()
 
-if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt == "momentum":
-    if args.dfa:
-        grads_and_vars = model.lel_gvs(X=X, Y=labels)
-    else:
-        grads_and_vars = model.gvs(X=X, Y=labels)
-        
-    if args.opt == "adam":
-        train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
-    elif args.opt == "rms":
-        train = tf.train.RMSPropOptimizer(learning_rate=learning_rate, decay=0.99, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
-    elif args.opt == "decay":
-        train = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).apply_gradients(grads_and_vars=grads_and_vars)
-    elif args.opt == "momentum":
-        train = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9).apply_gradients(grads_and_vars=grads_and_vars)
-    else:
-        assert(False)
-
+if args.dfa:
+    grads_and_vars = model.lel_gvs(X=X, Y=[labels])
 else:
-    if args.dfa:
-        train = model.lel(X=X, Y=labels)
-    else:
-        train = model.train(X=X, Y=labels)
+    grads_and_vars = model.gvs(X=X, Y=[labels])
+        
+train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))

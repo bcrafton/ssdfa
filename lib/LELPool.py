@@ -18,16 +18,16 @@ from lib.Activation import Relu
 from lib.Activation import Linear
 from lib.Dropout import Dropout
 
-# from lib.AvgPoolZ import AvgPool
 from lib.AvgPool import AvgPool
 
 class LELPool(Layer):
 
-    def __init__(self, input_shape, pool_shape, num_classes, dropout_rate=0., name=None):
+    def __init__(self, input_shape, pool_shape, num_classes, idx=0, dropout_rate=0., name=None):
         self.input_shape = input_shape
         self.batch_size, self.h, self.w, self.fin = self.input_shape
         self.pool_shape = pool_shape
         self.num_classes = num_classes
+        self.idx = idx
         self.dropout_rate = dropout_rate
         self.name = name
 
@@ -86,7 +86,7 @@ class LELPool(Layer):
     ###################################################################   
         
     def lel_backward(self, AI, AO, E, DO, Y, cache):
-        DI = self.B.backwards(AI, Y)
+        DI = self.B.backwards(AI, Y[idx])
         return {'dout':DI, 'cache':{}}
         
     def lel_gv(self, AI, AO, E, DO, Y, cache):
