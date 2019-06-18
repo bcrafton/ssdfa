@@ -223,7 +223,7 @@ iterator = tf.data.Iterator.from_string_handle(handle, train_dataset.output_type
 features, labels = iterator.get_next()
 features = tf.reshape(features, (args.batch_size, 64, 64, 3))
 
-labels = tf.one_hot(labels, depth=num_classes)
+one_hot_labels = tf.one_hot(labels, depth=num_classes)
 rand_labels_one_hot = tf.one_hot(rand_labels, depth=num_classes)
 
 train_iterator = train_dataset.make_initializable_iterator()
@@ -301,7 +301,7 @@ weights = model.get_weights()
 
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt == "momentum":
     if args.dfa:
-        lel_labels = tf.concat((rand_labels_one_hot, [labels]), axis=0)
+        lel_labels = tf.concat((rand_labels_one_hot, [one_hot_labels]), axis=0)
         grads_and_vars = model.lel_gvs(X=X, Y=lel_labels)
     else:
         grads_and_vars = model.gvs(X=X, Y=one_hot_labels)
