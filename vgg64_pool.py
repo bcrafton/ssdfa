@@ -299,8 +299,8 @@ predict = tf.nn.softmax(model.predict(X=X))
 weights = model.get_weights()
 
 if args.dfa:
-    lel_labels = tf.concat((rand_labels_one_hot, [labels_one_hot]), axis=0)
-    grads_and_vars = model.lel_gvs(X=X, Y=lel_labels)
+    # lel_labels = tf.concat((rand_labels_one_hot, [labels_one_hot]), axis=0)
+    grads_and_vars = model.lel_gvs(X=X, Y=labels_one_hot)
 else:
     grads_and_vars = model.gvs(X=X, Y=[labels_one_hot])
         
