@@ -179,6 +179,12 @@ def extract_fn(record):
 train_filenames = get_train_filenames()
 val_filenames = get_val_filenames()
 
+num_train = len(train_filenames)
+num_val = len(val_filenames)
+
+rand_train_labels = np.random.randint(low=0, high=1000, size=(num_train, 8))
+rand_val_labels = np.random.randint(low=0, high=1000, size=(num_train, 8))
+
 filename = tf.placeholder(tf.string, shape=[None])
 
 ###############################################################
@@ -199,17 +205,6 @@ train_dataset = train_dataset.prefetch(8)
 
 ###############################################################
 
-handle = tf.placeholder(tf.string, shape=[])
-iterator = tf.data.Iterator.from_string_handle(handle, train_dataset.output_types, train_dataset.output_shapes)
-features, labels = iterator.get_next()
-features = tf.reshape(features, (args.batch_size, 64, 64, 3))
-labels = tf.one_hot(labels, depth=num_classes)
-
-train_iterator = train_dataset.make_initializable_iterator()
-val_iterator = val_dataset.make_initializable_iterator()
-
-###############################################################
-
 weights_conv = None
 weights_fc = None
 
@@ -220,47 +215,61 @@ train_fc = True
 
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
+rand_labels = tf.placeholder(tf.int64, shape=[args.batch_size, 8])
+
+handle = tf.placeholder(tf.string, shape=[])
+iterator = tf.data.Iterator.from_string_handle(handle, train_dataset.output_types, train_dataset.output_shapes)
+features, labels = iterator.get_next()
+features = tf.reshape(features, (args.batch_size, 64, 64, 3))
+
+labels = tf.one_hot(labels, depth=num_classes)
+rand_labels = tf.one_hot(rand_labels, depth=num_classes)
+
+train_iterator = train_dataset.make_initializable_iterator()
+val_iterator = val_dataset.make_initializable_iterator()
+
+###############################################################
 
 X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), features)
 
 l1_1 = Convolution(input_sizes=[batch_size, 64, 64, 3], filter_sizes=[3, 3, 3, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv1")
 l1_2 = BatchNorm(input_size=[args.batch_size, 64, 64, 64], name='conv1_bn')
 l1_3 = Relu()
-l1_4 = LELPool(input_shape=[args.batch_size, 64, 64, 64], pool_shape=[1, 8, 8, 1], num_classes=1000, name='conv1_fb')
+l1_4 = LELPool(input_shape=[args.batch_size, 64, 64, 64], pool_shape=[1, 8, 8, 1], idx=0, num_classes=1000, name='conv1_fb')
 l1_5 = Convolution(input_sizes=[batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv2")
 l1_6 = BatchNorm(input_size=[args.batch_size, 64, 64, 64], name='conv2_bn')
 l1_7 = Relu()
-l1_8 = LELPool(input_shape=[args.batch_size, 64, 64, 64], pool_shape=[1, 8, 8, 1], num_classes=1000, name='conv2_fb')
+l1_8 = LELPool(input_shape=[args.batch_size, 64, 64, 64], pool_shape=[1, 8, 8, 1], idx=1, num_classes=1000, name='conv2_fb')
 l1_9 = AvgPool(size=[args.batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
 l2_1 = Convolution(input_sizes=[batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv3")
 l2_2 = BatchNorm(input_size=[args.batch_size, 32, 32, 128], name='conv3_bn')
 l2_3 = Relu()
-l2_4 = LELPool(input_shape=[args.batch_size, 32, 32, 128], pool_shape=[1, 4, 4, 1], num_classes=1000, name='conv3_fb')
+l2_4 = LELPool(input_shape=[args.batch_size, 32, 32, 128], pool_shape=[1, 4, 4, 1], idx=2, num_classes=1000, name='conv3_fb')
 l2_5 = Convolution(input_sizes=[batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 128], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv4")
 l2_6 = BatchNorm(input_size=[args.batch_size, 32, 32, 128], name='conv4_bn')
 l2_7 = Relu()
-l2_8 = LELPool(input_shape=[args.batch_size, 32, 32, 128], pool_shape=[1, 4, 4, 1], num_classes=1000, name='conv4_fb')
+l2_8 = LELPool(input_shape=[args.batch_size, 32, 32, 128], pool_shape=[1, 4, 4, 1], idx=3, num_classes=1000, name='conv4_fb')
 l2_9 = AvgPool(size=[args.batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
 l3_1 = Convolution(input_sizes=[batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 256], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv5")
 l3_2 = BatchNorm(input_size=[args.batch_size, 16, 16, 256], name='conv5_bn')
 l3_3 = Relu()
-l3_4 = LELPool(input_shape=[args.batch_size, 16, 16, 256], pool_shape=[1, 4, 4, 1], num_classes=1000, name='conv5_fb')
+l3_4 = LELPool(input_shape=[args.batch_size, 16, 16, 256], pool_shape=[1, 4, 4, 1], idx=4, num_classes=1000, name='conv5_fb')
 l3_5 = Convolution(input_sizes=[batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 256], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv6")
 l3_6 = BatchNorm(input_size=[args.batch_size, 16, 16, 256], name='conv6_bn')
 l3_7 = Relu()
-l3_8 = LELPool(input_shape=[args.batch_size, 16, 16, 256], pool_shape=[1, 4, 4, 1], num_classes=1000, name='conv6_fb')
+l3_8 = LELPool(input_shape=[args.batch_size, 16, 16, 256], pool_shape=[1, 4, 4, 1], idx=5, num_classes=1000, name='conv6_fb')
 l3_9 = AvgPool(size=[args.batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
 l4_1 = Convolution(input_sizes=[batch_size, 8, 8, 256], filter_sizes=[3, 3, 256, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv7")
 l4_2 = BatchNorm(input_size=[args.batch_size, 8, 8, 512], name='conv7_bn')
 l4_3 = Relu()
-l4_4 = LELPool(input_shape=[args.batch_size, 8, 8, 512], pool_shape=[1, 2, 2, 1], num_classes=1000, name='conv7_fb')
+l4_4 = LELPool(input_shape=[args.batch_size, 8, 8, 512], pool_shape=[1, 2, 2, 1], idx=6, num_classes=1000, name='conv7_fb')
 l4_5 = Convolution(input_sizes=[batch_size, 8, 8, 512], filter_sizes=[3, 3, 512, 512], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv8")
 l4_6 = BatchNorm(input_size=[args.batch_size, 8, 8, 512], name='conv8_bn')
 l4_7 = Relu()
-l4_8 = LELPool(input_shape=[args.batch_size, 8, 8, 512], pool_shape=[1, 2, 2, 1], num_classes=1000, name='conv8_fb')
+l4_8 = LELPool(input_shape=[args.batch_size, 8, 8, 512], pool_shape=[1, 2, 2, 1], idx=7, num_classes=1000, name='conv8_fb')
 l4_9 = AvgPool(size=[args.batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
 l5 = ConvToFullyConnected(input_shape=[4, 4, 512])
@@ -292,7 +301,7 @@ weights = model.get_weights()
 if args.dfa:
     grads_and_vars = model.lel_gvs(X=X, Y=[labels])
 else:
-    grads_and_vars = model.gvs(X=X, Y=[labels])
+    grads_and_vars = model.gvs(X=X, Y=tf.concatenate((rand_labels, [labels]), axis=0))
         
 train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
 
@@ -346,7 +355,11 @@ for ii in range(0, epochs):
     for j in range(0, len(train_filenames), batch_size):
         print (j)
         
-        [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
+        [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], 
+                                                    feed_dict={handle: train_handle, 
+                                                               rand_labels: rand_train_labels[j:j+batch_size],
+                                                               dropout_rate: args.dropout, 
+                                                               learning_rate: alpha})
 
         train_total += batch_size
         train_correct += _total_correct
@@ -382,7 +395,10 @@ for ii in range(0, epochs):
     for j in range(0, len(val_filenames), batch_size):
         print (j)
 
-        [_total_correct, _top5] = sess.run([total_correct, total_top5], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
+        [_total_correct, _top5] = sess.run([total_correct, total_top5], feed_dict={handle: val_handle, 
+                                                                                   rand_labels: rand_val_labels[j:j+batch_size],
+                                                                                   dropout_rate: 0.0, 
+                                                                                   learning_rate: 0.0})
         
         val_total += batch_size
         val_correct += _total_correct
