@@ -86,11 +86,11 @@ class LELPool(Layer):
     ###################################################################   
         
     def lel_backward(self, AI, AO, E, DO, Y, cache):
-        DI = self.B.backwards(AI, Y[idx])
+        DI = self.B.backwards(AI, Y[self.idx])
         return {'dout':DI, 'cache':{}}
         
     def lel_gv(self, AI, AO, E, DO, Y, cache):
-        gvs = self.B.gvs(AI, Y)
+        gvs = self.B.gvs(AI, Y[self.idx])
         return gvs
 
     def lel(self, AI, AO, E, DO, Y): 
