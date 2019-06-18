@@ -222,7 +222,7 @@ iterator = tf.data.Iterator.from_string_handle(handle, train_dataset.output_type
 features, labels = iterator.get_next()
 features = tf.reshape(features, (args.batch_size, 64, 64, 3))
 
-labels = tf.one_hot(labels, depth=num_classes)
+labels_one_hot = tf.one_hot(labels, depth=num_classes)
 rand_labels_one_hot = tf.one_hot(rand_labels, depth=num_classes)
 
 train_iterator = train_dataset.make_initializable_iterator()
@@ -299,17 +299,17 @@ predict = tf.nn.softmax(model.predict(X=X))
 weights = model.get_weights()
 
 if args.dfa:
-    lel_labels = tf.concat((rand_labels_one_hot, [labels]), axis=0)
+    lel_labels = tf.concat((rand_labels_one_hot, [labels_one_hot]), axis=0)
     grads_and_vars = model.lel_gvs(X=X, Y=lel_labels)
 else:
-    grads_and_vars = model.gvs(X=X, Y=[labels])
+    grads_and_vars = model.gvs(X=X, Y=[labels_one_hot])
         
 train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
 
-correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
+correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels_one_hot,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
 
-top5 = in_top_k(predict, tf.argmax(labels,1), k=5)
+top5 = in_top_k(predict, tf.argmax(labels_one_hot,1), k=5)
 total_top5 = tf.reduce_sum(tf.cast(top5, tf.float32))
 
 ###############################################################
@@ -356,17 +356,11 @@ for ii in range(0, epochs):
     for j in range(0, len(train_filenames), batch_size):
         print (j)
         
-        [_total_correct, _total_top5, _, _lel_labels, _labels] = sess.run([total_correct, total_top5, train, lel_labels, labels], 
-                                                                 feed_dict={handle: train_handle, 
-                                                                            rand_labels: rand_train_labels[:, j:j+batch_size],
-                                                                            dropout_rate: args.dropout, 
-                                                                            learning_rate: alpha})
-        '''
-        print (np.shape(_lel_labels[-1]))
-        print (np.shape(_labels))
-        print (np.argmax(_lel_labels[-1], axis=1))
-        print (np.argmax(_labels, axis=1))
-        '''
+        [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], 
+                                                    feed_dict={handle: train_handle, 
+                                                    rand_labels: rand_train_labels[:, j:j+batch_size],
+                                                    dropout_rate: args.dropout, 
+                                                    learning_rate: alpha})
 
         train_total += batch_size
         train_correct += _total_correct
