@@ -205,6 +205,17 @@ train_dataset = train_dataset.prefetch(8)
 
 ###############################################################
 
+handle = tf.placeholder(tf.string, shape=[])
+iterator = tf.data.Iterator.from_string_handle(handle, train_dataset.output_types, train_dataset.output_shapes)
+features, labels = iterator.get_next()
+features = tf.reshape(features, (args.batch_size, 64, 64, 3))
+labels = tf.one_hot(labels, depth=num_classes)
+
+train_iterator = train_dataset.make_initializable_iterator()
+val_iterator = val_dataset.make_initializable_iterator()
+
+###############################################################
+
 weights_conv = None
 weights_fc = None
 
@@ -215,20 +226,6 @@ train_fc = True
 
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
-rand_labels = tf.placeholder(tf.int64, shape=[8, args.batch_size])
-
-handle = tf.placeholder(tf.string, shape=[])
-iterator = tf.data.Iterator.from_string_handle(handle, train_dataset.output_types, train_dataset.output_shapes)
-features, labels = iterator.get_next()
-features = tf.reshape(features, (args.batch_size, 64, 64, 3))
-
-labels_one_hot = tf.one_hot(labels, depth=num_classes)
-rand_labels_one_hot = tf.one_hot(rand_labels, depth=num_classes)
-
-train_iterator = train_dataset.make_initializable_iterator()
-val_iterator = val_dataset.make_initializable_iterator()
-
-###############################################################
 
 X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), features)
 
@@ -298,18 +295,33 @@ model = Model(layers=[                                                      \
 predict = tf.nn.softmax(model.predict(X=X))
 weights = model.get_weights()
 
-if args.dfa:
-    # lel_labels = tf.concat((rand_labels_one_hot, [labels_one_hot]), axis=0)
-    grads_and_vars = model.lel_gvs(X=X, Y=labels_one_hot)
-else:
-    grads_and_vars = model.gvs(X=X, Y=[labels_one_hot])
+if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt == "momentum":
+    if args.dfa:
+        grads_and_vars = model.lel_gvs(X=X, Y=[labels])
+    else:
+        grads_and_vars = model.gvs(X=X, Y=[labels])
         
-train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
+    if args.opt == "adam":
+        train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
+    elif args.opt == "rms":
+        train = tf.train.RMSPropOptimizer(learning_rate=learning_rate, decay=0.99, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
+    elif args.opt == "decay":
+        train = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).apply_gradients(grads_and_vars=grads_and_vars)
+    elif args.opt == "momentum":
+        train = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9).apply_gradients(grads_and_vars=grads_and_vars)
+    else:
+        assert(False)
 
-correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels_one_hot,1))
+else:
+    if args.dfa:
+        train = model.lel(X=X, Y=labels)
+    else:
+        train = model.train(X=X, Y=labels)
+
+correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
 
-top5 = in_top_k(predict, tf.argmax(labels_one_hot,1), k=5)
+top5 = in_top_k(predict, tf.argmax(labels,1), k=5)
 total_top5 = tf.reduce_sum(tf.cast(top5, tf.float32))
 
 ###############################################################
@@ -356,16 +368,12 @@ for ii in range(0, epochs):
     for j in range(0, len(train_filenames), batch_size):
         print (j)
         
-        [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], 
-                                                    feed_dict={handle: train_handle, 
-                                                    rand_labels: rand_train_labels[:, j:j+batch_size],
-                                                    dropout_rate: args.dropout, 
-                                                    learning_rate: alpha})
+        [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
 
         train_total += batch_size
         train_correct += _total_correct
         train_top5 += _total_top5
-
+        
         train_acc = train_correct / train_total
         train_acc_top5 = train_top5 / train_total
         
@@ -396,10 +404,7 @@ for ii in range(0, epochs):
     for j in range(0, len(val_filenames), batch_size):
         print (j)
 
-        [_total_correct, _top5] = sess.run([total_correct, total_top5], feed_dict={handle: val_handle, 
-                                                                                   rand_labels: rand_val_labels[:, j:j+batch_size],
-                                                                                   dropout_rate: 0.0, 
-                                                                                   learning_rate: 0.0})
+        [_total_correct, _top5] = sess.run([total_correct, total_top5], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
         
         val_total += batch_size
         val_correct += _total_correct
