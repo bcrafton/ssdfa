@@ -23,6 +23,7 @@ parser.add_argument('--dfa', type=int, default=1)
 parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
 parser.add_argument('--init', type=str, default="alexnet")
+parser.add_argument('--opt', type=str, default="adam")
 parser.add_argument('--save', type=int, default=0)
 parser.add_argument('--name', type=str, default="vgg64x64")
 parser.add_argument('--load', type=str, default=None)
@@ -179,12 +180,6 @@ def extract_fn(record):
 train_filenames = get_train_filenames()
 val_filenames = get_val_filenames()
 
-num_train = len(train_filenames)
-num_val = len(val_filenames)
-
-rand_train_labels = np.random.randint(low=0, high=1000, size=(8, num_train))
-rand_val_labels = np.random.randint(low=0, high=1000, size=(8, num_val))
-
 filename = tf.placeholder(tf.string, shape=[None])
 
 ###############################################################
@@ -209,7 +204,7 @@ handle = tf.placeholder(tf.string, shape=[])
 iterator = tf.data.Iterator.from_string_handle(handle, train_dataset.output_types, train_dataset.output_shapes)
 features, labels = iterator.get_next()
 features = tf.reshape(features, (args.batch_size, 64, 64, 3))
-labels = tf.one_hot(labels, depth=num_classes)
+one_hot_labels = tf.one_hot(labels, depth=num_classes)
 
 train_iterator = train_dataset.make_initializable_iterator()
 val_iterator = val_dataset.make_initializable_iterator()
@@ -297,9 +292,9 @@ weights = model.get_weights()
 
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt == "momentum":
     if args.dfa:
-        grads_and_vars = model.lel_gvs(X=X, Y=[labels])
+        grads_and_vars = model.lel_gvs(X=X, Y=[one_hot_labels])
     else:
-        grads_and_vars = model.gvs(X=X, Y=[labels])
+        grads_and_vars = model.gvs(X=X, Y=[one_hot_labels])
         
     if args.opt == "adam":
         train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
@@ -314,14 +309,14 @@ if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt ==
 
 else:
     if args.dfa:
-        train = model.lel(X=X, Y=labels)
+        train = model.lel(X=X, Y=one_hot_labels)
     else:
-        train = model.train(X=X, Y=labels)
+        train = model.train(X=X, Y=one_hot_labels)
 
-correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
+correct = tf.equal(tf.argmax(predict,1), tf.argmax(one_hot_labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
 
-top5 = in_top_k(predict, tf.argmax(labels,1), k=5)
+top5 = in_top_k(predict, tf.argmax(one_hot_labels,1), k=5)
 total_top5 = tf.reduce_sum(tf.cast(top5, tf.float32))
 
 ###############################################################

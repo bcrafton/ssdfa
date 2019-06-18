@@ -18,6 +18,7 @@ from lib.Activation import Relu
 from lib.Activation import Linear
 from lib.Dropout import Dropout
 
+# from lib.AvgPoolZ import AvgPool
 from lib.AvgPool import AvgPool
 
 class LELPool(Layer):
