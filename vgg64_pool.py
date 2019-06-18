@@ -356,13 +356,17 @@ for ii in range(0, epochs):
     for j in range(0, len(train_filenames), batch_size):
         print (j)
         
-        [_total_correct, _total_top5, _, _lel_labels] = sess.run([total_correct, total_top5, train], 
-                                                        feed_dict={handle: train_handle, 
-                                                                   rand_labels: rand_train_labels[:, j:j+batch_size],
-                                                                   dropout_rate: args.dropout, 
-                                                                   learning_rate: alpha})
-
-        print (np.shape(_lel_labels))
+        [_total_correct, _total_top5, _, _lel_labels, _labels] = sess.run([total_correct, total_top5, train, lel_labels, labels], 
+                                                                 feed_dict={handle: train_handle, 
+                                                                            rand_labels: rand_train_labels[:, j:j+batch_size],
+                                                                            dropout_rate: args.dropout, 
+                                                                            learning_rate: alpha})
+        '''
+        print (np.shape(_lel_labels[-1]))
+        print (np.shape(_labels))
+        print (np.argmax(_lel_labels[-1], axis=1))
+        print (np.argmax(_labels, axis=1))
+        '''
 
         train_total += batch_size
         train_correct += _total_correct
