@@ -215,7 +215,7 @@ train_fc = True
 
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
-rand_labels = tf.placeholder(tf.int64, shape=[args.batch_size, 8])
+rand_labels = tf.placeholder(tf.int64, shape=[8, args.batch_size])
 
 handle = tf.placeholder(tf.string, shape=[])
 iterator = tf.data.Iterator.from_string_handle(handle, train_dataset.output_types, train_dataset.output_shapes)
@@ -223,7 +223,7 @@ features, labels = iterator.get_next()
 features = tf.reshape(features, (args.batch_size, 64, 64, 3))
 
 labels = tf.one_hot(labels, depth=num_classes)
-rand_labels = tf.one_hot(rand_labels, depth=num_classes)
+rand_labels_one_hot = tf.one_hot(rand_labels, depth=num_classes)
 
 train_iterator = train_dataset.make_initializable_iterator()
 val_iterator = val_dataset.make_initializable_iterator()
@@ -299,9 +299,9 @@ predict = tf.nn.softmax(model.predict(X=X))
 weights = model.get_weights()
 
 if args.dfa:
-    grads_and_vars = model.lel_gvs(X=X, Y=[labels])
+    grads_and_vars = model.lel_gvs(X=X, Y=tf.concat((rand_labels_one_hot, [labels]), axis=0))
 else:
-    grads_and_vars = model.gvs(X=X, Y=tf.concatenate((rand_labels, [labels]), axis=0))
+    grads_and_vars = model.gvs(X=X, Y=[labels])
         
 train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
 
