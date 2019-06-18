@@ -206,7 +206,7 @@ class Model:
             else:
                 A[ii] = l.forward(A[ii-1]['aout'])
 
-        E = tf.nn.softmax(A[self.num_layers-1]['aout']) - Y[0]
+        E = tf.nn.softmax(A[self.num_layers-1]['aout']) - Y[-1]
         N = tf.shape(A[self.num_layers-1]['aout'])[0]
         N = tf.cast(N, dtype=tf.float32)
         E = E / N

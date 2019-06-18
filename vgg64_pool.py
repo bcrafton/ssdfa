@@ -294,7 +294,7 @@ if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt ==
     if args.dfa:
         grads_and_vars = model.lel_gvs(X=X, Y=[one_hot_labels])
     else:
-        grads_and_vars = model.gvs(X=X, Y=[one_hot_labels])
+        grads_and_vars = model.gvs(X=X, Y=one_hot_labels)
         
     if args.opt == "adam":
         train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
