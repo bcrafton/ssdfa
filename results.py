@@ -99,14 +99,14 @@ vgg64_ae = {'benchmark':'vgg64_autoencoder12.py', 'epochs':10, 'batch_size':128,
 
 vgg64_ae_scratch = {'benchmark':'vgg64_autoencoder11.py', 'epochs':10, 'batch_size':128, 'alpha':[0.05], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':0, 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':None}
 
-vgg64_pool = {'benchmark':'vgg64_pool_grayscale.py', 'epochs':10, 'batch_size':64, 'alpha':[0.03], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':[0, 1], 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':None}
+vgg64_pool = {'benchmark':'vgg64_pool.py', 'epochs':10, 'batch_size':64, 'alpha':[0.03], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':[0, 1], 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':None}
 
 ################################################
 
 # params = [vgg64_ae, vgg64_pool]
-# params = [vgg64_pool]
+params = [vgg64_pool]
 # params = [vgg64_ae]
-params = [vgg64_ae_scratch]
+# params = [vgg64_ae_scratch]
 
 ################################################
 
