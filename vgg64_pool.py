@@ -92,6 +92,15 @@ data_augmentation = False
 MEAN = [122.77093945, 116.74601272, 104.09373519]
 
 ##############################################
+'''
+A = tf.reshape(A, (self.batch, self.h * self.w, 1, self.fin))
+A = tf.tile(A, [1, 1, self.ksize * self.ksize, 1])
+A = tf.reshape(A, (self.batch, self.h, self.w, self.ksize, self.ksize, self.fin))
+A = tf.reshape(A, (self.batch, self.h, self.w * self.ksize, self.ksize, self.fin))
+A = tf.transpose(A, (0, 1, 3, 2, 4))
+A = tf.reshape(A, (self.batch, self.h * self.ksize, self.w * self.ksize, self.fin))
+'''
+##############################################
 
 def in_top_k(x, y, k):
     x = tf.cast(x, dtype=tf.float32)
@@ -113,10 +122,8 @@ def parse_function(filename, label):
 ##############################################
 
 def preprocess(image):
-
     means = tf.reshape(tf.constant(MEAN), [1, 1, 3])
     image = image - means
-
     return image
 
 ##############################################
@@ -384,10 +391,15 @@ for ii in range(0, epochs):
             # this is just easier.
             idx = np.random.randint(low=0, high=64)
 
-            plt.imsave('%d_%d_%d.jpg' % (args.dfa, ii * batch_size + j, 1), _o00[0, :, :, idx])
-            plt.imsave('%d_%d_%d.jpg' % (args.dfa, ii * batch_size + j, 3), _o09[0, :, :, idx])
-            plt.imsave('%d_%d_%d.jpg' % (args.dfa, ii * batch_size + j, 5), _o18[0, :, :, idx])
-            plt.imsave('%d_%d_%d.jpg' % (args.dfa, ii * batch_size + j, 7), _o27[0, :, :, idx])
+            im00 = scipy.misc.imresize(_o00[0, :, :, idx], 1.)
+            im09 = scipy.misc.imresize(_o09[0, :, :, idx], 4.)
+            im18 = scipy.misc.imresize(_o18[0, :, :, idx], 16.)
+            im27 = scipy.misc.imresize(_o27[0, :, :, idx], 64.)
+            
+            plt.imsave('%d_%d_%d.jpg' % (args.dfa, ii * batch_size + j, 1), im00)
+            plt.imsave('%d_%d_%d.jpg' % (args.dfa, ii * batch_size + j, 3), im09)
+            plt.imsave('%d_%d_%d.jpg' % (args.dfa, ii * batch_size + j, 5), im18)
+            plt.imsave('%d_%d_%d.jpg' % (args.dfa, ii * batch_size + j, 7), im27)
 
         else:
             [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
