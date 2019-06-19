@@ -229,6 +229,7 @@ train_fc = True
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 
+gray = tf.image.rgb_to_grayscale(features)
 X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), features)
 
 l1_1 = Convolution(input_sizes=[batch_size, 64, 64, 3], filter_sizes=[3, 3, 3, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv1")
@@ -379,7 +380,7 @@ for ii in range(0, epochs):
         # print (j)
         
         if (j % (100 * batch_size) == 0):
-            [_total_correct, _total_top5, _, _o00, _o09, _o18, _o27] = sess.run([total_correct, total_top5, train, o00, o09, o18, o27], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
+            [_total_correct, _total_top5, _, _gray, _o00, _o09, _o18, _o27] = sess.run([total_correct, total_top5, train, gray, o00, o09, o18, o27], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
             
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
             print (p)
@@ -391,17 +392,18 @@ for ii in range(0, epochs):
             # this is just easier.
             idx = np.random.randint(low=0, high=64)
 
-            im00 = scipy.misc.imresize(_o00[0, :, :, idx], 1.)
-            im09 = scipy.misc.imresize(_o09[0, :, :, idx], 2.)
-            im18 = scipy.misc.imresize(_o18[0, :, :, idx], 4.)
-            im27 = scipy.misc.imresize(_o27[0, :, :, idx], 8.)
+            imgray = scipy.misc.imresize(_gray[0, :, :, 0], 4.)
+            im00 = scipy.misc.imresize(_o00[0, :, :, idx], 4.)
+            im09 = scipy.misc.imresize(_o09[0, :, :, idx], 8.)
+            im18 = scipy.misc.imresize(_o18[0, :, :, idx], 16.)
+            im27 = scipy.misc.imresize(_o27[0, :, :, idx], 32.)
             '''
             plt.imsave('%d_%d_%d.jpg' % (args.dfa, ii * batch_size + j, 1), im00)
             plt.imsave('%d_%d_%d.jpg' % (args.dfa, ii * batch_size + j, 3), im09)
             plt.imsave('%d_%d_%d.jpg' % (args.dfa, ii * batch_size + j, 5), im18)
             plt.imsave('%d_%d_%d.jpg' % (args.dfa, ii * batch_size + j, 7), im27)
             '''
-            img = np.concatenate((im00, im09, im18, im27), axis=1)
+            img = np.concatenate((imgray, im00, im09, im18, im27), axis=1)
             plt.imsave('%d_%d.jpg' % (args.dfa, ii * batch_size + j), img)
 
         else:
