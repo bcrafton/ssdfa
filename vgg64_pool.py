@@ -404,7 +404,8 @@ for ii in range(0, epochs):
             plt.imsave('%d_%d_%d.jpg' % (args.dfa, ii * batch_size + j, 7), im27)
             '''
             img = np.concatenate((imgray, im00, im09, im18, im27), axis=1)
-            plt.imsave('%d_%d.jpg' % (args.dfa, ii * batch_size + j), img)
+            # plt.imsave('%d_%d.jpg' % (args.dfa, ii * len(train_filenames) + j), img)
+            plt.imsave('%d_%d_%d.jpg' % (args.dfa, j, ii), img)
 
         else:
             [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
