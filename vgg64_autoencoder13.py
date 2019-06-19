@@ -226,9 +226,8 @@ learning_rate = tf.placeholder(tf.float32, shape=())
 ####
 
 X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), features)
-X = tf.image.rgb_to_grayscale(X)
 
-l1_1 = Convolution(input_sizes=[args.batch_size, 64, 64, 1], filter_sizes=[3, 3, 3, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv1", load=weights_conv, train=False)
+l1_1 = Convolution(input_sizes=[args.batch_size, 64, 64, 3], filter_sizes=[3, 3, 3, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv1", load=weights_conv, train=False)
 l1_2 = BatchNorm(input_size=[args.batch_size, 64, 64, 64], name='conv1_bn', load=weights_conv, train=False)
 l1_3 = Relu()
 l1_4 = Convolution(input_sizes=[args.batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv2", load=weights_conv, train=False)
@@ -266,20 +265,20 @@ l9_5 = UpSample(input_shape=[args.batch_size, 32, 32, 64], ksize=2)
 l10_1 = Convolution(input_sizes=[args.batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv15")
 l10_2 = BatchNorm(input_size=[args.batch_size, 64, 64, 64], name='conv15_bn')
 l10_3 = Convolution(input_sizes=[args.batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 3], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv16")
-l10_4 = BatchNorm(input_size=[args.batch_size, 64, 64, 1], name='conv16_bn')
+l10_4 = BatchNorm(input_size=[args.batch_size, 64, 64, 3], name='conv16_bn')
 
 ###############################################################
 
 layers=[                              
 l1_1, l1_2, l1_3, l1_4, l1_5, l1_6, l1_7, 
 l2_1, l2_2, l2_3, l2_4, l2_5, l2_6, l2_7, 
-l3_1, l3_2, l3_3, l3_4, l3_5, l3_6, l3_7, 
+l3_1, l3_2, l3_3, l3_4, l3_5, l3_6, 
 l8_1, l8_2, l8_3, l8_4, l8_5,
 l9_1, l9_2, l9_3, l9_4, l9_5,
 l10_1, l10_2, l10_3, l10_4
 ]
 
-model = Model(layers=layers, shape_y=[args.batch_size, 64, 64, 1])
+model = Model(layers=layers, shape_y=[args.batch_size, 64, 64, 3])
 predict = model.predict(X=X)
 
 grads_and_vars, loss = model.gvs(X=X, Y=X)
