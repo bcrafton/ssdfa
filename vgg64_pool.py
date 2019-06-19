@@ -376,10 +376,9 @@ for ii in range(0, epochs):
     train_acc = 0.0
     train_acc_top5 = 0.0
 
-    for j in range(0, len(train_filenames), batch_size):
-        # print (j)
+    for jj in range(0, len(train_filenames), batch_size):
         
-        if (j % (100 * batch_size) == 0):
+        if (jj % (100 * batch_size) == 0):
             [_total_correct, _total_top5, _, _gray, _o00, _o09, _o18, _o27] = sess.run([total_correct, total_top5, train, gray, o00, o09, o18, o27], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
             
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
@@ -388,24 +387,25 @@ for ii in range(0, epochs):
             f.write(p + "\n")
             f.close()
 
-            # no relationship between (f3 in l4) and (f3 in l6) ... so idx can be randomized further.
-            # this is just easier.
-            idx = np.random.randint(low=0, high=64)
+            ####################################
 
-            imgray = scipy.misc.imresize(_gray[0, :, :, 0], 4.)
-            im00 = scipy.misc.imresize(_o00[0, :, :, idx], 4.)
-            im09 = scipy.misc.imresize(_o09[0, :, :, idx], 8.)
-            im18 = scipy.misc.imresize(_o18[0, :, :, idx], 16.)
-            im27 = scipy.misc.imresize(_o27[0, :, :, idx], 32.)
-            '''
-            plt.imsave('%d_%d_%d.jpg' % (args.dfa, ii * batch_size + j, 1), im00)
-            plt.imsave('%d_%d_%d.jpg' % (args.dfa, ii * batch_size + j, 3), im09)
-            plt.imsave('%d_%d_%d.jpg' % (args.dfa, ii * batch_size + j, 5), im18)
-            plt.imsave('%d_%d_%d.jpg' % (args.dfa, ii * batch_size + j, 7), im27)
-            '''
-            img = np.concatenate((imgray, im00, im09, im18, im27), axis=1)
-            # plt.imsave('%d_%d.jpg' % (args.dfa, ii * len(train_filenames) + j), img)
-            plt.imsave('%d_%d_%d.jpg' % (args.dfa, j, ii), img)
+            rows = []
+            for _ in range(5):
+                idx = np.random.randint(low=0, high=64)
+
+                imgray = scipy.misc.imresize(_gray[0, :, :, 0], 4.)
+                im00 = scipy.misc.imresize(_o00[0, :, :, idx], 4.)
+                im09 = scipy.misc.imresize(_o09[0, :, :, idx], 8.)
+                im18 = scipy.misc.imresize(_o18[0, :, :, idx], 16.)
+                im27 = scipy.misc.imresize(_o27[0, :, :, idx], 32.)
+
+                row = np.concatenate((imgray, im00, im09, im18, im27), axis=1)
+                rows.append(row)
+                
+            img = np.concatenate(rows, axis=0)
+            plt.imsave('%d_%d_%d.jpg' % (args.dfa, jj, ii), img)
+            
+            ####################################
 
         else:
             [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
@@ -434,8 +434,7 @@ for ii in range(0, epochs):
     val_correct = 0.0
     val_top5 = 0.0
     
-    for j in range(0, len(val_filenames), batch_size):
-        # print (j)
+    for jj in range(0, len(val_filenames), batch_size):
 
         [_total_correct, _top5] = sess.run([total_correct, total_top5], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
         
@@ -446,7 +445,7 @@ for ii in range(0, epochs):
         val_acc = val_correct / val_total
         val_acc_top5 = val_top5 / val_total
         
-        if (j % (100 * batch_size) == 0):
+        if (jj % (100 * batch_size) == 0):
             p = "val accuracy: %f %f" % (val_acc, val_acc_top5)
             print (p)
             f = open(results_filename, "a")
