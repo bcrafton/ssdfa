@@ -7,13 +7,13 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=100)
-parser.add_argument('--batch_size', type=int, default=128)
+parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--alpha', type=float, default=1e-2)
 parser.add_argument('--l2', type=float, default=0.)
 parser.add_argument('--decay', type=float, default=1.)
 parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--dropout', type=float, default=0.5)
-parser.add_argument('--act', type=str, default='tanh')
+parser.add_argument('--act', type=str, default='relu')
 parser.add_argument('--bias', type=float, default=0.)
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--dfa', type=int, default=0)
@@ -80,6 +80,9 @@ from lib.Activation import Tanh
 from lib.Activation import Softmax
 from lib.Activation import LeakyRelu
 from lib.Activation import Linear
+
+from lib.ConvBlock import ConvBlock
+from lib.MobileBlock import MobileBlock
 
 ##############################################
 
@@ -468,7 +471,7 @@ predict = tf.nn.softmax(model.predict(X=features))
 
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt == "momentum":
     if args.dfa:
-        grads_and_vars = model.dfa_gvs(X=features, Y=labels)
+        grads_and_vars = model.lel_gvs(X=features, Y=labels)
     else:
         grads_and_vars = model.gvs(X=features, Y=labels)
         
@@ -485,7 +488,7 @@ if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt ==
 
 else:
     if args.dfa:
-        train = model.dfa(X=features, Y=labels)
+        train = model.lel(X=features, Y=labels)
     else:
         train = model.train(X=features, Y=labels)
 
