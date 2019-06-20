@@ -331,6 +331,8 @@ for ii in range(0, epochs):
             f = open(results_filename, "a")
             f.write(p + "\n")
             f.close()
+
+            losses = []
         else:
             [_, _loss] = sess.run([train, loss], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
             losses.append(_loss)

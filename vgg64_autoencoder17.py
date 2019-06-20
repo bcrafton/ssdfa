@@ -229,7 +229,8 @@ learning_rate = tf.placeholder(tf.float32, shape=())
 
 ####
 
-X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), features)
+# X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), features)
+X = features / tf.reduce_max(features, axis=[0, 3], keepdims=True)
 
 l1_1 = Convolution(input_sizes=[args.batch_size, 64, 64, 3], filter_sizes=[3, 3, 3, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv1", load=weights_conv, train=True)
 l1_3 = Relu()
@@ -318,19 +319,23 @@ for ii in range(0, epochs):
                 ext = 'random'
             else:
                 ext = args.load
-                
+            
+            # '''    
             # name = str(ii * len(train_filenames) + jj * args.batch_size) + ext + '.jpg'
             name = '%d_%d_%s_%d.jpg' % (jj, ii, ext, int(np.average(losses)))
             img1 = np.reshape(_X[0],       (64, 64, 3))
             img2 = np.reshape(_predict[0], (64, 64, 3))
             concat = np.concatenate((img1, img2), axis=1)
             plt.imsave(name, concat)
-            
+            # '''
+
             p = "%d: loss: %f" % (ii, np.average(losses))
             print (p)
             f = open(results_filename, "a")
             f.write(p + "\n")
             f.close()
+
+            losses=[]
         else:
             [_, _loss] = sess.run([train, loss], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
             losses.append(_loss)
