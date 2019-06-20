@@ -315,13 +315,14 @@ for ii in range(0, epochs):
             losses.append(_loss)
 
             if args.load == None:
-                ext = '_random'
+                ext = 'random'
             else:
-                ext = '_' + args.load
+                ext = args.load
                 
-            name = str(ii * len(train_filenames) + jj * args.batch_size) + ext + '.jpg'
-            img1 = np.reshape(_X[0],       (64, 64))
-            img2 = np.reshape(_predict[0], (64, 64))
+            # name = str(ii * len(train_filenames) + jj * args.batch_size) + ext + '.jpg'
+            name = '%d_%d_%s_%d.jpg' % (jj, ii, ext, int(np.average(losses)))
+            img1 = np.reshape(_X[0],       (64, 64, 3))
+            img2 = np.reshape(_predict[0], (64, 64, 3))
             concat = np.concatenate((img1, img2), axis=1)
             plt.imsave(name, concat)
             
