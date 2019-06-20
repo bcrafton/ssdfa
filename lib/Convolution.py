@@ -12,7 +12,7 @@ from lib.conv_utils import conv_input_length
 
 class Convolution(Layer):
 
-    def __init__(self, input_sizes, filter_sizes, init, strides, padding, alpha=0., activation=None, bias=0., name=None, load=None, train=True):
+    def __init__(self, input_sizes, filter_sizes, init, strides, padding, alpha=0., activation=None, bias=0., name=None, load=None, train=True, transpose=False):
         self.input_sizes = input_sizes
         self.filter_sizes = filter_sizes
         self.batch_size, self.h, self.w, self.fin = self.input_sizes
@@ -34,6 +34,9 @@ class Convolution(Layer):
             weight_dict = np.load(load, encoding='latin1').item()
             filters = weight_dict[self.name]
             bias = weight_dict[self.name + '_bias']
+            
+            if transpose:
+                filters = np.transpose(filters, (0, 1, 3, 2))
         else:
             if init == "zero":
                 filters = np.zeros(shape=self.filter_sizes)
