@@ -228,44 +228,32 @@ learning_rate = tf.placeholder(tf.float32, shape=())
 X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), features)
 
 l1_1 = Convolution(input_sizes=[args.batch_size, 64, 64, 3], filter_sizes=[3, 3, 3, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv1")
-# l1_2 = BatchNorm(input_size=[args.batch_size, 64, 64, 64], name='conv1_bn', train=False)
 l1_3 = Relu()
 l1_4 = Convolution(input_sizes=[args.batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv2")
-# l1_5 = BatchNorm(input_size=[args.batch_size, 32, 32, 64], name='conv2_bn', train=False)
 l1_6 = Relu()
 l1_7 = AvgPool(size=[args.batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
 l2_1 = Convolution(input_sizes=[args.batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 128], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv3")
-# l2_2 = BatchNorm(input_size=[args.batch_size, 32, 32, 128], name='conv3_bn', train=False)
 l2_3 = Relu()
 l2_4 = Convolution(input_sizes=[args.batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 128], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv4")
-# l2_5 = BatchNorm(input_size=[args.batch_size, 16, 16, 128], name='conv4_bn', train=False)
 l2_6 = Relu()
 l2_7 = AvgPool(size=[args.batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
 l3_1 = Convolution(input_sizes=[args.batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 256], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv5")
-# l3_2 = BatchNorm(input_size=[args.batch_size, 16, 16, 256], name='conv5_bn', train=False)
 l3_3 = Relu()
 l3_4 = Convolution(input_sizes=[args.batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 256], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv6")
-# l3_5 = BatchNorm(input_size=[args.batch_size, 16, 16, 256], name='conv6_bn', train=False)
 l3_6 = Relu()
 
 l8_1 = Convolution(input_sizes=[args.batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 256], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv6")
-# l8_2 = BatchNorm(input_size=[args.batch_size, 16, 16, 256], name='conv11_bn', train=False)
 l8_3 = Convolution(input_sizes=[args.batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 128], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv5")
-# l8_4 = BatchNorm(input_size=[args.batch_size, 16, 16, 128], name='conv12_bn', train=False)
 l8_5 = UpSample(input_shape=[args.batch_size, 16, 16, 128], ksize=2)
 
 l9_1 = Convolution(input_sizes=[args.batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 128], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv4")
-# l9_2 = BatchNorm(input_size=[args.batch_size, 32, 32, 128], name='conv13_bn', train=False)
 l9_3 = Convolution(input_sizes=[args.batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv3")
-# l9_4 = BatchNorm(input_size=[args.batch_size, 32, 32, 64], name='conv14_bn', train=False)
 l9_5 = UpSample(input_shape=[args.batch_size, 32, 32, 64], ksize=2)
 
 l10_1 = Convolution(input_sizes=[args.batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv2")
-# l10_2 = BatchNorm(input_size=[args.batch_size, 64, 64, 64], name='conv15_bn', train=False)
 l10_3 = Convolution(input_sizes=[args.batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 3], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv1")
-# l10_4 = BatchNorm(input_size=[args.batch_size, 64, 64, 3], name='conv16_bn', train=False)
 
 ###############################################################
 
@@ -321,17 +309,28 @@ for ii in range(0, epochs):
         if (jj % (args.batch_size * 100) == 0):
             [_, _loss, _X, _predict] = sess.run([train, loss, X, predict], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
             losses.append(_loss)
+
+            if args.load == None:
+                ext = 'random'
+            else:
+                ext = args.load
             
+            # '''    
+            # name = str(ii * len(train_filenames) + jj * args.batch_size) + ext + '.jpg'
+            name = '%d_%d_%s_%d.jpg' % (jj, ii, ext, int(np.average(losses)))
+            img1 = np.reshape(_X[0],       (64, 64, 3))
+            img2 = np.reshape(_predict[0], (64, 64, 3))
+            concat = np.concatenate((img1, img2), axis=1)
+            plt.imsave(name, concat)
+            # '''
+
             p = "%d: loss: %f" % (ii, np.average(losses))
             print (p)
             f = open(results_filename, "a")
             f.write(p + "\n")
             f.close()
 
-            # print (np.std(_X), np.std(_predict))
-            # print (np.std(_X[0]), np.std(_predict[0]))
-            # print (np.shape(_X[0]), np.shape(_predict[0]))
-
+            losses=[]
         else:
             [_, _loss] = sess.run([train, loss], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
             losses.append(_loss)
