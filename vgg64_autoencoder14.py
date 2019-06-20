@@ -250,21 +250,21 @@ l3_4 = Convolution(input_sizes=[args.batch_size, 16, 16, 256], filter_sizes=[3, 
 l3_5 = BatchNorm(input_size=[args.batch_size, 16, 16, 256], name='conv6_bn', load=weights_conv, train=False)
 l3_6 = Relu()
 
-l8_1 = Convolution(input_sizes=[args.batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 256], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv6", transpose=True)
+l8_1 = Convolution(input_sizes=[args.batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 256], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv6", load=weights_conv, transpose=True)
 l8_2 = BatchNorm(input_size=[args.batch_size, 16, 16, 256], name='conv11_bn')
-l8_3 = Convolution(input_sizes=[args.batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 128], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv5", transpose=True)
+l8_3 = Convolution(input_sizes=[args.batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 128], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv5", load=weights_conv, transpose=True)
 l8_4 = BatchNorm(input_size=[args.batch_size, 16, 16, 128], name='conv12_bn')
 l8_5 = UpSample(input_shape=[args.batch_size, 16, 16, 128], ksize=2)
 
-l9_1 = Convolution(input_sizes=[args.batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 128], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv4", transpose=True)
+l9_1 = Convolution(input_sizes=[args.batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 128], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv4", load=weights_conv, transpose=True)
 l9_2 = BatchNorm(input_size=[args.batch_size, 32, 32, 128], name='conv13_bn')
-l9_3 = Convolution(input_sizes=[args.batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv3", transpose=True)
+l9_3 = Convolution(input_sizes=[args.batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv3", load=weights_conv, transpose=True)
 l9_4 = BatchNorm(input_size=[args.batch_size, 32, 32, 64], name='conv14_bn')
 l9_5 = UpSample(input_shape=[args.batch_size, 32, 32, 64], ksize=2)
 
-l10_1 = Convolution(input_sizes=[args.batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv2", transpose=True)
+l10_1 = Convolution(input_sizes=[args.batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv2", load=weights_conv, transpose=True)
 l10_2 = BatchNorm(input_size=[args.batch_size, 64, 64, 64], name='conv15_bn')
-l10_3 = Convolution(input_sizes=[args.batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 3], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv1", transpose=True)
+l10_3 = Convolution(input_sizes=[args.batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 3], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv1", load=weights_conv, transpose=True)
 l10_4 = BatchNorm(input_size=[args.batch_size, 64, 64, 3], name='conv16_bn')
 
 ###############################################################
