@@ -9,13 +9,14 @@ from lib.Activation import Linear
 
 class FullyConnected(Layer):
 
-    def __init__(self, input_shape, size, init, activation=None, bias=0., alpha=0., name=None, load=None, train=True):
+    def __init__(self, input_shape, size, init, activation=None, bias=0., use_bias=False, alpha=0., name=None, load=None, train=True):
 
         self.input_size = input_shape
         self.output_size = size
         self.size = [self.input_size, self.output_size]
 
         bias = np.ones(shape=self.output_size) * bias
+        self.use_bias = use_bias
 
         self.alpha = alpha
         self.activation = Linear() if activation == None else activation
@@ -36,8 +37,11 @@ class FullyConnected(Layer):
             elif init == "alexnet":
                 weights = np.random.normal(loc=0.0, scale=0.01, size=self.size)
             else:
-                # glorot
-                assert(False)
+                fan_in = self.input_size
+                fan_out = self.output_size
+                high = np.sqrt(6. / (fan_in + fan_out))
+                low = -high
+                weights = np.random.uniform(low=low, high=high, size=self.size)
         
         self.weights = tf.Variable(weights, dtype=tf.float32)
         self.bias = tf.Variable(bias, dtype=tf.float32)
@@ -56,6 +60,8 @@ class FullyConnected(Layer):
 
     def forward(self, X):
         Z = tf.matmul(X, self.weights) 
+        if self.use_bias:
+            Z = Z + self.bias
         A = self.activation.forward(Z)
         return {'aout':A, 'cache':{}}
             
@@ -70,8 +76,9 @@ class FullyConnected(Layer):
         
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DW = tf.matmul(tf.transpose(AI), DO) 
+        DB = tf.reduce_sum(DO, axis=0)
 
-        return [(DW, self.weights)]
+        return [(DW, self.weights), (DB, self.bias)]
 
     def train(self, AI, AO, DO):
         assert(False)

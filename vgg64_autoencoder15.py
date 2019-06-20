@@ -227,7 +227,7 @@ learning_rate = tf.placeholder(tf.float32, shape=())
 
 # X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), features)
 # X = features / tf.reduce_max(features, axis=[0, 3], keepdims=True)
-X = features
+X = features / 255.
 
 l1_1 = Convolution(input_sizes=[args.batch_size, 64, 64, 3], filter_sizes=[3, 3, 3, 64], init=args.init, strides=[1,1,1,1], padding="SAME", use_bias=True, name="conv1")
 l1_3 = Relu()

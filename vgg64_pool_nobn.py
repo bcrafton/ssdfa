@@ -275,13 +275,13 @@ l4_9 = AvgPool(size=[args.batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1
 
 l5 = ConvToFullyConnected(input_shape=[4, 4, 512])
 
-l6_1 = FullyConnected(input_shape=4*4*512, size=4096, init=args.init, name="fc1")
+l6_1 = FullyConnected(input_shape=4*4*512, size=4096, init=args.init, bias=0.0, use_bias=True, name="fc1")
 # def need a batch norm here.
 l6_2 = Relu()
 
 l7 = Dropout(rate=dropout_rate)
 
-l8 = FullyConnected(input_shape=4096, size=1000, init=args.init, name="fc2")
+l8 = FullyConnected(input_shape=4096, size=1000, init=args.init, bias=0.0, use_bias=True, name="fc2")
 
 ###############################################################
 
