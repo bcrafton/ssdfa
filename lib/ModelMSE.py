@@ -41,6 +41,7 @@ class Model:
         '''
         pred = A[self.num_layers-1]['aout'] + self.bias
         loss = tf.losses.mean_squared_error(labels=X, predictions=pred)
+        # loss = tf.Print(loss, [loss], message='', summarize=100)
         #####
         '''
         mse_loss = tf.losses.mean_squared_error(labels=X, predictions=pred)
@@ -59,7 +60,9 @@ class Model:
 
         grads = tf.gradients(loss, [self.bias])
         E = grads[0]
-         
+        
+        # E = tf.Print(E, [tf.reduce_max(A[self.num_layers-1]['aout']), tf.reduce_max(X), tf.reduce_max(E), tf.reduce_min(E)], message='', summarize=100)
+
         for ii in range(self.num_layers-1, -1, -1):
             l = self.layers[ii]
 

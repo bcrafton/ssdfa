@@ -12,14 +12,15 @@ from lib.conv_utils import conv_input_length
 
 class Convolution(Layer):
 
-    def __init__(self, input_sizes, filter_sizes, init, strides, padding, alpha=0., activation=None, bias=0., name=None, load=None, train=True, transpose=False):
+    def __init__(self, input_sizes, filter_sizes, init, strides, padding, alpha=0., activation=None, bias=0., use_bias=False, name=None, load=None, train=True, transpose=False):
         self.input_sizes = input_sizes
         self.filter_sizes = filter_sizes
         self.batch_size, self.h, self.w, self.fin = self.input_sizes
         self.fh, self.fw, self.fin, self.fout = self.filter_sizes
         
         bias = np.ones(shape=self.fout) * bias
-        
+        self.use_bias = use_bias
+
         self.strides = strides
         _, self.sh, self.sw, _ = self.strides
 
@@ -44,11 +45,15 @@ class Convolution(Layer):
                 sqrt_fan_in = math.sqrt(self.h*self.w*self.fin)
                 filters = np.random.uniform(low=-1.0/sqrt_fan_in, high=1.0/sqrt_fan_in, size=self.filter_sizes)
             elif init == "alexnet":
-                filters = np.random.normal(loc=0.0, scale=0.01, size=self.filter_sizes)
+                filters = np.random.normal(loc=0.0, scale=0.1, size=self.filter_sizes)
             else:
-                # glorot
-                assert(False)
-                
+                fan_in = self.h * self.w * self.fin
+                fan_out = self.fout
+                high = np.sqrt(6. / (fan_in + fan_out))
+                low = -high
+                # print (low, high)
+                filters = np.random.uniform(low=low, high=high, size=self.filter_sizes)
+
         self.filters = tf.Variable(filters, dtype=tf.float32)
         self.bias = tf.Variable(bias, dtype=tf.float32)
 
@@ -72,6 +77,9 @@ class Convolution(Layer):
 
     def forward(self, X):
         Z = tf.nn.conv2d(X, self.filters, self.strides, self.padding)
+        if self.use_bias:
+            Z = Z + tf.reshape(self.bias, (1, 1, 1, self.fout))
+
         A = self.activation.forward(Z)
         return {'aout':A, 'cache':{}}
         
@@ -86,8 +94,9 @@ class Convolution(Layer):
     
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
-        
-        return [(DF, self.filters)]
+        DB = tf.reduce_sum(DO, axis=[0, 1, 2])
+
+        return [(DF, self.filters), (DB, self.bias)]
         
     def train(self, AI, AO, DO): 
         assert(False)

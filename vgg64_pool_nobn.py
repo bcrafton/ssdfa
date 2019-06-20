@@ -389,7 +389,7 @@ for ii in range(0, epochs):
             f.close()
 
             ####################################
-
+            '''
             rows = []
             for _ in range(5):
                 idx = np.random.randint(low=0, high=64)
@@ -405,7 +405,7 @@ for ii in range(0, epochs):
                 
             img = np.concatenate(rows, axis=0)
             plt.imsave('%d_%d_%d.jpg' % (args.dfa, jj, ii), img)
-            
+            '''
             ####################################
 
         else:
