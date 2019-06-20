@@ -225,35 +225,37 @@ learning_rate = tf.placeholder(tf.float32, shape=())
 
 ####
 
-X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), features)
+# X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), features)
+# X = features / tf.reduce_max(features, axis=[0, 3], keepdims=True)
+X = features
 
-l1_1 = Convolution(input_sizes=[args.batch_size, 64, 64, 3], filter_sizes=[3, 3, 3, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv1")
+l1_1 = Convolution(input_sizes=[args.batch_size, 64, 64, 3], filter_sizes=[3, 3, 3, 64], init=args.init, strides=[1,1,1,1], padding="SAME", use_bias=True, name="conv1")
 l1_3 = Relu()
-l1_4 = Convolution(input_sizes=[args.batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv2")
+l1_4 = Convolution(input_sizes=[args.batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1,1,1,1], padding="SAME", use_bias=True, name="conv2")
 l1_6 = Relu()
 l1_7 = AvgPool(size=[args.batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l2_1 = Convolution(input_sizes=[args.batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 128], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv3")
+l2_1 = Convolution(input_sizes=[args.batch_size, 32, 32, 64], filter_sizes=[3, 3, 64, 128], init=args.init, strides=[1,1,1,1], padding="SAME", use_bias=True, name="conv3")
 l2_3 = Relu()
-l2_4 = Convolution(input_sizes=[args.batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 128], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv4")
+l2_4 = Convolution(input_sizes=[args.batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 128], init=args.init, strides=[1,1,1,1], padding="SAME", use_bias=True, name="conv4")
 l2_6 = Relu()
 l2_7 = AvgPool(size=[args.batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l3_1 = Convolution(input_sizes=[args.batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 256], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv5")
+l3_1 = Convolution(input_sizes=[args.batch_size, 16, 16, 128], filter_sizes=[3, 3, 128, 256], init=args.init, strides=[1,1,1,1], padding="SAME", use_bias=True, name="conv5")
 l3_3 = Relu()
-l3_4 = Convolution(input_sizes=[args.batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 256], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv6")
+l3_4 = Convolution(input_sizes=[args.batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 256], init=args.init, strides=[1,1,1,1], padding="SAME", use_bias=True, name="conv6")
 l3_6 = Relu()
 
-l8_1 = Convolution(input_sizes=[args.batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 256], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv6")
-l8_3 = Convolution(input_sizes=[args.batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 128], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv5")
+l8_1 = Convolution(input_sizes=[args.batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 256], init=args.init, strides=[1,1,1,1], padding="SAME", use_bias=True, name="conv6")
+l8_3 = Convolution(input_sizes=[args.batch_size, 16, 16, 256], filter_sizes=[3, 3, 256, 128], init=args.init, strides=[1,1,1,1], padding="SAME", use_bias=True, name="conv5")
 l8_5 = UpSample(input_shape=[args.batch_size, 16, 16, 128], ksize=2)
 
-l9_1 = Convolution(input_sizes=[args.batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 128], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv4")
-l9_3 = Convolution(input_sizes=[args.batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv3")
+l9_1 = Convolution(input_sizes=[args.batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 128], init=args.init, strides=[1,1,1,1], padding="SAME", use_bias=True, name="conv4")
+l9_3 = Convolution(input_sizes=[args.batch_size, 32, 32, 128], filter_sizes=[3, 3, 128, 64], init=args.init, strides=[1,1,1,1], padding="SAME", use_bias=True, name="conv3")
 l9_5 = UpSample(input_shape=[args.batch_size, 32, 32, 64], ksize=2)
 
-l10_1 = Convolution(input_sizes=[args.batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv2")
-l10_3 = Convolution(input_sizes=[args.batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 3], init=args.init, strides=[1,1,1,1], padding="SAME", name="conv1")
+l10_1 = Convolution(input_sizes=[args.batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 64], init=args.init, strides=[1,1,1,1], padding="SAME", use_bias=True, name="conv2")
+l10_3 = Convolution(input_sizes=[args.batch_size, 64, 64, 64], filter_sizes=[3, 3, 64, 3], init=args.init, strides=[1,1,1,1], padding="SAME", use_bias=True, name="conv1")
 
 ###############################################################
 
