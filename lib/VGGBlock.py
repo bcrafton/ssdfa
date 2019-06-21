@@ -52,7 +52,7 @@ class VGGBlock(Layer):
         
         ##########################################3
         
-        dconv = self.conv_dw.backward(AI, conv['aout'], DO, conv['cache'])
+        dconv = self.conv.backward(AI, conv['aout'], DO, conv['cache'])
 
         ##########################################
 
@@ -66,7 +66,7 @@ class VGGBlock(Layer):
         
         ##########################################
 
-        dconv = self.conv_dw.gv(AI, conv['aout'], DO, dconv['cache'])
+        dconv = self.conv.gv(AI, conv['aout'], DO, dconv['cache'])
         
         ##########################################
         
