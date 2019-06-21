@@ -99,7 +99,7 @@ vgg64_lel_2fc = {'benchmark':'vgg64_lel_2fc.py', 'epochs':30, 'batch_size':64, '
 
 ################################################
 
-vgg64_ae = {'benchmark':'vgg64_autoencoder19.py', 'epochs':10, 'batch_size':32, 'alpha':[0.01, 0.001], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':0, 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':['vgg64_bp.npy', 'vgg64_lel.npy']}
+vgg64_ae = {'benchmark':'vgg64_autoencoder19.py', 'epochs':10, 'batch_size':32, 'alpha':[0.01], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':0, 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':[None, 'vgg64_bp.npy', 'vgg64_lel.npy']}
 
 vgg64_ae_scratch = {'benchmark':'vgg64_autoencoder18.py', 'epochs':10, 'batch_size':32, 'alpha':[0.001, 0.0001], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':0, 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':None}
 
