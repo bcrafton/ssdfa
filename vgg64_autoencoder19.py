@@ -127,7 +127,7 @@ def get_val_filenames():
         for file in files:
             val_filenames.append(os.path.join('/home/bcrafton3/Data_SSD/64x64/tfrecord/val/', file))
 
-    np.random.shuffle(val_filenames)    
+    # np.random.shuffle(val_filenames)    
 
     remainder = len(val_filenames) % args.batch_size
     val_filenames = val_filenames[:(-remainder)]
@@ -143,7 +143,7 @@ def get_train_filenames():
         for file in files:
             train_filenames.append(os.path.join('/home/bcrafton3/Data_SSD/64x64/tfrecord/train/', file))
     
-    np.random.shuffle(train_filenames)
+    # np.random.shuffle(train_filenames)
 
     remainder = len(train_filenames) % args.batch_size
     train_filenames = train_filenames[:(-remainder)]
@@ -329,20 +329,25 @@ for ii in range(0, epochs):
             [_, _loss, _X, _predict] = sess.run([train, loss, X, predict], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
             losses.append(_loss)
 
+            ########################
+
             if args.load == None:
                 ext = 'random'
             else:
                 ext = args.load
             
-            # '''    
-            # name = str(ii * len(train_filenames) + jj * args.batch_size) + ext + '.jpg'
-            # name = '%d_%d_%s_%d.jpg' % (jj, ii, ext, int(np.average(losses)))
             name = '%d_%s_%f.jpg' % (jj, ext, args.alpha)
-            img1 = np.reshape(_X[0],       (64, 64, 3))
+
+            img1 = np.reshape(_X[0], (64, 64, 3))
+            img1 = scipy.misc.imresize(img1, 4.)            
+            
             img2 = np.reshape(_predict[0], (64, 64, 3))
+            img2 = scipy.misc.imresize(img2, 4.)
+            
             concat = np.concatenate((img1, img2), axis=1)
             plt.imsave(name, concat)
-            # '''
+            
+            ########################
 
             p = "%d: loss: %f" % (ii, np.average(losses))
             print (p)
