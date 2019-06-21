@@ -230,7 +230,8 @@ dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 
 gray = tf.image.rgb_to_grayscale(features)
-X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), features)
+# X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), features)
+X = features / 255.
 
 l1_1 = Convolution(input_sizes=[batch_size, 64, 64, 3], filter_sizes=[3, 3, 3, 64], init=args.init, strides=[1, 1, 1, 1], padding="SAME", name="conv1")
 l1_2 = BatchNorm(input_size=[args.batch_size, 64, 64, 64], name='conv1_bn')
@@ -388,7 +389,7 @@ for ii in range(0, epochs):
             f.close()
 
             ####################################
-
+            '''
             rows = []
             for _ in range(5):
                 idx = np.random.randint(low=0, high=64)
@@ -404,7 +405,7 @@ for ii in range(0, epochs):
                 
             img = np.concatenate(rows, axis=0)
             plt.imsave('%d_%d_%d.jpg' % (args.dfa, jj, ii), img)
-            
+            '''
             ####################################
 
         else:
