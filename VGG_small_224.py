@@ -316,12 +316,12 @@ l5_2 = VGGBlock(input_shape=[batch_size, 14, 14, 512],   filter_shape=[512, 512]
 l5_3 = VGGBlock(input_shape=[batch_size, 14, 14, 512],   filter_shape=[512, 512],   strides=[1,1,1,1], init=args.init, name='block13')
 l5_4 = AvgPool(size=[batch_size, 14, 14, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l5_1 = VGGBlock(input_shape=[batch_size, 7, 7, 512],     filter_shape=[512, 1024],  strides=[1,1,1,1], init=args.init, name='block14')
-l5_2 = VGGBlock(input_shape=[batch_size, 7, 7, 1024],    filter_shape=[1024, 1024], strides=[1,1,1,1], init=args.init, name='block15')
-l5_4 = AvgPool(size=[batch_size, 7, 7, 1024], ksize=[1, 7, 7, 1], strides=[1, 7, 7, 1], padding="SAME")
+l6_1 = VGGBlock(input_shape=[batch_size, 7, 7, 512],     filter_shape=[512, 1024],  strides=[1,1,1,1], init=args.init, name='block14')
+l6_2 = VGGBlock(input_shape=[batch_size, 7, 7, 1024],    filter_shape=[1024, 1024], strides=[1,1,1,1], init=args.init, name='block15')
+l6_3 = AvgPool(size=[batch_size, 7, 7, 1024], ksize=[1, 7, 7, 1], strides=[1, 7, 7, 1], padding="SAME")
 
-l6 = ConvToFullyConnected(input_shape=[1, 1, 1024])
-l7 = FullyConnected(input_shape=1024, size=1000, init=args.init, name="fc1")
+l7 = ConvToFullyConnected(input_shape=[1, 1, 1024])
+l8 = FullyConnected(input_shape=1024, size=1000, init=args.init, name="fc1")
 
 layers=[
 l1_1, l1_2, l1_3,
@@ -329,8 +329,9 @@ l2_1, l2_2, l2_3,
 l3_1, l3_2, l3_3, l3_4,
 l4_1, l4_2, l4_3, l4_4,
 l5_1, l5_2, l5_3, l5_4,
-l6,
-l7
+l6_1, l6_2, l6_3, 
+l7,
+l8
 ]
 
 model = Model(layers=layers)
