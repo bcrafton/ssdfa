@@ -33,7 +33,7 @@ if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
     
-exxact = 1
+exxact = 0
 if exxact:
     val_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/val/'
     train_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/train/'
@@ -219,7 +219,6 @@ weights_fc = None
 if weights_conv:
     train_conv = False
 else:
-    assert(False)
     train_conv = True
     
 train_fc = True

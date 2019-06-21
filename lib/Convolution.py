@@ -32,7 +32,7 @@ class Convolution(Layer):
         
         if load:
             print ("Loading Weights: " + self.name)
-            weight_dict = np.load(load, encoding='latin1').item()
+            weight_dict = np.load(load, encoding='latin1', allow_pickle=True).item()
             filters = weight_dict[self.name]
             bias = weight_dict[self.name + '_bias']
         else:
