@@ -7,7 +7,7 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=100)
-parser.add_argument('--batch_size', type=int, default=64)
+parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--alpha', type=float, default=1e-2)
 parser.add_argument('--l2', type=float, default=0.)
 parser.add_argument('--decay', type=float, default=1.)
@@ -22,7 +22,7 @@ parser.add_argument('--rank', type=int, default=0)
 parser.add_argument('--init', type=str, default="alexnet")
 parser.add_argument('--opt', type=str, default="adam")
 parser.add_argument('--save', type=int, default=0)
-parser.add_argument('--name', type=str, default="imagenet_mobile_net")
+parser.add_argument('--name', type=str, default="imagenet_vgg")
 parser.add_argument('--load', type=str, default=None)
 args = parser.parse_args()
 
@@ -83,6 +83,7 @@ from lib.Activation import Linear
 
 from lib.ConvBlock import ConvBlock
 from lib.MobileBlock import MobileBlock
+from lib.VGGBlock import VGGBlock
 
 ##############################################
 
@@ -119,10 +120,7 @@ IMAGENET_MEAN = [123.68, 116.78, 103.94]
 def parse_function(filename, label):
     image_string = tf.read_file(filename)
     image_decoded = tf.image.decode_jpeg(image_string, channels=3)          # (1)
-    return image_decoded, label
-
     image = tf.cast(image_decoded, tf.float32)
-    # image = tf.image.convert_image_dtype(image_decoded, dtype=tf.float32)
 
     smallest_side = 256.0
     height, width = tf.shape(image)[0], tf.shape(image)[1]
@@ -144,9 +142,6 @@ def parse_function(filename, label):
 # (5) Substract the per color mean `IMAGENET_MEAN`
 # Note: we don't normalize the data here, as VGG was trained without normalization
 def train_preprocess(image, label):
-    image = preprocess_for_train(image, 224, 224, None)
-    return image, label
-
     crop_image = tf.random_crop(image, [224, 224, 3])                       # (3)
     flip_image = tf.image.random_flip_left_right(crop_image)                # (4)
 
@@ -161,9 +156,6 @@ def train_preprocess(image, label):
 # (4) Substract the per color mean `IMAGENET_MEAN`
 # Note: we don't normalize the data here, as VGG was trained without normalization
 def val_preprocess(image, label):
-    image = preprocess_for_eval(image, 224, 224)
-    return image, label
-
     crop_image = tf.image.resize_image_with_crop_or_pad(image, 224, 224)    # (3)
 
     means = tf.reshape(tf.constant(IMAGENET_MEAN), [1, 1, 3])
@@ -278,17 +270,16 @@ val_iterator = val_dataset.make_initializable_iterator()
 
 ###############################################################
 
-train_conv = True
-weights_conv = None
-
-train_conv_dw = True
-weights_conv_dw = None
-
-train_conv_pw = True 
-weights_conv_pw = None
-
-train_fc = True
-weights_fc = None
+if args.load:
+    train_conv=False
+    train_fc=True
+    weights_conv = args.load
+    weights_fc = args.load
+else:
+    train_conv=False
+    train_fc=True
+    weights_conv='../vgg_weights/vgg_weights.npy'
+    weights_fc=None
 
 if args.act == 'tanh':
     act = Tanh()
@@ -302,37 +293,50 @@ else:
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 
-########################
+l1_1 = VGGBlock(input_shape=[batch_size, 224, 224, 3],   filter_shape=[3, 32],      strides=[1,1,1,1], init=args.init, name='block1')
+l1_2 = VGGBlock(input_shape=[batch_size, 224, 224, 32],  filter_shape=[32, 64],     strides=[1,1,1,1], init=args.init, name='block2')
+l1_3 = AvgPool(size=[batch_size, 224, 224, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l1 = ConvBlock(input_shape=[batch_size, 224, 224, 3], filter_shape=[3, 3, 3, 32], strides=[1,2,2,1], init=args.init, name='block1')
+l2_1 = VGGBlock(input_shape=[batch_size, 112, 112, 64],  filter_shape=[64, 128],    strides=[1,1,1,1], init=args.init, name='block3')
+l2_2 = VGGBlock(input_shape=[batch_size, 112, 112, 128], filter_shape=[128, 128],   strides=[1,1,1,1], init=args.init, name='block4')
+l2_3 = AvgPool(size=[batch_size, 112, 112, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l2  = MobileBlock(input_shape=[batch_size, 112, 112, 32], filter_shape=[32, 64],  strides=[1,1,1,1], init=args.init, name='block2')
-l3  = MobileBlock(input_shape=[batch_size, 112, 112, 64], filter_shape=[64, 128], strides=[1,2,2,1], init=args.init, name='block3')
+l3_1 = VGGBlock(input_shape=[batch_size, 56, 56, 128],   filter_shape=[128, 256],   strides=[1,1,1,1], init=args.init, name='block5')
+l3_2 = VGGBlock(input_shape=[batch_size, 56, 56, 256],   filter_shape=[256, 256],   strides=[1,1,1,1], init=args.init, name='block6')
+l3_3 = VGGBlock(input_shape=[batch_size, 56, 56, 256],   filter_shape=[256, 256],   strides=[1,1,1,1], init=args.init, name='block7')
+l3_4 = AvgPool(size=[batch_size, 56, 56, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l4  = MobileBlock(input_shape=[batch_size, 56, 56, 128], filter_shape=[128, 128], strides=[1,1,1,1], init=args.init, name='block4')
-l5  = MobileBlock(input_shape=[batch_size, 56, 56, 128], filter_shape=[128, 256], strides=[1,2,2,1], init=args.init, name='block5')
+l4_1 = VGGBlock(input_shape=[batch_size, 28, 28, 256],   filter_shape=[256, 512],   strides=[1,1,1,1], init=args.init, name='block8')
+l4_2 = VGGBlock(input_shape=[batch_size, 28, 28, 512],   filter_shape=[512, 512],   strides=[1,1,1,1], init=args.init, name='block9')
+l4_3 = VGGBlock(input_shape=[batch_size, 28, 28, 512],   filter_shape=[512, 512],   strides=[1,1,1,1], init=args.init, name='block10')
+l4_4 = AvgPool(size=[batch_size, 28, 28, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l6  = MobileBlock(input_shape=[batch_size, 28, 28, 256], filter_shape=[256, 256], strides=[1,1,1,1], init=args.init, name='block6')
-l7  = MobileBlock(input_shape=[batch_size, 28, 28, 256], filter_shape=[256, 512], strides=[1,2,2,1], init=args.init, name='block7')
+l5_1 = VGGBlock(input_shape=[batch_size, 14, 14, 512],   filter_shape=[512, 512],   strides=[1,1,1,1], init=args.init, name='block11')
+l5_2 = VGGBlock(input_shape=[batch_size, 14, 14, 512],   filter_shape=[512, 512],   strides=[1,1,1,1], init=args.init, name='block12')
+l5_3 = VGGBlock(input_shape=[batch_size, 14, 14, 512],   filter_shape=[512, 512],   strides=[1,1,1,1], init=args.init, name='block13')
+l5_4 = AvgPool(size=[batch_size, 14, 14, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l8  = MobileBlock(input_shape=[batch_size, 14, 14, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=args.init, name='block8')
-l9  = MobileBlock(input_shape=[batch_size, 14, 14, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=args.init, name='block9')
-l10 = MobileBlock(input_shape=[batch_size, 14, 14, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=args.init, name='block10')
-l11 = MobileBlock(input_shape=[batch_size, 14, 14, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=args.init, name='block11')
-l12 = MobileBlock(input_shape=[batch_size, 14, 14, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=args.init, name='block12')
+l6_1 = VGGBlock(input_shape=[batch_size, 7, 7, 512],     filter_shape=[512, 1024],  strides=[1,1,1,1], init=args.init, name='block14')
+l6_2 = VGGBlock(input_shape=[batch_size, 7, 7, 1024],    filter_shape=[1024, 1024], strides=[1,1,1,1], init=args.init, name='block15')
+l6_3 = AvgPool(size=[batch_size, 7, 7, 1024], ksize=[1, 7, 7, 1], strides=[1, 7, 7, 1], padding="SAME")
 
-l13 = MobileBlock(input_shape=[batch_size, 14, 14, 512], filter_shape=[512, 1024], strides=[1,2,2,1], init=args.init, name='block13')
+l7 = ConvToFullyConnected(input_shape=[1, 1, 1024])
+l8 = FullyConnected(input_shape=1024, size=1000, init=args.init, name="fc1")
 
-l14 = MobileBlock(input_shape=[batch_size, 7, 7, 1024], filter_shape=[1024, 1024], strides=[1,1,1,1], init=args.init, name='block14')
+layers=[
+l1_1, l1_2, l1_3,
+l2_1, l2_2, l2_3,
+l3_1, l3_2, l3_3, l3_4,
+l4_1, l4_2, l4_3, l4_4,
+l5_1, l5_2, l5_3, l5_4,
+l6_1, l6_2, l6_3, 
+l7,
+l8
+]
 
-l15 = AvgPool(size=[batch_size, 7, 7, 1024], ksize=[1, 7, 7, 1], strides=[1, 7, 7, 1], padding="SAME")
-l16 = ConvToFullyConnected(input_shape=[1, 1, 1024])
-l17 = FullyConnected(input_shape=1024, size=1000, init=args.init, name="fc1")
-
-layers = [l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16, l17]
 model = Model(layers=layers)
 
-########################
+###############################################################
 
 predict = tf.nn.softmax(model.predict(X=features))
 
@@ -494,21 +498,12 @@ for ii in range(0, epochs):
 
     if args.save:
         [w] = sess.run([weights], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
-
         w['train_acc'] = train_accs
         w['train_acc_top5'] = train_accs_top5
         w['val_acc'] = val_accs
         w['val_acc_top5'] = val_accs_top5
-
         np.save(args.name, w)
 
     print('epoch {}/{}'.format(ii, epochs))
-    
-    
-    
-    
-    
-    
-    
     
 
