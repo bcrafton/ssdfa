@@ -99,19 +99,20 @@ vgg64_lel_2fc = {'benchmark':'vgg64_lel_2fc.py', 'epochs':30, 'batch_size':64, '
 
 ################################################
 
-vgg64_ae = {'benchmark':'vgg64_autoencoder17.py', 'epochs':10, 'batch_size':32, 'alpha':[0.001], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':0, 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':['vgg64_bp.npy', 'vgg64_lel.npy']}
+vgg64_ae = {'benchmark':'vgg64_autoencoder19.py', 'epochs':10, 'batch_size':32, 'alpha':[0.01, 0.001], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':0, 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':['vgg64_bp.npy', 'vgg64_lel.npy']}
 
-vgg64_ae_scratch = {'benchmark':'vgg64_autoencoder18.py', 'epochs':10, 'batch_size':32, 'alpha':[0.01, 0.001, 0.0001, 0.00001], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':0, 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':None}
+vgg64_ae_scratch = {'benchmark':'vgg64_autoencoder18.py', 'epochs':10, 'batch_size':32, 'alpha':[0.001, 0.0001], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':0, 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':None}
 
-vgg64_pool = {'benchmark':'vgg64_pool_nobn.py', 'epochs':10, 'batch_size':64, 'alpha':[0.03], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':[0, 1], 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':None}
+vgg64_pool = {'benchmark':'vgg64_pool.py', 'epochs':10, 'batch_size':64, 'alpha':[0.03], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':[0, 1], 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':None}
 
 ################################################
 
 # params = [vgg64_ae, vgg64_pool]
-params = [vgg64_pool]
-# params = [vgg64_ae]
+# params = [vgg64_pool]
+params = [vgg64_ae]
 # params = [vgg64_ae_scratch]
 # params = [mobile_net_224]
+# params = [vgg64_ae_scratch, vgg64_pool]
 
 ################################################
 

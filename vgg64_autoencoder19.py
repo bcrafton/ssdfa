@@ -211,6 +211,7 @@ weights_fc = None
 if weights_conv:
     train_conv = False
 else:
+    assert(False)
     train_conv = True
     
 train_fc = True
@@ -335,7 +336,8 @@ for ii in range(0, epochs):
             
             # '''    
             # name = str(ii * len(train_filenames) + jj * args.batch_size) + ext + '.jpg'
-            name = '%d_%d_%s_%d.jpg' % (jj, ii, ext, int(np.average(losses)))
+            # name = '%d_%d_%s_%d.jpg' % (jj, ii, ext, int(np.average(losses)))
+            name = '%d_%s_%f.jpg' % (jj, ext, args.alpha)
             img1 = np.reshape(_X[0],       (64, 64, 3))
             img2 = np.reshape(_predict[0], (64, 64, 3))
             concat = np.concatenate((img1, img2), axis=1)
