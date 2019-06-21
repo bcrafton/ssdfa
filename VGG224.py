@@ -83,6 +83,7 @@ from lib.Activation import Linear
 
 from lib.ConvBlock import ConvBlock
 from lib.MobileBlock import MobileBlock
+from lib.VGGBlock import VGGBlock
 
 ##############################################
 
