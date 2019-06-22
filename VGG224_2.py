@@ -189,7 +189,7 @@ def get_validation_dataset():
             validation_images.append(os.path.join(val_data_path, file))
     validation_images = sorted(validation_images)
 
-    validation_labels_file = open(val_labels_path)
+    validation_labels_file = open(val_label_path)
     lines = validation_labels_file.readlines()
     for ii in range(len(lines)):
         validation_labels.append(int(lines[ii]))
