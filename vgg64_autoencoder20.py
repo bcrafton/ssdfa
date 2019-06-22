@@ -372,7 +372,7 @@ for ii in range(0, epochs):
     sess.run(val_iterator.initializer, feed_dict={filename: val_filenames})
 
     losses = []
-    for jj in range(0, len(val_filenames), batch_size):
+    for jj in range(0, len(val_filenames), args.batch_size):
     
         if (jj % (args.batch_size * 100) == 0):
             [_loss, _X, _predict] = sess.run([loss, X, predict], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
