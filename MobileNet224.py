@@ -480,13 +480,13 @@ for ii in range(0, epochs):
         phase = 1
         print ('phase 1')
     elif phase == 1:
-        dacc = train_accs[-1] - train_accs[-2]
+        dacc = val_accs[-1] - val_accs[-2]
         if dacc <= 0.01:
             alpha = 0.1 * args.alpha
             phase = 2
             print ('phase 2')
     elif phase == 2:
-        dacc = train_accs[-1] - train_accs[-2]
+        dacc = val_accs[-1] - val_accs[-2]
         if dacc <= 0.005:
             alpha = 0.05 * args.alpha
             phase = 3
