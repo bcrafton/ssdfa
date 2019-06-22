@@ -356,7 +356,7 @@ for ii in range(0, epochs):
             
             ########################
 
-            p = "%d: loss: %f" % (ii, np.average(losses))
+            p = "%d: train loss: %f" % (ii, np.average(losses))
             print (p)
             f = open(results_filename, "a")
             f.write(p + "\n")
@@ -365,6 +365,28 @@ for ii in range(0, epochs):
             losses=[]
         else:
             [_, _loss] = sess.run([train, loss], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
+            losses.append(_loss)
+
+    ##################################################################
+    
+    sess.run(val_iterator.initializer, feed_dict={filename: val_filenames})
+
+    losses = []
+    for jj in range(0, len(val_filenames), batch_size):
+    
+        if (jj % (args.batch_size * 100) == 0):
+            [_loss, _X, _predict] = sess.run([loss, X, predict], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
+            losses.append(_loss)
+            
+            p = "%d: val loss: %f" % (ii, np.average(losses))
+            print (p)
+            f = open(results_filename, "a")
+            f.write(p + "\n")
+            f.close()
+            
+            losses=[]
+        else:
+            [_loss] = sess.run([loss], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
             losses.append(_loss)
 
     ##################################################################
