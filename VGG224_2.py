@@ -30,7 +30,7 @@ if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
     
-exxact = 0
+exxact = 1
 if exxact:
     val_data_path = '/home/bcrafton3/Data_SSD/ILSVRC2012/val/'
     val_label_path = '/home/bcrafton3/dfa/imagenet_labels/validation_labels.txt'
@@ -507,6 +507,18 @@ for ii in range(0, epochs):
             alpha = 0.05 * args.alpha
             phase = 3
             print ('phase 3')
+    elif phase == 3:
+        dacc = val_accs[-1] - val_accs[-2]
+        if dacc <= 0.0001:
+            alpha = 0.001 * args.alpha
+            phase = 4
+            print ('phase 4')
+    elif phase == 4:
+        dacc = val_accs[-1] - val_accs[-2]
+        if dacc <= 0.00001:
+            alpha = 0.0001 * args.alpha
+            phase = 5
+            print ('phase 5')
 
     if args.save:
         [w] = sess.run([weights], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})

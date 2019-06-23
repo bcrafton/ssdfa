@@ -25,7 +25,7 @@ for ii in range(num_runs):
     name = name + '.npy'
 
     # load the results
-    res = np.load(name).item()
+    res = np.load(name, allow_pickle=True).item()
     
     if param['load']:
         transfer = 1
