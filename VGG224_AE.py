@@ -8,7 +8,7 @@ import sys
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--batch_size', type=int, default=32)
-parser.add_argument('--alpha', type=float, default=1e-2)
+parser.add_argument('--alpha', type=float, default=1e-4)
 parser.add_argument('--l2', type=float, default=0.)
 parser.add_argument('--decay', type=float, default=1.)
 parser.add_argument('--eps', type=float, default=1.)
@@ -114,7 +114,7 @@ def in_top_k(x, y, k):
 ##############################################
 
 data_augmentation = False
-IMAGENET_MEAN = [123.68, 116.78, 103.94]
+# IMAGENET_MEAN = [123.68, 116.78, 103.94]
 
 ##############################################
 
@@ -150,11 +150,12 @@ def parse_function(filename, label):
 def train_preprocess(image, label):
     crop_image = tf.random_crop(image, [224, 224, 3])                       # (3)
     flip_image = tf.image.random_flip_left_right(crop_image)                # (4)
+    return flip_image, label
 
-    means = tf.reshape(tf.constant(IMAGENET_MEAN), [1, 1, 3])
-    centered_image = flip_image - means                                     # (5)
+    # means = tf.reshape(tf.constant(IMAGENET_MEAN), [1, 1, 3])
+    # centered_image = flip_image - means                                     # (5)
 
-    return centered_image, label
+    # return centered_image, label
     
 
 # Preprocessing (for validation)
@@ -163,11 +164,12 @@ def train_preprocess(image, label):
 # Note: we don't normalize the data here, as VGG was trained without normalization
 def val_preprocess(image, label):
     crop_image = tf.image.resize_image_with_crop_or_pad(image, 224, 224)    # (3)
+    return crop_image, label
 
-    means = tf.reshape(tf.constant(IMAGENET_MEAN), [1, 1, 3])
-    centered_image = crop_image - means                                     # (4)
+    # means = tf.reshape(tf.constant(IMAGENET_MEAN), [1, 1, 3])
+    # centered_image = crop_image - means                                     # (4)
 
-    return centered_image, label
+    # return centered_image, label
 
 ##############################################
 
@@ -376,44 +378,11 @@ l11_1, l11_2, l11_3, l11_4,
 l12_1, l12_2, l12_3
 ]
 
-model = Model(layers=layers)
+model = Model(layers=layers, shape_y=[args.batch_size, 224, 224, 3])
+predict = model.predict(X=X)
 
-###############################################################
-
-predict = tf.nn.softmax(model.predict(X=features))
-
-if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt == "momentum":
-    if args.dfa:
-        grads_and_vars = model.lel_gvs(X=features, Y=labels)
-    else:
-        grads_and_vars = model.gvs(X=features, Y=labels)
-        
-    if args.opt == "adam":
-        train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
-    elif args.opt == "rms":
-        train = tf.train.RMSPropOptimizer(learning_rate=learning_rate, decay=0.99, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
-    elif args.opt == "decay":
-        train = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).apply_gradients(grads_and_vars=grads_and_vars)
-    elif args.opt == "momentum":
-        train = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9).apply_gradients(grads_and_vars=grads_and_vars)
-    else:
-        assert(False)
-
-else:
-    if args.dfa:
-        train = model.lel(X=features, Y=labels)
-    else:
-        train = model.train(X=features, Y=labels)
-
-correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
-total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
-
-top5 = in_top_k(predict, tf.argmax(labels,1), k=5)
-total_top5 = tf.reduce_sum(tf.cast(top5, tf.float32))
-
-weights = model.get_weights()
-
-print (model.num_params())
+grads_and_vars, loss = model.gvs(X=X, Y=X)
+train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
 
 ###############################################################
 
