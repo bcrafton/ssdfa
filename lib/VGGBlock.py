@@ -23,8 +23,10 @@ class VGGBlock(Layer):
         self.init = init
         self.name = name
         
+        self.lel_shape = [self.batch, self.h // self.sh, self.w // self.sw, self.fout]
+        
         self.conv = ConvBlock(input_shape=self.input_shape, filter_shape=[3, 3, self.fin, self.fout], strides=self.strides, init=self.init, name='_conv_block')
-        # self.lel = LELConv(input_shape=input_shape_3, pool_shape=self.pool_shape, num_classes=1000, name='_fb')
+        self.lel = LELConv(input_shape=self.lel_shape, pool_shape=self.pool_shape, num_classes=1000, name='_fb')
 
     ###################################################################
 
