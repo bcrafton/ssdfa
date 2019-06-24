@@ -31,7 +31,7 @@ class VGGBlock(Layer):
         self.lel_shape = [self.batch, self.h // self.sh, self.w // self.sw, self.fout]
         
         self.conv = ConvBlock(input_shape=self.input_shape, filter_shape=[3, 3, self.fin, self.fout], strides=self.strides, init=self.init, name='_conv_block', activation=activation)
-        self.lel = LELConv(input_shape=self.lel_shape, pool_shape=self.pool_shape, num_classes=1000, name='_fb')
+        # self.lel = LELConv(input_shape=self.lel_shape, pool_shape=self.pool_shape, num_classes=1000, name='_fb')
 
     ###################################################################
 
@@ -48,9 +48,10 @@ class VGGBlock(Layer):
 
     def forward(self, X):
         conv = self.conv.forward(X)
-        lel = self.lel.forward(conv['aout'])
+        # lel = self.lel.forward(conv['aout'])
 
-        cache = {'conv':conv, 'lel':lel}
+        # cache = {'conv':conv, 'lel':lel}
+        cache = {'conv':conv}
         return {'aout':conv['aout'], 'cache':cache}
         
     def backward(self, AI, AO, DO, cache):    

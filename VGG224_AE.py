@@ -114,7 +114,7 @@ def in_top_k(x, y, k):
 ##############################################
 
 data_augmentation = False
-IMAGENET_MEAN = [123.68, 116.78, 103.94]
+# IMAGENET_MEAN = [123.68, 116.78, 103.94]
 
 ##############################################
 
@@ -150,11 +150,12 @@ def parse_function(filename, label):
 def train_preprocess(image, label):
     crop_image = tf.random_crop(image, [224, 224, 3])                       # (3)
     flip_image = tf.image.random_flip_left_right(crop_image)                # (4)
+    return flip_image, label
 
-    means = tf.reshape(tf.constant(IMAGENET_MEAN), [1, 1, 3])
-    centered_image = flip_image - means                                     # (5)
+    # means = tf.reshape(tf.constant(IMAGENET_MEAN), [1, 1, 3])
+    # centered_image = flip_image - means                                     # (5)
 
-    return centered_image, label
+    # return centered_image, label
     
 
 # Preprocessing (for validation)
@@ -163,11 +164,12 @@ def train_preprocess(image, label):
 # Note: we don't normalize the data here, as VGG was trained without normalization
 def val_preprocess(image, label):
     crop_image = tf.image.resize_image_with_crop_or_pad(image, 224, 224)    # (3)
+    return crop_image, label
 
-    means = tf.reshape(tf.constant(IMAGENET_MEAN), [1, 1, 3])
-    centered_image = crop_image - means                                     # (4)
+    # means = tf.reshape(tf.constant(IMAGENET_MEAN), [1, 1, 3])
+    # centered_image = crop_image - means                                     # (4)
 
-    return centered_image, label
+    # return centered_image, label
 
 ##############################################
 
@@ -320,6 +322,7 @@ l3_4 = AvgPool(size=[args.batch_size, 56, 56, 128], ksize=[1, 2, 2, 1], strides=
 l4_1 = VGGBlock(input_shape=[args.batch_size, 28, 28, 128],  filter_shape=[128, 256],   strides=[1,1,1,1], init=args.init, name='block8')
 l4_2 = VGGBlock(input_shape=[args.batch_size, 28, 28, 256],  filter_shape=[256, 256],   strides=[1,1,1,1], init=args.init, name='block9')
 l4_3 = VGGBlock(input_shape=[args.batch_size, 28, 28, 256],  filter_shape=[256, 256],   strides=[1,1,1,1], init=args.init, name='block10')
+'''
 l4_4 = AvgPool(size=[args.batch_size, 28, 28, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
 l5_1 = VGGBlock(input_shape=[args.batch_size, 14, 14, 256],  filter_shape=[256, 512],   strides=[1,1,1,1], init=args.init, name='block11')
@@ -342,7 +345,7 @@ l8_1 = VGGBlock(input_shape=[args.batch_size, 14, 14, 512],  filter_shape=[512, 
 l8_2 = VGGBlock(input_shape=[args.batch_size, 14, 14, 512],  filter_shape=[512, 512],   strides=[1,1,1,1], activation=Linear(), init=args.init, name='block19')
 l8_3 = VGGBlock(input_shape=[args.batch_size, 14, 14, 256],  filter_shape=[512, 256],   strides=[1,1,1,1], activation=Linear(), init=args.init, name='block20')
 l8_4 = UpSample(input_shape=[args.batch_size, 14, 14, 256], ksize=2)
-
+'''
 l9_1 = VGGBlock(input_shape=[args.batch_size, 28, 28, 256],  filter_shape=[256, 256],   strides=[1,1,1,1], activation=Linear(), init=args.init, name='block21')
 l9_2 = VGGBlock(input_shape=[args.batch_size, 28, 28, 256],  filter_shape=[256, 256],   strides=[1,1,1,1], activation=Linear(), init=args.init, name='block22')
 l9_3 = VGGBlock(input_shape=[args.batch_size, 28, 28, 128],  filter_shape=[256, 128],   strides=[1,1,1,1], activation=Linear(), init=args.init, name='block23')
@@ -366,12 +369,12 @@ layers=[
 l1_1, l1_2, l1_3,
 l2_1, l2_2, l2_3,
 l3_1, l3_2, l3_3, l3_4,
-l4_1, l4_2, l4_3, l4_4,
-l5_1, l5_2, l5_3, l5_4,
-l6_1, l6_2,
+l4_1, l4_2, l4_3, # l4_4,
+# l5_1, l5_2, l5_3, #l5_4,
+# l6_1, l6_2,
 
-l7_1, l7_2, l7_3,
-l8_1, l8_2, l8_3, l8_4,
+# l7_1, l7_2, l7_3,
+# l8_1, l8_2, l8_3, l8_4,
 l9_1, l9_2, l9_3, l9_4,
 l10_1, l10_2, l10_3, l10_4,
 l11_1, l11_2, l11_3,
@@ -418,7 +421,7 @@ for ii in range(0, args.epochs):
     losses = []
     for jj in range(0, len(train_imgs), args.batch_size):
 
-        if (jj % (args.batch_size * 100) == 0):
+        if (jj % (args.batch_size * 10) == 0):
             [_, _loss, _X, _predict] = sess.run([train, loss, X, predict], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
             losses.append(_loss)
         

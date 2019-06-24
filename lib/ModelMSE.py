@@ -22,6 +22,8 @@ class Model:
     ####################################################################
       
     def gvs(self, X, Y):
+        # X = tf.Print (X, [tf.reduce_max(X)], message='', summarize=1000)
+
         A = [None] * self.num_layers
         D = [None] * self.num_layers
         grads_and_vars = []
