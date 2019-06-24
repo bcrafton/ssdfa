@@ -30,7 +30,7 @@ if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
     
-exxact = 1
+exxact = 0
 if exxact:
     val_data_path = '/home/bcrafton3/Data_SSD/ILSVRC2012/val/'
     val_label_path = '/home/bcrafton3/dfa/imagenet_labels/validation_labels.txt'
@@ -315,8 +315,8 @@ dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 
 ########################
-
-l1 = ConvBlock(input_shape=[batch_size, 224, 224, 3], filter_shape=[3, 3, 3, 32], strides=[1,2,2,1], pool_shape=[1,7,7,1], init=args.init, name='block1')
+l1 = ConvBlock(input_shape=[batch_size, 224, 224, 3], filter_shape=[3, 3, 3, 32], strides=[1,2,2,1], init=args.init, name='block1')
+# need to add a LELPool() right here.
 
 l2  = MobileBlock(input_shape=[batch_size, 112, 112, 32], filter_shape=[32, 64],  strides=[1,1,1,1], pool_shape=[1,7,7,1], init=args.init, name='block2')
 l3  = MobileBlock(input_shape=[batch_size, 112, 112, 64], filter_shape=[64, 128], strides=[1,2,2,1], pool_shape=[1,7,7,1], init=args.init, name='block3')

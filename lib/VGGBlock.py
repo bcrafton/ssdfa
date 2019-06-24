@@ -94,7 +94,7 @@ class VGGBlock(Layer):
     
     def lel_backward(self, AI, AO, E, DO, Y, cache):
     
-        conv = cache['conv'], cache['lel']
+        conv, lel = cache['conv'], cache['lel']
         
         ##########################################3
         

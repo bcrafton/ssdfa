@@ -107,7 +107,7 @@ class MobileBlock(Layer):
     
     def lel_backward(self, AI, AO, E, DO, Y, cache):
     
-        conv_dw, conv_pw, lel_pw = cache['conv_dw'], cache['lel_dw'], cache['conv_pw'], cache['lel_pw']
+        conv_dw, lel_dw, conv_pw, lel_pw = cache['conv_dw'], cache['lel_dw'], cache['conv_pw'], cache['lel_pw']
         
         ##########################################3
         
@@ -130,7 +130,7 @@ class MobileBlock(Layer):
 
         dconv_dw = self.conv_dw.lel_gv(AI, conv_dw['aout'], None, dlel_dw['dout'], Y, dconv_dw['cache'])
         dlel_dw  = self.lel_dw.lel_gv(conv_dw['aout'], lel_dw['aout'], None, None, Y, dlel_dw['cache'])
-        dconv_pw = self.conv_pw.lel_gv(dlel_dw['aout'], conv_pw['aout'], None, dlel_pw['dout'], Y, dconv_pw['cache'])
+        dconv_pw = self.conv_pw.lel_gv(lel_dw['aout'], conv_pw['aout'], None, dlel_pw['dout'], Y, dconv_pw['cache'])
         dlel_pw  = self.lel_pw.lel_gv(conv_pw['aout'], lel_pw['aout'], None, None, Y, dlel_pw['cache'])
         
         ##########################################
