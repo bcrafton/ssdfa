@@ -42,10 +42,10 @@ class VGGBlock(Layer):
     ###################################################################
 
     def forward(self, X):
-
         conv = self.conv.forward(X)
+        lel = self.lel.forward(conv['aout'])
 
-        cache = {'conv':conv}
+        cache = {'conv':conv, 'lel':lel}
         return {'aout':conv['aout'], 'cache':cache}
         
     def backward(self, AI, AO, DO, cache):    
@@ -93,10 +93,35 @@ class VGGBlock(Layer):
     ###################################################################   
     
     def lel_backward(self, AI, AO, E, DO, Y, cache):
-        assert(False)
+    
+        conv = cache['conv'], cache['lel']
+        
+        ##########################################3
+        
+        dlel = self.lel.lel_backward(conv['aout'], lel['aout'], None, DO, Y, lel['cache'])
+        dconv = self.conv.lel_backward(AI, conv['aout'], None, dlel['dout'], Y, conv['cache'])
+
+        ##########################################
+
+        cache.update({'dconv':dconv, 'dlel':dlel})
+        return {'dout':dconv['dout'], 'cache':cache}
 
     def lel_gv(self, AI, AO, E, DO, Y, cache):
-        assert(False)
+
+        conv, lel  = cache['conv'], cache['lel']
+        dconv, dlel = cache['dconv'], cache['dlel']
+        
+        ##########################################
+
+        dconv = self.conv.lel_gv(AI, conv['aout'], None, dlel['dout'], Y, dconv['cache'])
+        dlel= self.lel.lel_gv(conv['aout'], lel['aout'], None, DO, Y, dlel['cache'])
+        
+        ##########################################
+        
+        grads = []
+        grads.extend(dconv)
+        grads.extend(dlel)
+        return grads
         
     def lel(self, AI, AO, E, DO, Y): 
         assert(False)
