@@ -301,6 +301,8 @@ else:
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 
+X = features / 255.
+
 ##########
 # encoder.
 
@@ -340,25 +342,25 @@ l7_3 = UpSample(input_shape=[args.batch_size, 7, 7, 512], ksize=2)
 
 l8_1 = VGGBlock(input_shape=[args.batch_size, 14, 14, 512],  filter_shape=[512, 512],   strides=[1,1,1,1], init=args.init, name='block18')
 l8_2 = VGGBlock(input_shape=[args.batch_size, 14, 14, 512],  filter_shape=[512, 512],   strides=[1,1,1,1], init=args.init, name='block19')
-l8_3 = VGGBlock(input_shape=[args.batch_size, 14, 14, 256],  filter_shape=[512, 256],   strides=[1,1,1,1], init=args.init, name='block20')
+l8_3 = VGGBlock(input_shape=[args.batch_size, 14, 14, 512],  filter_shape=[512, 256],   strides=[1,1,1,1], init=args.init, name='block20')
 l8_4 = UpSample(input_shape=[args.batch_size, 14, 14, 256], ksize=2)
 
 l9_1 = VGGBlock(input_shape=[args.batch_size, 28, 28, 256],  filter_shape=[256, 256],   strides=[1,1,1,1], init=args.init, name='block21')
 l9_2 = VGGBlock(input_shape=[args.batch_size, 28, 28, 256],  filter_shape=[256, 256],   strides=[1,1,1,1], init=args.init, name='block22')
-l9_3 = VGGBlock(input_shape=[args.batch_size, 28, 28, 128],  filter_shape=[256, 128],   strides=[1,1,1,1], init=args.init, name='block23')
+l9_3 = VGGBlock(input_shape=[args.batch_size, 28, 28, 256],  filter_shape=[256, 128],   strides=[1,1,1,1], init=args.init, name='block23')
 l9_4 = UpSample(input_shape=[args.batch_size, 28, 28, 128], ksize=2)
 
 l10_1 = VGGBlock(input_shape=[args.batch_size, 56, 56, 128],  filter_shape=[128, 128],   strides=[1,1,1,1], init=args.init, name='block24')
 l10_2 = VGGBlock(input_shape=[args.batch_size, 56, 56, 128],  filter_shape=[128, 128],   strides=[1,1,1,1], init=args.init, name='block25')
-l10_3 = VGGBlock(input_shape=[args.batch_size, 56, 56, 64],   filter_shape=[128, 64],    strides=[1,1,1,1], init=args.init, name='block26')
+l10_3 = VGGBlock(input_shape=[args.batch_size, 56, 56, 128],  filter_shape=[128, 64],    strides=[1,1,1,1], init=args.init, name='block26')
 l10_4 = UpSample(input_shape=[args.batch_size, 56, 56, 64], ksize=2)
 
 l11_1 = VGGBlock(input_shape=[args.batch_size, 112, 112, 64], filter_shape=[64, 64],     strides=[1,1,1,1], init=args.init, name='block27')
-l11_2 = VGGBlock(input_shape=[args.batch_size, 112, 112, 32], filter_shape=[64, 32],     strides=[1,1,1,1], init=args.init, name='block28')
+l11_2 = VGGBlock(input_shape=[args.batch_size, 112, 112, 64], filter_shape=[64, 32],     strides=[1,1,1,1], init=args.init, name='block28')
 l11_3 = UpSample(input_shape=[args.batch_size, 112, 112, 32], ksize=2)
 
 l12_1 = VGGBlock(input_shape=[args.batch_size, 224, 224, 32], filter_shape=[32, 32],     strides=[1,1,1,1], init=args.init, name='block29')
-l12_2 = VGGBlock(input_shape=[args.batch_size, 224, 224, 3],  filter_shape=[32, 3],      strides=[1,1,1,1], init=args.init, name='block30')
+l12_2 = VGGBlock(input_shape=[args.batch_size, 224, 224, 32], filter_shape=[32, 3],      strides=[1,1,1,1], init=args.init, name='block30')
 
 ##########
 
@@ -368,14 +370,14 @@ l2_1, l2_2, l2_3,
 l3_1, l3_2, l3_3, l3_4,
 l4_1, l4_2, l4_3, l4_4,
 l5_1, l5_2, l5_3, l5_4,
-l6_1, l6_2, l6_3, 
+l6_1, l6_2, 
 
 l7_1, l7_2, l7_3,
-l8_1, l8_2, l8_3,
+l8_1, l8_2, l8_3, l8_4,
 l9_1, l9_2, l9_3, l9_4,
 l10_1, l10_2, l10_3, l10_4,
-l11_1, l11_2, l11_3, l11_4,
-l12_1, l12_2, l12_3
+l11_1, l11_2, l11_3,
+l12_1, l12_2
 ]
 
 model = Model(layers=layers, shape_y=[args.batch_size, 224, 224, 3])
