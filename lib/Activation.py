@@ -35,6 +35,10 @@ class Relu(Activation, Layer):
         A = tf.nn.relu(x)
         return {'aout': A, 'cache': {}}
 
+    def act_forward(self, x):
+        A = tf.nn.relu(x)
+        return A
+
     def gradient(self, x):
         # pretty sure this gradient works for A and Z
         return tf.cast(x > 0.0, dtype=tf.float32)
@@ -150,6 +154,9 @@ class Linear(Activation):
         A = x
         return {'aout': A, 'cache': {}}
 
+    def act_forward(self, x):
+        return x
+
     def gradient(self, x):
         return tf.ones(shape=tf.shape(x))
         
@@ -164,7 +171,7 @@ class Linear(Activation):
     #############################################
 
     def backward(self, AI, AO, DO, cache=None):    
-        DI = tf.ones(shape=tf.shape(x))
+        DI = tf.ones(shape=tf.shape(AI))
         return {'dout': DI, 'cache': {}}
 
     def gv(self, AI, AO, DO, cache=None):

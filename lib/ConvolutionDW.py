@@ -58,7 +58,7 @@ class ConvolutionDW(Layer):
                 
     def forward(self, X):
         Z = tf.nn.depthwise_conv2d(X, self.filters, self.strides, self.padding)
-        A = self.activation.forward(Z)
+        A = self.activation.act_forward(Z)
         return {'aout':A, 'cache':{}}
         
     def backward(self, AI, AO, DO, cache=None): 

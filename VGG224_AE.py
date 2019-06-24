@@ -30,7 +30,7 @@ if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
     
-exxact = 0
+exxact = 1
 if exxact:
     val_data_path = '/home/bcrafton3/Data_SSD/ILSVRC2012/val/'
     val_label_path = '/home/bcrafton3/dfa/imagenet_labels/validation_labels.txt'
@@ -366,17 +366,17 @@ l2_1, l2_2, l2_3,
 l3_1, l3_2, l3_3, l3_4,
 l4_1, l4_2, l4_3, l4_4,
 l5_1, l5_2, l5_3, l5_4,
-l6_1, l6_2, l6_3, 
+l6_1, l6_2,
 
 l7_1, l7_2, l7_3,
-l8_1, l8_2, l8_3,
+l8_1, l8_2, l8_3, l8_4,
 l9_1, l9_2, l9_3, l9_4,
 l10_1, l10_2, l10_3, l10_4,
-l11_1, l11_2, l11_3, l11_4,
-l12_1, l12_2, l12_3
+l11_1, l11_2, l11_3,
+l12_1, l12_2
 ]
 
-model = Model(layers=layers)
+model = Model(layers=layers, shape_y=[args.batch_size, 224, 224, 3])
 
 ###############################################################
 

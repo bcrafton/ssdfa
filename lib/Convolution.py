@@ -76,7 +76,7 @@ class Convolution(Layer):
         if self.use_bias:
             Z = Z + tf.reshape(self.bias, (1, 1, 1, self.fout))
 
-        A = self.activation.forward(Z)
+        A = self.activation.act_forward(Z)
         return {'aout':A, 'cache':{}}
         
     def backward(self, AI, AO, DO, cache=None):    

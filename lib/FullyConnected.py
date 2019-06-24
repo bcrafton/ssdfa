@@ -62,7 +62,7 @@ class FullyConnected(Layer):
         Z = tf.matmul(X, self.weights) 
         if self.use_bias:
             Z = Z + self.bias
-        A = self.activation.forward(Z)
+        A = self.activation.act_forward(Z)
         return {'aout':A, 'cache':{}}
             
     def backward(self, AI, AO, DO, cache=None):
