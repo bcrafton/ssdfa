@@ -6,9 +6,12 @@ from lib.Layer import Layer
 from lib.ConvBlock import ConvBlock
 from lib.LELConv import LELConv
 
+from lib.Activation import Relu
+from lib.Activation import Linear
+
 class VGGBlock(Layer):
 
-    def __init__(self, input_shape, filter_shape, strides, pool_shape=[1,1,1,1], num_classes=1000, init='alexnet', name='VGGBlock'):
+    def __init__(self, input_shape, filter_shape, strides, activation=None, pool_shape=[1,1,1,1], num_classes=1000, init='alexnet', name='VGGBlock'):
         self.input_shape = input_shape
         self.batch, self.h, self.w, self.fin = self.input_shape
         
@@ -18,6 +21,8 @@ class VGGBlock(Layer):
         self.strides = strides
         _, self.sh, self.sw, _ = self.strides
 
+        self.activation = Relu() if activation == None else activation
+
         self.pool_shape = pool_shape
 
         self.init = init
@@ -25,7 +30,7 @@ class VGGBlock(Layer):
         
         self.lel_shape = [self.batch, self.h // self.sh, self.w // self.sw, self.fout]
         
-        self.conv = ConvBlock(input_shape=self.input_shape, filter_shape=[3, 3, self.fin, self.fout], strides=self.strides, init=self.init, name='_conv_block')
+        self.conv = ConvBlock(input_shape=self.input_shape, filter_shape=[3, 3, self.fin, self.fout], strides=self.strides, init=self.init, name='_conv_block', activation=activation)
         self.lel = LELConv(input_shape=self.lel_shape, pool_shape=self.pool_shape, num_classes=1000, name='_fb')
 
     ###################################################################

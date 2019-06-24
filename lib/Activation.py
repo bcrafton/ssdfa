@@ -59,7 +59,7 @@ class Relu(Activation, Layer):
     def train(self, AI, AO, DO): 
         return []
 
-    ###################################################################
+    #############################################
 
     def dfa_backward(self, AI, AO, E, DO):
         return self.backward(AI, AO, DO)
@@ -70,7 +70,7 @@ class Relu(Activation, Layer):
     def dfa(self, AI, AO, E, DO):
         return self.train(AI, AO, DO)
 
-    ###################################################################    
+    #############################################    
 
     def lel_backward(self, AI, AO, E, DO, Y, cache):
         return self.backward(AI, AO, DO, cache)
@@ -81,7 +81,7 @@ class Relu(Activation, Layer):
     def lel(self, AI, AO, E, DO, Y):
         return self.train(AI, AO, DO)
 
-    ###################################################################
+    #############################################
 
 
 # https://theclevermachine.wordpress.com/tag/tanh-function/ 
@@ -143,14 +143,60 @@ class Linear(Activation):
 
     def __init__(self):
         pass
+        
+    #############################################
 
     def forward(self, x):
-        return x 
+        A = x
+        return {'aout': A, 'cache': {}}
 
     def gradient(self, x):
         return tf.ones(shape=tf.shape(x))
-       
         
+    #############################################
+
+    def get_weights(self):
+        return []
+
+    def num_params(self):
+        return 0
+
+    #############################################
+
+    def backward(self, AI, AO, DO, cache=None):    
+        DI = tf.ones(shape=tf.shape(x))
+        return {'dout': DI, 'cache': {}}
+
+    def gv(self, AI, AO, DO, cache=None):
+        return []
+        
+    def train(self, AI, AO, DO): 
+        return []
+
+    #############################################
+
+    def dfa_backward(self, AI, AO, E, DO):
+        return self.backward(AI, AO, DO)
+
+    def dfa_gv(self, AI, AO, E, DO):
+        return self.gv(AI, AO, DO)
+
+    def dfa(self, AI, AO, E, DO):
+        return self.train(AI, AO, DO)
+
+    #############################################    
+
+    def lel_backward(self, AI, AO, E, DO, Y, cache):
+        return self.backward(AI, AO, DO, cache)
+
+    def lel_gv(self, AI, AO, E, DO, Y, cache):
+        return self.gv(AI, AO, DO, cache)
+
+    def lel(self, AI, AO, E, DO, Y):
+        return self.train(AI, AO, DO)
+
+    #############################################
+
         
         
         

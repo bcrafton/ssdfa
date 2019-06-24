@@ -5,11 +5,13 @@ import numpy as np
 from lib.Layer import Layer 
 from lib.Convolution import Convolution
 from lib.BatchNorm import BatchNorm
+
 from lib.Activation import Relu
+from lib.Activation import Linear
 
 class ConvBlock(Layer):
 
-    def __init__(self, input_shape, filter_shape, strides, init, name):
+    def __init__(self, input_shape, filter_shape, strides, init, name, activation=None):
         self.input_shape = input_shape
         self.batch, self.h, self.w, self.fin = self.input_shape
         
@@ -26,7 +28,7 @@ class ConvBlock(Layer):
         
         self.conv = Convolution(input_sizes=self.input_shape, filter_sizes=self.filter_shape, init=self.init, strides=self.strides, padding="SAME", name=self.name + '_conv')
         self.bn = BatchNorm(input_size=self.output_shape, name=self.name + '_bn')
-        self.relu = Relu()
+        self.act = Relu() if activation == None else activation
 
     ###################################################################
 
@@ -45,32 +47,31 @@ class ConvBlock(Layer):
 
         conv = self.conv.forward(X)
         bn = self.bn.forward(conv['aout'])
-        relu = self.relu.forward(bn['aout'])
+        act = self.act.forward(bn['aout'])
 
-        cache = {'conv':conv['aout'], 'bn':bn['aout'], 'relu':relu['aout']}
-        return {'aout':relu['aout'], 'cache':cache}
+        cache = {'conv':conv['aout'], 'bn':bn['aout'], 'act':act['aout']}
+        return {'aout':act['aout'], 'cache':cache}
         
     def backward(self, AI, AO, DO, cache):    
-        conv, bn, relu = cache['conv'], cache['bn'], cache['relu']
+        conv, bn, act = cache['conv'], cache['bn'], cache['act']
         
-        drelu = self.relu.backward(bn, relu, DO)
-        dbn = self.bn.backward(conv, bn, drelu['dout'])
+        dact = self.act.backward(bn, act, DO)
+        dbn = self.bn.backward(conv, bn, dact['dout'])
         dconv = self.conv.backward(AI, conv, dbn['dout'])
         
-        cache.update({'dconv':dconv['dout'], 'dbn':dbn['dout'], 'drelu':drelu['dout']})
+        cache.update({'dconv':dconv['dout'], 'dbn':dbn['dout'], 'dact':dact['dout']})
         return {'dout':dconv['dout'], 'cache':cache}
         
     def gv(self, AI, AO, DO, cache):
-        conv, bn, relu = cache['conv'], cache['bn'], cache['relu']
-        drelu, dbn, dconv = cache['drelu'], cache['dbn'], cache['dconv']
+        conv, bn, act = cache['conv'], cache['bn'], cache['act']
+        dact, dbn, dconv = cache['dact'], cache['dbn'], cache['dconv']
         
         dconv = self.conv.gv(AI, conv, dbn)
-        dbn = self.bn.gv(conv, bn, drelu)
+        dbn = self.bn.gv(conv, bn, dact)
         
         grads = []
         grads.extend(dconv)
         grads.extend(dbn)
-        
         return grads
         
     def train(self, AI, AO, DO): 

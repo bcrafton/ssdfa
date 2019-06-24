@@ -332,31 +332,31 @@ l6_2 = VGGBlock(input_shape=[args.batch_size, 7, 7, 1024],   filter_shape=[1024,
 # decoder.
 
 #TODO use linear, not Relu.
-l7_1 = VGGBlock(input_shape=[args.batch_size, 7, 7, 1024],   filter_shape=[1024, 1024], strides=[1,1,1,1], init=args.init, name='block16')
-l7_2 = VGGBlock(input_shape=[args.batch_size, 7, 7, 1024],   filter_shape=[1024, 512],  strides=[1,1,1,1], init=args.init, name='block17')
+l7_1 = VGGBlock(input_shape=[args.batch_size, 7, 7, 1024],   filter_shape=[1024, 1024], strides=[1,1,1,1], activation=Linear(), init=args.init, name='block16')
+l7_2 = VGGBlock(input_shape=[args.batch_size, 7, 7, 1024],   filter_shape=[1024, 512],  strides=[1,1,1,1], activation=Linear(), init=args.init, name='block17')
 l7_3 = UpSample(input_shape=[args.batch_size, 7, 7, 512], ksize=2)
 
-l8_1 = VGGBlock(input_shape=[args.batch_size, 14, 14, 512],  filter_shape=[512, 512],   strides=[1,1,1,1], init=args.init, name='block18')
-l8_2 = VGGBlock(input_shape=[args.batch_size, 14, 14, 512],  filter_shape=[512, 512],   strides=[1,1,1,1], init=args.init, name='block19')
-l8_3 = VGGBlock(input_shape=[args.batch_size, 14, 14, 256],  filter_shape=[512, 256],   strides=[1,1,1,1], init=args.init, name='block20')
+l8_1 = VGGBlock(input_shape=[args.batch_size, 14, 14, 512],  filter_shape=[512, 512],   strides=[1,1,1,1], activation=Linear(), init=args.init, name='block18')
+l8_2 = VGGBlock(input_shape=[args.batch_size, 14, 14, 512],  filter_shape=[512, 512],   strides=[1,1,1,1], activation=Linear(), init=args.init, name='block19')
+l8_3 = VGGBlock(input_shape=[args.batch_size, 14, 14, 256],  filter_shape=[512, 256],   strides=[1,1,1,1], activation=Linear(), init=args.init, name='block20')
 l8_4 = UpSample(input_shape=[args.batch_size, 14, 14, 256], ksize=2)
 
-l9_1 = VGGBlock(input_shape=[args.batch_size, 28, 28, 256],  filter_shape=[256, 256],   strides=[1,1,1,1], init=args.init, name='block21')
-l9_2 = VGGBlock(input_shape=[args.batch_size, 28, 28, 256],  filter_shape=[256, 256],   strides=[1,1,1,1], init=args.init, name='block22')
-l9_3 = VGGBlock(input_shape=[args.batch_size, 28, 28, 128],  filter_shape=[256, 128],   strides=[1,1,1,1], init=args.init, name='block23')
+l9_1 = VGGBlock(input_shape=[args.batch_size, 28, 28, 256],  filter_shape=[256, 256],   strides=[1,1,1,1], activation=Linear(), init=args.init, name='block21')
+l9_2 = VGGBlock(input_shape=[args.batch_size, 28, 28, 256],  filter_shape=[256, 256],   strides=[1,1,1,1], activation=Linear(), init=args.init, name='block22')
+l9_3 = VGGBlock(input_shape=[args.batch_size, 28, 28, 128],  filter_shape=[256, 128],   strides=[1,1,1,1], activation=Linear(), init=args.init, name='block23')
 l9_4 = UpSample(input_shape=[args.batch_size, 28, 28, 128], ksize=2)
 
-l10_1 = VGGBlock(input_shape=[args.batch_size, 56, 56, 128],  filter_shape=[128, 128],   strides=[1,1,1,1], init=args.init, name='block24')
-l10_2 = VGGBlock(input_shape=[args.batch_size, 56, 56, 128],  filter_shape=[128, 128],   strides=[1,1,1,1], init=args.init, name='block25')
-l10_3 = VGGBlock(input_shape=[args.batch_size, 56, 56, 64],   filter_shape=[128, 64],    strides=[1,1,1,1], init=args.init, name='block26')
+l10_1 = VGGBlock(input_shape=[args.batch_size, 56, 56, 128],  filter_shape=[128, 128],   strides=[1,1,1,1], activation=Linear(), init=args.init, name='block24')
+l10_2 = VGGBlock(input_shape=[args.batch_size, 56, 56, 128],  filter_shape=[128, 128],   strides=[1,1,1,1], activation=Linear(), init=args.init, name='block25')
+l10_3 = VGGBlock(input_shape=[args.batch_size, 56, 56, 64],   filter_shape=[128, 64],    strides=[1,1,1,1], activation=Linear(), init=args.init, name='block26')
 l10_4 = UpSample(input_shape=[args.batch_size, 56, 56, 64], ksize=2)
 
-l11_1 = VGGBlock(input_shape=[args.batch_size, 112, 112, 64], filter_shape=[64, 64],     strides=[1,1,1,1], init=args.init, name='block27')
-l11_2 = VGGBlock(input_shape=[args.batch_size, 112, 112, 32], filter_shape=[64, 32],     strides=[1,1,1,1], init=args.init, name='block28')
+l11_1 = VGGBlock(input_shape=[args.batch_size, 112, 112, 64], filter_shape=[64, 64],     strides=[1,1,1,1], activation=Linear(), init=args.init, name='block27')
+l11_2 = VGGBlock(input_shape=[args.batch_size, 112, 112, 32], filter_shape=[64, 32],     strides=[1,1,1,1], activation=Linear(), init=args.init, name='block28')
 l11_3 = UpSample(input_shape=[args.batch_size, 112, 112, 32], ksize=2)
 
-l12_1 = VGGBlock(input_shape=[args.batch_size, 224, 224, 32], filter_shape=[32, 32],     strides=[1,1,1,1], init=args.init, name='block29')
-l12_2 = VGGBlock(input_shape=[args.batch_size, 224, 224, 3],  filter_shape=[32, 3],      strides=[1,1,1,1], init=args.init, name='block30')
+l12_1 = VGGBlock(input_shape=[args.batch_size, 224, 224, 32], filter_shape=[32, 32],     strides=[1,1,1,1], activation=Linear(), init=args.init, name='block29')
+l12_2 = VGGBlock(input_shape=[args.batch_size, 224, 224, 3],  filter_shape=[32, 3],      strides=[1,1,1,1], activation=Linear(), init=args.init, name='block30')
 
 ##########
 
