@@ -377,43 +377,10 @@ l12_1, l12_2
 ]
 
 model = Model(layers=layers, shape_y=[args.batch_size, 224, 224, 3])
+predict = model.predict(X=X)
 
-###############################################################
-
-predict = tf.nn.softmax(model.predict(X=features))
-
-if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt == "momentum":
-    if args.dfa:
-        grads_and_vars = model.lel_gvs(X=features, Y=labels)
-    else:
-        grads_and_vars = model.gvs(X=features, Y=labels)
-        
-    if args.opt == "adam":
-        train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
-    elif args.opt == "rms":
-        train = tf.train.RMSPropOptimizer(learning_rate=learning_rate, decay=0.99, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
-    elif args.opt == "decay":
-        train = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).apply_gradients(grads_and_vars=grads_and_vars)
-    elif args.opt == "momentum":
-        train = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9).apply_gradients(grads_and_vars=grads_and_vars)
-    else:
-        assert(False)
-
-else:
-    if args.dfa:
-        train = model.lel(X=features, Y=labels)
-    else:
-        train = model.train(X=features, Y=labels)
-
-correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
-total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
-
-top5 = in_top_k(predict, tf.argmax(labels,1), k=5)
-total_top5 = tf.reduce_sum(tf.cast(top5, tf.float32))
-
-weights = model.get_weights()
-
-print (model.num_params())
+grads_and_vars, loss = model.gvs(X=X, Y=X)
+train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
 
 ###############################################################
 
