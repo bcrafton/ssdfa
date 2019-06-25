@@ -277,24 +277,13 @@ val_iterator = val_dataset.make_initializable_iterator()
 
 ###############################################################
 
-if args.load:
-    train_conv=False
-    train_fc=True
-    weights_conv = args.load
-    weights_fc = args.load
-else:
-    train_conv=False
-    train_fc=True
-    weights_conv='../vgg_weights/vgg_weights.npy'
-    weights_fc=None
+weights_conv = args.load
 
-if args.act == 'tanh':
-    act = Tanh()
-elif args.act == 'relu':
-    act = Relu()
+if weights_conv:
+    train_conv = False
 else:
-    assert(False)
-
+    train_conv = True
+    
 ###############################################################
 
 dropout_rate = tf.placeholder(tf.float32, shape=())
@@ -305,36 +294,35 @@ X = features / 255.
 ##########
 # encoder.
 
-l1_1 = VGGBlock(input_shape=[args.batch_size, 224, 224, 3],  filter_shape=[3, 32],      strides=[1,1,1,1], init=args.init, name='block1')
-l1_2 = VGGBlock(input_shape=[args.batch_size, 224, 224, 32], filter_shape=[32, 32],     strides=[1,1,1,1], init=args.init, name='block2')
+l1_1 = VGGBlock(input_shape=[args.batch_size, 224, 224, 3],  filter_shape=[3, 32],      strides=[1,1,1,1], init=args.init, name='block1', load=weights_conv, train=train_conv)
+l1_2 = VGGBlock(input_shape=[args.batch_size, 224, 224, 32], filter_shape=[32, 32],     strides=[1,1,1,1], init=args.init, name='block2', load=weights_conv, train=train_conv)
 l1_3 = AvgPool(size=[args.batch_size, 224, 224, 32], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l2_1 = VGGBlock(input_shape=[args.batch_size, 112, 112, 32], filter_shape=[32, 64],     strides=[1,1,1,1], init=args.init, name='block3')
-l2_2 = VGGBlock(input_shape=[args.batch_size, 112, 112, 64], filter_shape=[64, 64],     strides=[1,1,1,1], init=args.init, name='block4')
+l2_1 = VGGBlock(input_shape=[args.batch_size, 112, 112, 32], filter_shape=[32, 64],     strides=[1,1,1,1], init=args.init, name='block3', load=weights_conv, train=train_conv)
+l2_2 = VGGBlock(input_shape=[args.batch_size, 112, 112, 64], filter_shape=[64, 64],     strides=[1,1,1,1], init=args.init, name='block4', load=weights_conv, train=train_conv)
 l2_3 = AvgPool(size=[args.batch_size, 112, 112, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l3_1 = VGGBlock(input_shape=[args.batch_size, 56, 56, 64],   filter_shape=[64, 128],    strides=[1,1,1,1], init=args.init, name='block5')
-l3_2 = VGGBlock(input_shape=[args.batch_size, 56, 56, 128],  filter_shape=[128, 128],   strides=[1,1,1,1], init=args.init, name='block6')
-l3_3 = VGGBlock(input_shape=[args.batch_size, 56, 56, 128],  filter_shape=[128, 128],   strides=[1,1,1,1], init=args.init, name='block7')
+l3_1 = VGGBlock(input_shape=[args.batch_size, 56, 56, 64],   filter_shape=[64, 128],    strides=[1,1,1,1], init=args.init, name='block5', load=weights_conv, train=train_conv)
+l3_2 = VGGBlock(input_shape=[args.batch_size, 56, 56, 128],  filter_shape=[128, 128],   strides=[1,1,1,1], init=args.init, name='block6', load=weights_conv, train=train_conv)
+l3_3 = VGGBlock(input_shape=[args.batch_size, 56, 56, 128],  filter_shape=[128, 128],   strides=[1,1,1,1], init=args.init, name='block7', load=weights_conv, train=train_conv)
 l3_4 = AvgPool(size=[args.batch_size, 56, 56, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l4_1 = VGGBlock(input_shape=[args.batch_size, 28, 28, 128],  filter_shape=[128, 256],   strides=[1,1,1,1], init=args.init, name='block8')
-l4_2 = VGGBlock(input_shape=[args.batch_size, 28, 28, 256],  filter_shape=[256, 256],   strides=[1,1,1,1], init=args.init, name='block9')
-l4_3 = VGGBlock(input_shape=[args.batch_size, 28, 28, 256],  filter_shape=[256, 256],   strides=[1,1,1,1], init=args.init, name='block10')
+l4_1 = VGGBlock(input_shape=[args.batch_size, 28, 28, 128],  filter_shape=[128, 256],   strides=[1,1,1,1], init=args.init, name='block8', load=weights_conv, train=train_conv)
+l4_2 = VGGBlock(input_shape=[args.batch_size, 28, 28, 256],  filter_shape=[256, 256],   strides=[1,1,1,1], init=args.init, name='block9', load=weights_conv, train=train_conv)
+l4_3 = VGGBlock(input_shape=[args.batch_size, 28, 28, 256],  filter_shape=[256, 256],   strides=[1,1,1,1], init=args.init, name='block10', load=weights_conv, train=train_conv)
 l4_4 = AvgPool(size=[args.batch_size, 28, 28, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l5_1 = VGGBlock(input_shape=[args.batch_size, 14, 14, 256],  filter_shape=[256, 512],   strides=[1,1,1,1], init=args.init, name='block11')
-l5_2 = VGGBlock(input_shape=[args.batch_size, 14, 14, 512],  filter_shape=[512, 512],   strides=[1,1,1,1], init=args.init, name='block12')
-l5_3 = VGGBlock(input_shape=[args.batch_size, 14, 14, 512],  filter_shape=[512, 512],   strides=[1,1,1,1], init=args.init, name='block13')
+l5_1 = VGGBlock(input_shape=[args.batch_size, 14, 14, 256],  filter_shape=[256, 512],   strides=[1,1,1,1], init=args.init, name='block11', load=weights_conv, train=train_conv)
+l5_2 = VGGBlock(input_shape=[args.batch_size, 14, 14, 512],  filter_shape=[512, 512],   strides=[1,1,1,1], init=args.init, name='block12', load=weights_conv, train=train_conv)
+l5_3 = VGGBlock(input_shape=[args.batch_size, 14, 14, 512],  filter_shape=[512, 512],   strides=[1,1,1,1], init=args.init, name='block13', load=weights_conv, train=train_conv)
 l5_4 = AvgPool(size=[args.batch_size, 14, 14, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l6_1 = VGGBlock(input_shape=[args.batch_size, 7, 7, 512],    filter_shape=[512, 1024],  strides=[1,1,1,1], init=args.init, name='block14')
-l6_2 = VGGBlock(input_shape=[args.batch_size, 7, 7, 1024],   filter_shape=[1024, 1024], strides=[1,1,1,1], init=args.init, name='block15')
+l6_1 = VGGBlock(input_shape=[args.batch_size, 7, 7, 512],    filter_shape=[512, 1024],  strides=[1,1,1,1], init=args.init, name='block14', load=weights_conv, train=train_conv)
+l6_2 = VGGBlock(input_shape=[args.batch_size, 7, 7, 1024],   filter_shape=[1024, 1024], strides=[1,1,1,1], init=args.init, name='block15', load=weights_conv, train=train_conv)
 
 ##########
 # decoder.
 
-#TODO use linear, not Relu.
 l7_1 = VGGBlock(input_shape=[args.batch_size, 7, 7, 1024],   filter_shape=[1024, 1024], strides=[1,1,1,1], init=args.init, name='block16')
 l7_2 = VGGBlock(input_shape=[args.batch_size, 7, 7, 1024],   filter_shape=[1024, 512],  strides=[1,1,1,1], init=args.init, name='block17')
 l7_3 = UpSample(input_shape=[args.batch_size, 7, 7, 512], ksize=2)
@@ -422,7 +410,27 @@ for ii in range(0, args.epochs):
         if (jj % (args.batch_size * 100) == 0):
             [_, _loss, _X, _predict] = sess.run([train, loss, X, predict], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
             losses.append(_loss)
-        
+
+            ########################
+
+            if args.load == None:
+                ext = 'random'
+            else:
+                ext = args.load
+            
+            name = '%d_%s_%f.jpg' % (jj, ext, args.alpha)
+
+            img1 = np.reshape(_X[0], (224, 224, 3))
+            # img1 = scipy.misc.imresize(img1, 4.)            
+            
+            img2 = np.reshape(_predict[0], (224, 224, 3))
+            # img2 = scipy.misc.imresize(img2, 4.)
+            
+            concat = np.concatenate((img1, img2), axis=1)
+            plt.imsave(name, concat)
+            
+            ########################
+
             p = "%d: train loss: %f" % (ii, np.average(losses))
             print (p)
             f = open(results_filename, "a")
@@ -457,7 +465,11 @@ for ii in range(0, args.epochs):
             [_loss] = sess.run([loss], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
             losses.append(_loss)
 
+    ##################################################################
 
+    if args.save:
+        [w] = sess.run([weights], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
+        np.save(args.name, w)
 
     
     

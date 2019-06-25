@@ -9,7 +9,7 @@ from lib.Activation import Relu
 
 class ConvBlock(Layer):
 
-    def __init__(self, input_shape, filter_shape, strides, init, name):
+    def __init__(self, input_shape, filter_shape, strides, init, name, load=None, train=True):
         self.input_shape = input_shape
         self.batch, self.h, self.w, self.fin = self.input_shape
         
@@ -24,20 +24,34 @@ class ConvBlock(Layer):
         self.init = init
         self.name = name
         
-        self.conv = Convolution(input_sizes=self.input_shape, filter_sizes=self.filter_shape, init=self.init, strides=self.strides, padding="SAME", name=self.name + '_conv')
+        self.load = load
+        self.train_flag = train
+        
+        self.conv = Convolution(input_sizes=self.input_shape, 
+                                filter_sizes=self.filter_shape, 
+                                init=self.init, 
+                                strides=self.strides, 
+                                padding="SAME", 
+                                name=self.name + '_conv', 
+                                load=self.load, 
+                                train=self.train_flag)
+                                
         self.bn = BatchNorm(input_size=self.output_shape, name=self.name + '_bn')
         self.relu = Relu()
 
     ###################################################################
 
     def get_weights(self):
-        return []
+        weights = []
+        weights.extend(self.conv.get_weights())
+        weights.extend(self.bn.get_weights())
+        return weights
 
     def output_shape(self):
         return self.output_shape
 
     def num_params(self):
-        return 0
+        return self.conv.num_params() + self.bn.num_params()
 
     ###################################################################
 
