@@ -37,7 +37,6 @@ class VGGBlock(Layer):
     def get_weights(self):
         weights = []
         weights.extend(self.conv.get_weights())
-        weights.extend(self.bn.get_weights())
         return weights
 
     def output_shape(self):
