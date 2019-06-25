@@ -8,7 +8,7 @@ from lib.LELConv import LELConv
 
 class VGGBlock(Layer):
 
-    def __init__(self, input_shape, filter_shape, strides, pool_shape=[1,1,1,1], num_classes=1000, init='alexnet', name='VGGBlock'):
+    def __init__(self, input_shape, filter_shape, strides, init, pool_shape, num_classes, name, load=None, train=True):
         self.input_shape = input_shape
         self.batch, self.h, self.w, self.fin = self.input_shape
         
@@ -18,26 +18,40 @@ class VGGBlock(Layer):
         self.strides = strides
         _, self.sh, self.sw, _ = self.strides
 
-        self.pool_shape = pool_shape
-
         self.init = init
-        self.name = name
+
+        self.pool_shape = pool_shape
+        self.num_classes = num_classes
         
+        self.name = name
+        self.load = load
+        self.train_flag = train
+
         self.lel_shape = [self.batch, self.h // self.sh, self.w // self.sw, self.fout]
         
-        self.conv = ConvBlock(input_shape=self.input_shape, filter_shape=[3, 3, self.fin, self.fout], strides=self.strides, init=self.init, name='_conv_block')
-        self.lel = LELConv(input_shape=self.lel_shape, pool_shape=self.pool_shape, num_classes=1000, name='_fb')
+        self.conv = ConvBlock(input_shape=self.input_shape, 
+                              filter_shape=[3, 3, self.fin, self.fout], 
+                              strides=self.strides, 
+                              init=self.init, 
+                              name=self.name + '_conv_block', 
+                              load=self.load, 
+                              train=self.train_flag)
+
+        self.lel = LELConv(input_shape=self.lel_shape, pool_shape=self.pool_shape, num_classes=self.num_classes, name=self.name + '_lel')
 
     ###################################################################
 
     def get_weights(self):
-        return []
+        weights = []
+        weights.extend(self.conv.get_weights())
+        # should add lel weights here, but we dont need them atm.
+        return weights
 
     def output_shape(self):
         return self.output_shape
 
     def num_params(self):
-        return 0
+        return self.conv.num_params()
 
     ###################################################################
 

@@ -19,8 +19,8 @@ class VGGBlock(Layer):
         _, self.sh, self.sw, _ = self.strides
 
         self.init = init
+
         self.name = name
-        
         self.load = load
         self.train_flag = train
                 
