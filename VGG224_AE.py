@@ -421,10 +421,10 @@ for ii in range(0, args.epochs):
             name = '%d_%s_%f.jpg' % (jj, ext, args.alpha)
 
             img1 = np.reshape(_X[0], (224, 224, 3))
-            # img1 = scipy.misc.imresize(img1, 4.)            
+            img1 = scipy.misc.imresize(img1, 1.)            
             
             img2 = np.reshape(_predict[0], (224, 224, 3))
-            # img2 = scipy.misc.imresize(img2, 4.)
+            img2 = scipy.misc.imresize(img2, 1.)
             
             concat = np.concatenate((img1, img2), axis=1)
             plt.imsave(name, concat)
