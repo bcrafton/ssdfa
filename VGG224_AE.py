@@ -407,7 +407,7 @@ for ii in range(0, args.epochs):
     losses = []
     for jj in range(0, len(train_imgs), args.batch_size):
 
-        if (jj % (args.batch_size * 100) == 0):
+        if (jj % (args.batch_size * 1000) == 0):
             [_, _loss, _X, _predict] = sess.run([train, loss, X, predict], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
             losses.append(_loss)
 

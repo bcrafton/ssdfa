@@ -417,8 +417,7 @@ phase = 0
 
 for ii in range(0, epochs):
 
-    lr = alpha
-    print (ii)
+    print('epoch {}/{}'.format(ii, epochs))    
 
     ##################################################################
 
@@ -431,7 +430,7 @@ for ii in range(0, epochs):
     for j in range(0, len(train_imgs), batch_size):
         print (j)
         
-        _total_correct, _top5, _ = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: lr})
+        _total_correct, _top5, _ = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
         
         train_total += batch_size
         train_correct += _total_correct
@@ -528,6 +527,5 @@ for ii in range(0, epochs):
         w['val_acc_top5'] = val_accs_top5
         np.save(args.name, w)
 
-    print('epoch {}/{}'.format(ii, epochs))
-    
+
 
