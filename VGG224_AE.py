@@ -21,10 +21,14 @@ parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
 parser.add_argument('--init', type=str, default="alexnet")
 parser.add_argument('--opt', type=str, default="adam")
+# [0-4], 0=cut 0 block, 1=cut 1 block ... 6 blocks total, but want to keep atleast some blocks in AE.
+parser.add_argument('--cut', type=int, default=0)
 parser.add_argument('--save', type=int, default=0)
 parser.add_argument('--name', type=str, default="imagenet_vgg")
 parser.add_argument('--load', type=str, default=None)
 args = parser.parse_args()
+
+assert(args.cut in [0, 1, 2, 3, 4])
 
 if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
@@ -351,21 +355,88 @@ l12_2 = VGGBlock(input_shape=[args.batch_size, 224, 224, 32], filter_shape=[32, 
 
 ##########
 
-layers=[
-l1_1, l1_2, l1_3,
-l2_1, l2_2, l2_3,
-l3_1, l3_2, l3_3, l3_4,
-l4_1, l4_2, l4_3, l4_4,
-l5_1, l5_2, l5_3, l5_4,
-l6_1, l6_2, 
+if args.cut == 0:
+    layers=[
+    l1_1, l1_2, l1_3,
+    l2_1, l2_2, l2_3,
+    l3_1, l3_2, l3_3, l3_4,
+    l4_1, l4_2, l4_3, l4_4,
+    l5_1, l5_2, l5_3, l5_4,
+    l6_1, l6_2, 
 
-l7_1, l7_2, l7_3,
-l8_1, l8_2, l8_3, l8_4,
-l9_1, l9_2, l9_3, l9_4,
-l10_1, l10_2, l10_3, l10_4,
-l11_1, l11_2, l11_3,
-l12_1, l12_2
-]
+    l7_1, l7_2, l7_3,
+    l8_1, l8_2, l8_3, l8_4,
+    l9_1, l9_2, l9_3, l9_4,
+    l10_1, l10_2, l10_3, l10_4,
+    l11_1, l11_2, l11_3,
+    l12_1, l12_2
+    ]
+elif args.cut == 1:
+    layers=[
+    l1_1, l1_2, l1_3,
+    l2_1, l2_2, l2_3,
+    l3_1, l3_2, l3_3, l3_4,
+    l4_1, l4_2, l4_3, l4_4,
+    l5_1, l5_2, l5_3, # l5_4,
+    # l6_1, l6_2, 
+
+    # l7_1, l7_2, l7_3,
+    l8_1, l8_2, l8_3, l8_4,
+    l9_1, l9_2, l9_3, l9_4,
+    l10_1, l10_2, l10_3, l10_4,
+    l11_1, l11_2, l11_3,
+    l12_1, l12_2
+    ]
+elif args.cut == 2:
+    layers=[
+    l1_1, l1_2, l1_3,
+    l2_1, l2_2, l2_3,
+    l3_1, l3_2, l3_3, l3_4,
+    l4_1, l4_2, l4_3, # l4_4,
+    # l5_1, l5_2, l5_3, l5_4,
+    # l6_1, l6_2, 
+
+    # l7_1, l7_2, l7_3,
+    # l8_1, l8_2, l8_3, l8_4,
+    l9_1, l9_2, l9_3, l9_4,
+    l10_1, l10_2, l10_3, l10_4,
+    l11_1, l11_2, l11_3,
+    l12_1, l12_2
+    ]
+elif args.cut == 3:
+    layers=[
+    l1_1, l1_2, l1_3,
+    l2_1, l2_2, l2_3,
+    l3_1, l3_2, l3_3, # l3_4,
+    # l4_1, l4_2, l4_3, l4_4,
+    # l5_1, l5_2, l5_3, l5_4,
+    # l6_1, l6_2, 
+
+    # l7_1, l7_2, l7_3,
+    # l8_1, l8_2, l8_3, l8_4,
+    # l9_1, l9_2, l9_3, l9_4,
+    l10_1, l10_2, l10_3, l10_4,
+    l11_1, l11_2, l11_3,
+    l12_1, l12_2
+    ]
+elif args.cut == 4:
+    layers=[
+    l1_1, l1_2, l1_3,
+    l2_1, l2_2, # l2_3,
+    # l3_1, l3_2, l3_3, l3_4,
+    # l4_1, l4_2, l4_3, l4_4,
+    # l5_1, l5_2, l5_3, l5_4,
+    # l6_1, l6_2, 
+
+    # l7_1, l7_2, l7_3,
+    # l8_1, l8_2, l8_3, l8_4,
+    # l9_1, l9_2, l9_3, l9_4,
+    # l10_1, l10_2, l10_3, l10_4,
+    l11_1, l11_2, l11_3,
+    l12_1, l12_2
+    ]
+else:
+    assert(False)
 
 model = Model(layers=layers, shape_y=[args.batch_size, 224, 224, 3])
 predict = model.predict(X=X)
