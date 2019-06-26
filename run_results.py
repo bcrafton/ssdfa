@@ -16,7 +16,7 @@ cmd_args = parser.parse_args()
 ##############################################
 
 num_gpus = 4
-counter = 2
+counter = 0
 
 def run_command(param):
     global num_gpus, counter
@@ -27,7 +27,7 @@ def run_command(param):
         gpu = counter % num_gpus
         counter = counter + 1
     
-    name = '%s_%f_%f_%f_%s_%f_%f_%d_%d_%s_%s' % (param['benchmark'], param['alpha'], param['l2'], param['eps'], param['act'], param['bias'], param['dropout'], param['dfa'], param['sparse'], param['init'], param['opt'], param['ae_loss'])
+    name = '%s_%f_%f_%f_%s_%f_%f_%d_%d_%s_%s_%d' % (param['benchmark'], param['alpha'], param['l2'], param['eps'], param['act'], param['bias'], param['dropout'], param['dfa'], param['sparse'], param['init'], param['opt'], param['ae_loss'])
     if param['load']:
         name += '_' + param['load']
         cmd = "python %s --gpu %d --epochs %d --batch_size %d --alpha %f --l2 %f --eps %f --act %s --bias %f --dropout %f --dfa %d --sparse %d --rank %d --init %s --opt %s --ae_loss %d --save %d --name %s --load %s" % \
