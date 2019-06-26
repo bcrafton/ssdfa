@@ -24,6 +24,9 @@ parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
 parser.add_argument('--init', type=str, default="alexnet")
 parser.add_argument('--opt', type=str, default="adam")
+
+parser.add_argument('--ae_loss', type=int, default=0)
+
 parser.add_argument('--save', type=int, default=0)
 parser.add_argument('--name', type=str, default="vgg64x64")
 parser.add_argument('--load', type=str, default=None)
@@ -235,20 +238,20 @@ gray = tf.image.rgb_to_grayscale(features)
 # X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), features)
 X = features / 255.
 
-l1_1 = VGGBlock(input_shape=[batch_size, 64, 64, 3],   filter_shape=[3, 64],    strides=[1,1,1,1], init=args.init, pool_shape=[1,8,8,1], num_classes=1000, name='block1')
-l1_2 = VGGBlock(input_shape=[batch_size, 64, 64, 64],  filter_shape=[64, 64],   strides=[1,1,1,1], init=args.init, pool_shape=[1,8,8,1], num_classes=1000, name='block2')
+l1_1 = VGGBlock(input_shape=[batch_size, 64, 64, 3],   filter_shape=[3, 64],    strides=[1,1,1,1], init=args.init, pool_shape=[1,8,8,1], num_classes=1000, name='block1', ae_loss=args.ae_loss)
+l1_2 = VGGBlock(input_shape=[batch_size, 64, 64, 64],  filter_shape=[64, 64],   strides=[1,1,1,1], init=args.init, pool_shape=[1,8,8,1], num_classes=1000, name='block2', ae_loss=args.ae_loss)
 l1_3 = AvgPool(size=[batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l2_1 = VGGBlock(input_shape=[batch_size, 32, 32, 64],  filter_shape=[64, 128],  strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block3')
-l2_2 = VGGBlock(input_shape=[batch_size, 32, 32, 128], filter_shape=[128, 128], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block4')
+l2_1 = VGGBlock(input_shape=[batch_size, 32, 32, 64],  filter_shape=[64, 128],  strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block3', ae_loss=args.ae_loss)
+l2_2 = VGGBlock(input_shape=[batch_size, 32, 32, 128], filter_shape=[128, 128], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block4', ae_loss=args.ae_loss)
 l2_3 = AvgPool(size=[batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l3_1 = VGGBlock(input_shape=[batch_size, 16, 16, 128], filter_shape=[128, 256], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block5')
-l3_2 = VGGBlock(input_shape=[batch_size, 16, 16, 256], filter_shape=[256, 256], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block6')
+l3_1 = VGGBlock(input_shape=[batch_size, 16, 16, 128], filter_shape=[128, 256], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block5', ae_loss=args.ae_loss)
+l3_2 = VGGBlock(input_shape=[batch_size, 16, 16, 256], filter_shape=[256, 256], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block6', ae_loss=args.ae_loss)
 l3_3 = AvgPool(size=[batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l4_1 = VGGBlock(input_shape=[batch_size, 8, 8, 256],   filter_shape=[256, 512], strides=[1,1,1,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block7')
-l4_2 = VGGBlock(input_shape=[batch_size, 8, 8, 512],   filter_shape=[512, 512], strides=[1,1,1,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block8')
+l4_1 = VGGBlock(input_shape=[batch_size, 8, 8, 256],   filter_shape=[256, 512], strides=[1,1,1,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block7', ae_loss=args.ae_loss)
+l4_2 = VGGBlock(input_shape=[batch_size, 8, 8, 512],   filter_shape=[512, 512], strides=[1,1,1,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block8', ae_loss=args.ae_loss)
 l4_3 = AvgPool(size=[batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
 '''

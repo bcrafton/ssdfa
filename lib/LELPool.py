@@ -24,7 +24,7 @@ from lib.ConvBlock import ConvBlock
 
 class LELPool(Layer):
 
-    def __init__(self, input_shape, pool_shape, num_classes, ae_output_shape, ae_filter_shape, name=None):
+    def __init__(self, input_shape, pool_shape, num_classes, ae_output_shape, ae_filter_shape, name=None, ae_loss=0):
         self.input_shape = input_shape
         self.batch_size, self.h, self.w, self.fin = self.input_shape
         self.pool_shape = pool_shape
@@ -32,6 +32,7 @@ class LELPool(Layer):
         self.ae_output_shape = ae_output_shape
         self.ae_filter_shape = ae_filter_shape
         self.name = name
+        self.ae_loss = ae_loss
 
         self.bias = tf.Variable(np.zeros(shape=self.ae_output_shape), dtype=tf.float32)
 
@@ -135,7 +136,10 @@ class LELPool(Layer):
 
         ############
 
-        DI = dpool['dout'] + ddecode_conv['dout']
+        if self.ae_loss:
+            DI = dpool['dout'] + ddecode_conv['dout']
+        else:
+            DI = dpool['dout']
 
         # DI = tf.Print(DI, [tf.keras.backend.std(dpool['dout']) / tf.keras.backend.std(ddecode_conv['dout'])], message='', summarize=1000)
 

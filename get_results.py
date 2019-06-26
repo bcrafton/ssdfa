@@ -19,9 +19,9 @@ for ii in range(num_runs):
     param = runs[ii]
 
     # figure out the name of the param
-    name = '%s_%f_%f_%f_%s_%f_%f_%d_%d_%s_%s' % (param['benchmark'], param['alpha'], param['l2'], param['eps'], param['act'], param['bias'], param['dropout'], param['dfa'], param['sparse'], param['init'], param['opt'])
+    name = '%s_%f_%f_%f_%s_%f_%f_%d_%d_%s_%s' % (param['benchmark'], param['alpha'], param['l2'], param['eps'], param['act'], param['bias'], param['dropout'], param['dfa'], param['sparse'], param['init'], param['opt'], param['ae_loss'])
     if param['load']:
-        name += '_transfer'
+        name += '_' + param['load']
     name = name + '.npy'
 
     # load the results
@@ -41,9 +41,9 @@ for ii in range(num_runs):
     if key in results.keys():
         # use an if instead of max because we gonna want to save the winner run information
         if results[key][0] < val:
-            results[key] = (val, idx, param['benchmark'], param['alpha'], param['dfa'], param['sparse'], param['init'], param['opt'], name)
+            results[key] = (val, idx, param['benchmark'], param['alpha'], param['dfa'], param['sparse'], param['init'], param['opt'], param['ae_loss'], name)
     else:
-        results[key] = (val, idx, param['benchmark'], param['alpha'], param['dfa'], param['sparse'], param['init'], param['opt'], name)
+        results[key] = (val, idx, param['benchmark'], param['alpha'], param['dfa'], param['sparse'], param['init'], param['opt'], param['ae_loss'], name)
             
 for key in sorted(results.keys()):   
     print (key, results[key])

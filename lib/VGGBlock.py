@@ -9,7 +9,7 @@ from lib.LELPool import LELPool
 
 class VGGBlock(Layer):
 
-    def __init__(self, input_shape, filter_shape, strides, init, pool_shape, num_classes, name, load=None, train=True):
+    def __init__(self, input_shape, filter_shape, strides, init, pool_shape, num_classes, name, load=None, train=True, ae_loss=0):
         self.input_shape = input_shape
         self.batch, self.h, self.w, self.fin = self.input_shape
         
@@ -27,6 +27,7 @@ class VGGBlock(Layer):
         self.name = name
         self.load = load
         self.train_flag = train
+        self.ae_loss = ae_loss
 
         self.lel_shape = [self.batch, self.h // self.sh, self.w // self.sw, self.fout]
         
@@ -43,7 +44,8 @@ class VGGBlock(Layer):
                            num_classes=self.num_classes, 
                            ae_output_shape=self.input_shape, 
                            ae_filter_shape=[3, 3, self.fout, self.fin],
-                           name=self.name + '_lel')
+                           name=self.name + '_lel',
+                           ae_loss=self.ae_loss)
 
     ###################################################################
 
