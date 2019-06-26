@@ -23,26 +23,38 @@ from lib.AvgPool import AvgPool
 
 class LELPool(Layer):
 
-    def __init__(self, input_shape, pool_shape, num_classes, dropout_rate=0., name=None):
+    def __init__(self, input_shape, pool_shape, num_classes, ae_ouput_shape, ae_filter_shape, name=None):
         self.input_shape = input_shape
         self.batch_size, self.h, self.w, self.fin = self.input_shape
         self.pool_shape = pool_shape
         self.num_classes = num_classes
-        self.dropout_rate = dropout_rate
+        self.ae_ouput_shape = ae_ouput_shape
+        self.ae_filter_shape = ae_filter_shape
         self.name = name
 
-        l0 = Dropout(rate=dropout_rate)
+        self.bias = tf.Variable(np.zeros(shape=self.ae_ouput_shape), dtype=tf.float32)
 
-        l1 = AvgPool(size=self.input_shape, ksize=self.pool_shape, strides=self.pool_shape, padding='SAME')
+        ###################################################################
 
-        l2_input_shape = l1.output_shape()
-        l2 = ConvToFullyConnected(input_shape=l2_input_shape)
+        self.pool = AvgPool(size=self.input_shape, ksize=self.pool_shape, strides=self.pool_shape, padding='SAME')
+
+        conv2fc_shape = self.pool.output_shape()
+        self.conv2_fc = ConvToFullyConnected(input_shape=conv2fc_shape)
         
-        l3_input_shape = l2.output_shape()
-        l3 = FullyConnected(input_shape=l3_input_shape, size=self.num_classes, init='alexnet', activation=Linear(), bias=0., name=self.name)
+        fc_shape = self.conv2_fc.output_shape()
+        self.fc = FullyConnected(input_shape=fc_shape, size=self.num_classes, init='alexnet', activation=Linear(), bias=0., name=self.name)
+
+        ###################################################################
         
-        # self.B = Model(layers=[l1, l0, l2, l3])
-        self.B = Model(layers=[l0, l1, l2, l3])
+        # hold up, are we just doing target propagation here ?
+        self.decode_conv = ConvBlock(input_shape=self.input_shape, 
+                                     filter_shape=self.ae_filter_shape, 
+                                     strides=[1,1,1,1], 
+                                     init='alexnet', 
+                                     name=self.name + '_decoder')
+        
+        # pretty sure there is no need for upsample ... so what are we doing here ...
+        # self.decoder_up = UpSample(input_shape=input_shape, ksize=self.ksize)
         
     ###################################################################
     
@@ -86,17 +98,78 @@ class LELPool(Layer):
     ###################################################################   
         
     def lel_backward(self, AI, AO, E, DO, Y, cache):
-        DI = self.B.backwards(AI, Y)
-        return {'dout':DI, 'cache':{}}
+    
+        ############
+    
+        pool = self.pool.forward(AI)
+        conv2fc = self.conv2fc.forward(pool['aout'])
+        fc = self.fc.forward(conv2fc['aout'])
+
+        dfc = self.fc.backward(conv2fc['aout'], fc['aout'], DO)
+        dconv2fc = self.conv2fc.backward(pool['aout'], conv2fc['aout'], dfc['dout'])
+        dpool = self.pool.backward(AI, pool['aout'], dconv2fc['dout'])
+
+        cache = {'pool':pool['aout'], 'conv2fc':conv2fc['aout'], 'fc':fc['aout']}
+        cache.update({'dpool':dpool'dout'], 'dconv2fc':dconv2fc['dout'], 'dfc':dfc['dout']})
+        
+        ############
+        
+        AE_X = cache['AE_X']
+        
+        decode_conv = self.decode_conv.forward(AI)
+        
+        pred = decode_conv + self.bias
+        loss = tf.losses.mean_squared_error(labels=AE_X, predictions=pred)
+        grads = tf.gradients(loss, [self.bias])
+        grad = grads[0]
+        
+        ddecode_conv = self.decode_conv.backward(AI, decode_conv, grad)
+
+        cache.update({'decode_conv':decode_conv['aout']})
+        cache.update({'ddecode_conv':ddecode_conv['dout']})
+
+        ############
+
+        DI = dpool['dout'] + 0.05 * ddecode_conv['dout']
+        return {'dout':DI, 'cache':cache}
         
     def lel_gv(self, AI, AO, E, DO, Y, cache):
-        gvs = self.B.gvs(AI, Y)
-        return gvs
+    
+        ############
+    
+        pool, conv2fc, fc = cache['pool'], cache['conv2fc'], cache['fc']
+        dfc, dconv2fc, dpool = cache['dfc'], cache['dconv2fc'], cache['dpool']
+        
+        dfc = self.fc.gv(conv2fc, fc, dfc)
+        
+        ############
+
+        decode_conv = cache['decode_conv']
+        ddecode_conv = cache['ddecode_conv']
+
+        ddecode_conv = self.decode_conv.gv(AI, decode_conv, ddecode_conv)
+
+        ############
+
+        grads = []
+        grads.extend(dfc)
+        grads.extend(ddecode_conv)
+        return grads
 
     def lel(self, AI, AO, E, DO, Y): 
         return []
         
     ###################################################################
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
         
 

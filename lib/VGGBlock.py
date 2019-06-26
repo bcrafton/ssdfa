@@ -110,9 +110,12 @@ class VGGBlock(Layer):
     
         conv, lel = cache['conv'], cache['lel']
         
-        ##########################################3
+        ##########################################
         
-        dlel = self.lel.lel_backward(conv['aout'], lel['aout'], None, DO, Y, lel['cache'])
+        lel_cache = lel['cache']
+        lel_cache['AE_X'] = AI
+        
+        dlel = self.lel.lel_backward(conv['aout'], lel['aout'], None, DO, Y, lel_cache)
         dconv = self.conv.lel_backward(AI, conv['aout'], None, dlel['dout'], Y, conv['cache'])
 
         ##########################################
