@@ -135,7 +135,10 @@ class LELPool(Layer):
 
         ############
 
-        DI = dpool['dout'] + 0.05 * ddecode_conv['dout']
+        DI = dpool['dout'] + ddecode_conv['dout']
+
+        # DI = tf.Print(DI, [tf.keras.backend.std(dpool['dout']) / tf.keras.backend.std(ddecode_conv['dout'])], message='', summarize=1000)
+
         return {'dout':DI, 'cache':cache}
         
     def lel_gv(self, AI, AO, E, DO, Y, cache):
