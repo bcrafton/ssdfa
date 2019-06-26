@@ -438,6 +438,9 @@ elif args.cut == 4:
 else:
     assert(False)
 
+print (args.name, len(layers))
+# assert(False)
+
 model = Model(layers=layers, shape_y=[args.batch_size, 224, 224, 3])
 predict = model.predict(X=X)
 weights = model.get_weights()
@@ -490,7 +493,7 @@ for ii in range(0, args.epochs):
             else:
                 ext = args.load
             
-            name = '%d_%s_%f.jpg' % (jj, ext, args.alpha)
+            name = '%d_%s_%f_%d.jpg' % (jj, ext, args.alpha, args.cut)
 
             img1 = np.reshape(_X[0], (224, 224, 3))
             img1 = scipy.misc.imresize(img1, 1.)            
