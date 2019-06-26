@@ -18,30 +18,31 @@ from lib.Activation import Relu
 from lib.Activation import Linear
 from lib.Dropout import Dropout
 
-# from lib.AvgPoolZ import AvgPool
 from lib.AvgPool import AvgPool
+
+from lib.ConvBlock import ConvBlock
 
 class LELPool(Layer):
 
-    def __init__(self, input_shape, pool_shape, num_classes, ae_ouput_shape, ae_filter_shape, name=None):
+    def __init__(self, input_shape, pool_shape, num_classes, ae_output_shape, ae_filter_shape, name=None):
         self.input_shape = input_shape
         self.batch_size, self.h, self.w, self.fin = self.input_shape
         self.pool_shape = pool_shape
         self.num_classes = num_classes
-        self.ae_ouput_shape = ae_ouput_shape
+        self.ae_output_shape = ae_output_shape
         self.ae_filter_shape = ae_filter_shape
         self.name = name
 
-        self.bias = tf.Variable(np.zeros(shape=self.ae_ouput_shape), dtype=tf.float32)
+        self.bias = tf.Variable(np.zeros(shape=self.ae_output_shape), dtype=tf.float32)
 
         ###################################################################
 
         self.pool = AvgPool(size=self.input_shape, ksize=self.pool_shape, strides=self.pool_shape, padding='SAME')
 
         conv2fc_shape = self.pool.output_shape()
-        self.conv2_fc = ConvToFullyConnected(input_shape=conv2fc_shape)
+        self.conv2fc = ConvToFullyConnected(input_shape=conv2fc_shape)
         
-        fc_shape = self.conv2_fc.output_shape()
+        fc_shape = self.conv2fc.output_shape()
         self.fc = FullyConnected(input_shape=fc_shape, size=self.num_classes, init='alexnet', activation=Linear(), bias=0., name=self.name)
 
         ###################################################################
@@ -105,28 +106,32 @@ class LELPool(Layer):
         conv2fc = self.conv2fc.forward(pool['aout'])
         fc = self.fc.forward(conv2fc['aout'])
 
-        dfc = self.fc.backward(conv2fc['aout'], fc['aout'], DO)
+        E = tf.nn.softmax(fc['aout']) - Y
+        E = E / self.batch_size
+
+        dfc = self.fc.backward(conv2fc['aout'], fc['aout'], E)
         dconv2fc = self.conv2fc.backward(pool['aout'], conv2fc['aout'], dfc['dout'])
         dpool = self.pool.backward(AI, pool['aout'], dconv2fc['dout'])
 
-        cache = {'pool':pool['aout'], 'conv2fc':conv2fc['aout'], 'fc':fc['aout']}
-        cache.update({'dpool':dpool['dout'], 'dconv2fc':dconv2fc['dout'], 'dfc':dfc['dout']})
-        
         ############
         
         AE_X = cache['AE_X']
         
         decode_conv = self.decode_conv.forward(AI)
         
-        pred = decode_conv + self.bias
+        pred = decode_conv['aout'] + self.bias
         loss = tf.losses.mean_squared_error(labels=AE_X, predictions=pred)
         grads = tf.gradients(loss, [self.bias])
         grad = grads[0]
         
-        ddecode_conv = self.decode_conv.backward(AI, decode_conv, grad)
+        ddecode_conv = self.decode_conv.backward(AI, decode_conv['aout'], grad, decode_conv['cache'])
 
-        cache.update({'decode_conv':decode_conv['aout']})
-        cache.update({'ddecode_conv':ddecode_conv['dout']})
+        ############
+
+        cache = {'pool':pool['aout'], 'conv2fc':conv2fc['aout'], 'fc':fc['aout']}
+        cache.update({'dpool':dpool['dout'], 'dconv2fc':dconv2fc['dout'], 'dfc':dfc['dout'], 'dpred':E})
+        cache.update({'decode_conv':decode_conv})
+        cache.update({'ddecode_conv':ddecode_conv, 'dae':grad})
 
         ############
 
@@ -138,16 +143,17 @@ class LELPool(Layer):
         ############
     
         pool, conv2fc, fc = cache['pool'], cache['conv2fc'], cache['fc']
-        dfc, dconv2fc, dpool = cache['dfc'], cache['dconv2fc'], cache['dpool']
+        dpred, dfc, dconv2fc, dpool = cache['dpred'], cache['dfc'], cache['dconv2fc'], cache['dpool']
         
-        dfc = self.fc.gv(conv2fc, fc, dfc)
+        dfc = self.fc.gv(conv2fc, fc, dpred)
         
         ############
 
-        decode_conv = cache['decode_conv']
-        ddecode_conv = cache['ddecode_conv']
+        decode_conv = cache['decode_conv']['aout']
+        ddecode_conv = cache['ddecode_conv']['dout']
+        dae = cache['dae']
 
-        ddecode_conv = self.decode_conv.gv(AI, decode_conv, ddecode_conv)
+        ddecode_conv = self.decode_conv.gv(AI, decode_conv, dae, cache['ddecode_conv']['cache'])
 
         ############
 

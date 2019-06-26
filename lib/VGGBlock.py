@@ -4,7 +4,8 @@ import numpy as np
 
 from lib.Layer import Layer 
 from lib.ConvBlock import ConvBlock
-from lib.LELConv import LELConv
+# from lib.LELConv import LELConv
+from lib.LELPool import LELPool
 
 class VGGBlock(Layer):
 
@@ -37,7 +38,12 @@ class VGGBlock(Layer):
                               load=self.load, 
                               train=self.train_flag)
 
-        self.lel = LELConv(input_shape=self.lel_shape, pool_shape=self.pool_shape, num_classes=self.num_classes, name=self.name + '_lel')
+        self.lel = LELPool(input_shape=self.lel_shape, 
+                           pool_shape=self.pool_shape, 
+                           num_classes=self.num_classes, 
+                           ae_output_shape=self.input_shape, 
+                           ae_filter_shape=[3, 3, self.fout, self.fin],
+                           name=self.name + '_lel')
 
     ###################################################################
 
@@ -112,10 +118,9 @@ class VGGBlock(Layer):
         
         ##########################################
         
-        lel_cache = lel['cache']
-        lel_cache['AE_X'] = AI
+        lel['cache'].update({'AE_X': AI})
         
-        dlel = self.lel.lel_backward(conv['aout'], lel['aout'], None, DO, Y, lel_cache)
+        dlel = self.lel.lel_backward(conv['aout'], lel['aout'], None, DO, Y, lel['cache'])
         dconv = self.conv.lel_backward(AI, conv['aout'], None, dlel['dout'], Y, conv['cache'])
 
         ##########################################
