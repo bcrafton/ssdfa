@@ -110,7 +110,7 @@ class LELPool(Layer):
         dpool = self.pool.backward(AI, pool['aout'], dconv2fc['dout'])
 
         cache = {'pool':pool['aout'], 'conv2fc':conv2fc['aout'], 'fc':fc['aout']}
-        cache.update({'dpool':dpool'dout'], 'dconv2fc':dconv2fc['dout'], 'dfc':dfc['dout']})
+        cache.update({'dpool':dpool['dout'], 'dconv2fc':dconv2fc['dout'], 'dfc':dfc['dout']})
         
         ############
         

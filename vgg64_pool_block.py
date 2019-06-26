@@ -82,6 +82,8 @@ from lib.Activation import Softmax
 from lib.Activation import LeakyRelu
 from lib.Activation import Linear
 
+from lib.VGGBlock import VGGBlock
+
 ##############################################
 
 batch_size = args.batch_size
@@ -326,14 +328,15 @@ l7,
 l8
 ]
 
+model = Model(layers=layers)
 predict = tf.nn.softmax(model.predict(X=X))
 weights = model.get_weights()
-
+'''
 o00 = model.up_to(X, N=0)
 o09 = model.up_to(X, N=9)
 o18 = model.up_to(X, N=18)
 o27 = model.up_to(X, N=27)
-
+'''
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt == "momentum":
     if args.dfa:
         grads_and_vars = model.lel_gvs(X=X, Y=labels)
@@ -410,7 +413,7 @@ for ii in range(0, epochs):
     for jj in range(0, len(train_filenames), batch_size):
         
         if (jj % (100 * batch_size) == 0):
-            [_total_correct, _total_top5, _, _gray, _o00, _o09, _o18, _o27] = sess.run([total_correct, total_top5, train, gray, o00, o09, o18, o27], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
+            [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
             
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
             print (p)
