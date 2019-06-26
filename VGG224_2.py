@@ -30,7 +30,7 @@ if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
     
-exxact = 0
+exxact = 1
 if exxact:
     val_data_path = '/home/bcrafton3/Data_SSD/ILSVRC2012/val/'
     val_label_path = '/home/bcrafton3/dfa/imagenet_labels/validation_labels.txt'
@@ -120,7 +120,7 @@ data_augmentation = False
 EPOCHS = args.epochs
 BATCH_SIZE = args.batch_size
 
-IMAGENET_MEAN = [123.68, 116.78, 103.94]
+# IMAGENET_MEAN = [123.68, 116.78, 103.94]
 
 ##############################################
 
@@ -156,11 +156,12 @@ def parse_function(filename, label):
 def train_preprocess(image, label):
     crop_image = tf.random_crop(image, [224, 224, 3])                       # (3)
     flip_image = tf.image.random_flip_left_right(crop_image)                # (4)
+    return flip_image, label
 
-    means = tf.reshape(tf.constant(IMAGENET_MEAN), [1, 1, 3])
-    centered_image = flip_image - means                                     # (5)
+    # means = tf.reshape(tf.constant(IMAGENET_MEAN), [1, 1, 3])
+    # centered_image = flip_image - means                                     # (5)
 
-    return centered_image, label
+    # return centered_image, label
     
 
 # Preprocessing (for validation)
@@ -169,11 +170,12 @@ def train_preprocess(image, label):
 # Note: we don't normalize the data here, as VGG was trained without normalization
 def val_preprocess(image, label):
     crop_image = tf.image.resize_image_with_crop_or_pad(image, 224, 224)    # (3)
+    return crop_image, label
 
-    means = tf.reshape(tf.constant(IMAGENET_MEAN), [1, 1, 3])
-    centered_image = crop_image - means                                     # (4)
+    # means = tf.reshape(tf.constant(IMAGENET_MEAN), [1, 1, 3])
+    # centered_image = crop_image - means                                     # (4)
 
-    return centered_image, label
+    # return centered_image, label
 
 ##############################################
 
@@ -304,6 +306,7 @@ else:
 
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
+X = features / 255.
 
 l1_1 = VGGBlock(input_shape=[batch_size, 224, 224, 3],  filter_shape=[3, 32],      strides=[1,1,1,1], init=args.init, pool_shape=[1,14,14,1], num_classes=1000, name='block1')
 l1_2 = VGGBlock(input_shape=[batch_size, 224, 224, 32], filter_shape=[32, 32],     strides=[1,1,1,1], init=args.init, pool_shape=[1,14,14,1], num_classes=1000, name='block2')
@@ -350,13 +353,13 @@ model = Model(layers=layers)
 
 ###############################################################
 
-predict = tf.nn.softmax(model.predict(X=features))
+predict = tf.nn.softmax(model.predict(X=X))
 
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt == "momentum":
     if args.dfa:
-        grads_and_vars = model.lel_gvs(X=features, Y=labels)
+        grads_and_vars = model.lel_gvs(X=X, Y=labels)
     else:
-        grads_and_vars = model.gvs(X=features, Y=labels)
+        grads_and_vars = model.gvs(X=X, Y=labels)
         
     if args.opt == "adam":
         train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
@@ -371,9 +374,9 @@ if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt ==
 
 else:
     if args.dfa:
-        train = model.lel(X=features, Y=labels)
+        train = model.lel(X=X, Y=labels)
     else:
-        train = model.train(X=features, Y=labels)
+        train = model.train(X=X, Y=labels)
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
