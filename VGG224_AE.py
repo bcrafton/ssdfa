@@ -244,7 +244,7 @@ label = tf.placeholder(tf.int64, shape=[None])
 val_imgs, val_labs = get_validation_dataset()
 
 val_dataset = tf.data.Dataset.from_tensor_slices((filename, label))
-val_dataset = val_dataset.shuffle(len(val_imgs))
+val_dataset = val_dataset.shuffle(len(val_imgs), seed=0)
 val_dataset = val_dataset.map(parse_function, num_parallel_calls=4)
 val_dataset = val_dataset.map(val_preprocess, num_parallel_calls=4)
 val_dataset = val_dataset.batch(args.batch_size)
@@ -256,8 +256,8 @@ val_dataset = val_dataset.prefetch(8)
 train_imgs, train_labs = get_train_dataset()
 
 train_dataset = tf.data.Dataset.from_tensor_slices((filename, label))
-train_dataset = train_dataset.shuffle(len(train_imgs))
-train_dataset = train_dataset.shuffle(len(train_imgs), reshuffle_each_iteration=False)
+train_dataset = train_dataset.shuffle(len(train_imgs), seed=0)
+# train_dataset = train_dataset.shuffle(len(train_imgs), reshuffle_each_iteration=False)
 train_dataset = train_dataset.map(parse_function, num_parallel_calls=4)
 train_dataset = train_dataset.map(train_preprocess, num_parallel_calls=4)
 train_dataset = train_dataset.batch(args.batch_size)
@@ -369,6 +369,7 @@ l12_1, l12_2
 
 model = Model(layers=layers, shape_y=[args.batch_size, 224, 224, 3])
 predict = model.predict(X=X)
+weights = model.get_weights()
 
 grads_and_vars, loss = model.gvs(X=X, Y=X)
 train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)

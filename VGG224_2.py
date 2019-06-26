@@ -428,7 +428,7 @@ for ii in range(0, epochs):
     train_top5 = 0.0
     
     for j in range(0, len(train_imgs), batch_size):
-        print (j)
+        # print (j)
         
         _total_correct, _top5, _ = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
         
@@ -464,7 +464,7 @@ for ii in range(0, epochs):
     val_top5 = 0.0
     
     for j in range(0, len(val_imgs), batch_size):
-        print (j)
+        # print (j)
 
         [_total_correct, _top5] = sess.run([total_correct, total_top5], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
         
