@@ -5,6 +5,7 @@ import numpy as np
 from lib.Layer import Layer 
 from lib.ConvBlock import ConvBlock
 from lib.LELConv import LELConv
+from lib.LELPool import LELPool
 
 class VGGBlock(Layer):
 
@@ -37,7 +38,9 @@ class VGGBlock(Layer):
                               load=self.load, 
                               train=self.train_flag)
 
-        self.lel = LELConv(input_shape=self.lel_shape, pool_shape=self.pool_shape, num_classes=self.num_classes, name=self.name + '_lel')
+        # self.lel = LELConv(input_shape=self.lel_shape, pool_shape=self.pool_shape, num_classes=self.num_classes, name=self.name + '_lel')
+        
+        self.lel = LELPool(input_shape=self.lel_shape, pool_shape=self.pool_shape, num_classes=self.num_classes, name=self.name + '_lel')
 
     ###################################################################
 

@@ -109,7 +109,7 @@ vgg64_pool = {'benchmark':'vgg64_pool.py', 'epochs':10, 'batch_size':64, 'alpha'
 
 mobile224 = {'benchmark':'MobileNet224.py', 'epochs':100, 'batch_size':64, 'alpha':[5e-2], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':1, 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':None}
 
-vgg224 = {'benchmark':'VGG224_2.py', 'epochs':100, 'batch_size':64, 'alpha':[5e-2], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':[0, 1], 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':None}
+vgg224 = {'benchmark':'VGG224_2.py', 'epochs':16, 'batch_size':64, 'alpha':[5e-2], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':[0, 1], 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':None}
 
 vgg224_ae = {'benchmark':'VGG224_AE.py', 'epochs':10, 'batch_size':32, 'alpha':[0.07], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':0, 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':['vgg224_bp.npy', 'vgg224_lel.npy']}
 
@@ -121,10 +121,10 @@ vgg224_ae = {'benchmark':'VGG224_AE.py', 'epochs':10, 'batch_size':32, 'alpha':[
 # params = [vgg64_ae_scratch]
 
 # params = [mobile224, vgg224]
-# params = [vgg224]
+params = [vgg224]
 # params = [mobile224]
 
-params = [vgg224_ae]
+# params = [vgg224_ae]
 
 ################################################
 
