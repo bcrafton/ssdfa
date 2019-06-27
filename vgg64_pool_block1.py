@@ -36,6 +36,14 @@ if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
 
+exxact = 0
+if exxact:
+    val_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/val/'
+    train_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/train/'
+else:
+    val_path = '/usr/scratch/64x64/tfrecord/val/'
+    train_path = '/usr/scratch/64x64/tfrecord/train/'
+
 ##############################################
 
 import keras
@@ -125,12 +133,12 @@ def parse_function(filename, label):
     return conv, label
 
 ##############################################
-
+'''
 def preprocess(image):
     means = tf.reshape(tf.constant(MEAN), [1, 1, 3])
     image = image - means
     return image
-
+'''
 ##############################################
 
 def pre(fn):
@@ -143,9 +151,9 @@ def get_val_filenames():
 
     print ("building validation dataset")
 
-    for subdir, dirs, files in os.walk('/home/bcrafton3/Data_SSD/64x64/tfrecord/val/'):
+    for subdir, dirs, files in os.walk(val_path):
         for file in files:
-            val_filenames.append(os.path.join('/home/bcrafton3/Data_SSD/64x64/tfrecord/val/', file))
+            val_filenames.append(os.path.join(val_path, file))
 
     np.random.shuffle(val_filenames)    
 
@@ -159,9 +167,9 @@ def get_train_filenames():
 
     print ("building training dataset")
 
-    for subdir, dirs, files in os.walk('/home/bcrafton3/Data_SSD/64x64/tfrecord/train/'):
+    for subdir, dirs, files in os.walk(train_path):
         for file in files:
-            train_filenames.append(os.path.join('/home/bcrafton3/Data_SSD/64x64/tfrecord/train/', file))
+            train_filenames.append(os.path.join(train_path, file))
     
     np.random.shuffle(train_filenames)
 
@@ -181,8 +189,8 @@ def extract_fn(record):
     image = tf.cast(image, dtype=tf.float32)
     image = tf.reshape(image, (1, 64, 64, 3))
 
-    means = tf.reshape(tf.constant(MEAN), [1, 1, 1, 3])
-    image = image - means
+    # means = tf.reshape(tf.constant(MEAN), [1, 1, 1, 3])
+    # image = image - means
 
     label = sample['label']
     return [image, label]
