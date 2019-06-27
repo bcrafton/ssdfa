@@ -522,6 +522,12 @@ for ii in range(0, epochs):
             phase = 5
             print ('phase 5')
 
+    p = "Phase: %d" % (phase)
+    print (p)
+    f = open(results_filename, "a")
+    f.write(p + "\n")
+    f.close()
+
     if args.save:
         [w] = sess.run([weights], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
         w['train_acc'] = train_accs
