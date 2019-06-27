@@ -27,13 +27,13 @@ def run_command(param):
         gpu = counter % num_gpus
         counter = counter + 1
     
-    name = '%s_%f_%f_%f_%s_%f_%f_%d_%d_%s_%s_%d' % (param['benchmark'], param['alpha'], param['l2'], param['eps'], param['act'], param['bias'], param['dropout'], param['dfa'], param['sparse'], param['init'], param['opt'], param['ae_loss'])
+    name = '%s_%f_%f_%f_%s_%f_%f_%d_%d_%s_%s_%f' % (param['benchmark'], param['alpha'], param['l2'], param['eps'], param['act'], param['bias'], param['dropout'], param['dfa'], param['sparse'], param['init'], param['opt'], param['ae_loss'])
     if param['load']:
         name += '_' + param['load']
-        cmd = "python %s --gpu %d --epochs %d --batch_size %d --alpha %f --l2 %f --eps %f --act %s --bias %f --dropout %f --dfa %d --sparse %d --rank %d --init %s --opt %s --ae_loss %d --save %d --name %s --load %s" % \
+        cmd = "python %s --gpu %d --epochs %d --batch_size %d --alpha %f --l2 %f --eps %f --act %s --bias %f --dropout %f --dfa %d --sparse %d --rank %d --init %s --opt %s --ae_loss %f --save %d --name %s --load %s" % \
               (param['benchmark'], gpu, param['epochs'], param['batch_size'], param['alpha'], param['l2'], param['eps'], param['act'], param['bias'], param['dropout'], param['dfa'], param['sparse'], param['rank'], param['init'], param['opt'], param['ae_loss'], 1, name, param['load'])
     else:
-        cmd = "python %s --gpu %d --epochs %d --batch_size %d --alpha %f --l2 %f --eps %f --act %s --bias %f --dropout %f --dfa %d --sparse %d --rank %d --init %s --opt %s --ae_loss %d --save %d --name %s" % \
+        cmd = "python %s --gpu %d --epochs %d --batch_size %d --alpha %f --l2 %f --eps %f --act %s --bias %f --dropout %f --dfa %d --sparse %d --rank %d --init %s --opt %s --ae_loss %f --save %d --name %s" % \
               (param['benchmark'], gpu, param['epochs'], param['batch_size'], param['alpha'], param['l2'], param['eps'], param['act'], param['bias'], param['dropout'], param['dfa'], param['sparse'], param['rank'], param['init'], param['opt'], param['ae_loss'], 1, name)
 
     if cmd_args.print:

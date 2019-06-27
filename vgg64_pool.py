@@ -142,7 +142,7 @@ def get_val_filenames():
         for file in files:
             val_filenames.append(os.path.join('/home/bcrafton3/Data_SSD/64x64/tfrecord/val/', file))
 
-    # np.random.shuffle(val_filenames)    
+    np.random.shuffle(val_filenames)    
 
     remainder = len(val_filenames) % batch_size
     val_filenames = val_filenames[:(-remainder)]
@@ -158,7 +158,7 @@ def get_train_filenames():
         for file in files:
             train_filenames.append(os.path.join('/home/bcrafton3/Data_SSD/64x64/tfrecord/train/', file))
     
-    # np.random.shuffle(train_filenames)
+    np.random.shuffle(train_filenames)
 
     remainder = len(train_filenames) % batch_size
     train_filenames = train_filenames[:(-remainder)]

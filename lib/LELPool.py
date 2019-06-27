@@ -136,11 +136,7 @@ class LELPool(Layer):
 
         ############
 
-        if self.ae_loss:
-            DI = dpool['dout'] + ddecode_conv['dout']
-        else:
-            DI = dpool['dout']
-
+        DI = dpool['dout'] + args.ae_loss * ddecode_conv['dout']
         # DI = tf.Print(DI, [tf.keras.backend.std(dpool['dout']) / tf.keras.backend.std(ddecode_conv['dout'])], message='', summarize=1000)
 
         return {'dout':DI, 'cache':cache}
