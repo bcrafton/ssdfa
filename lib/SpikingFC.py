@@ -31,35 +31,37 @@ class SpikingFC(Layer):
         return weights_size
 
     def forward(self, X):
-        Z = tf.keras.backend.dot(X, self.weights)
+        # 50 8 784 64 | X
+        # 1  1 784 64 | weights
+        weights = tf.reshape(self.weights, (1, 1, self.input_size, self.output_size))
+        Z = X * weights
+        Z = tf.reduce_sum(Z, axis=2)
         A = self.activation.forward(Z)
         return A
 
     ###################################################################
             
     def backward(self, AI, AO, DO):
+        # bc we just testing 1 fc and fc is first.
+        return AI
+    
         DO = tf.multiply(DO, self.activation.gradient(AO))
-        DI = tf.keras.backend.dot(DO, tf.transpose(self.weights))
+        # 50 8  1   64
+        # 1  1  784 64
+        DO = tf.reshape(DO, (self.batch, self.times, 1, self.output_size))
+        weights = tf.reshape(self.weights, (1, 1, self.input_size, self.output_size))
+        DI = DO * weights
         return DI
         
     def gv(self, AI, AO, DO):
         if not self._train:
             return []
             
-        N = tf.shape(AI)[0]
-        N = tf.cast(N, dtype=tf.float32)
-        
         DO = tf.multiply(DO, self.activation.gradient(AO))
-        # put the gradient wrt 1D conv here.
-        
-        # do we want more or less spikes is the question... so we just sum along the time dimension I guess.
-        # AI = [B T NI]
-        # DO = [B T NO]
-        AI = tf.reshape(AI, (self.batch * self.times, self.input_size))
-        AI = tf.transpose(AI)
-        DO = tf.reshape(DO, (self.batch * self.times, self.output_size))
-        
-        DW = tf.matmul(AI, DO) 
+
+        DO = tf.reshape(DO, (self.batch, self.times, 1, self.output_size))
+        DW = AI * DO
+        DW = tf.reduce_sum(DW, axis=[0, 1])
 
         return [(DW, self.weights)]
 
