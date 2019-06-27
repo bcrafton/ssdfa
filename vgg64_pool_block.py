@@ -205,6 +205,7 @@ val_dataset = val_dataset.prefetch(8)
 ###############################################################
 
 train_dataset = tf.data.TFRecordDataset(filename)
+train_dataset = train_dataset.shuffle(len(train_filenames), reshuffle_each_iteration=False)
 train_dataset = train_dataset.map(extract_fn, num_parallel_calls=4)
 train_dataset = train_dataset.batch(batch_size)
 train_dataset = train_dataset.repeat()
