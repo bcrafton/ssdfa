@@ -97,22 +97,8 @@ from lib.VGGBlock import VGGBlock
 
 ##############################################
 
-batch_size = args.batch_size
 num_classes = 1000
-epochs = args.epochs
-data_augmentation = False
 
-# MEAN = [122.77093945, 116.74601272, 104.09373519]
-
-##############################################
-'''
-A = tf.reshape(A, (self.batch, self.h * self.w, 1, self.fin))
-A = tf.tile(A, [1, 1, self.ksize * self.ksize, 1])
-A = tf.reshape(A, (self.batch, self.h, self.w, self.ksize, self.ksize, self.fin))
-A = tf.reshape(A, (self.batch, self.h, self.w * self.ksize, self.ksize, self.fin))
-A = tf.transpose(A, (0, 1, 3, 2, 4))
-A = tf.reshape(A, (self.batch, self.h * self.ksize, self.w * self.ksize, self.fin))
-'''
 ##############################################
 
 def in_top_k(x, y, k):
@@ -133,13 +119,6 @@ def parse_function(filename, label):
     return conv, label
 
 ##############################################
-'''
-def preprocess(image):
-    means = tf.reshape(tf.constant(MEAN), [1, 1, 3])
-    image = image - means
-    return image
-'''
-##############################################
 
 def pre(fn):
     [fn] = re.findall('\d+.tfrecord', fn)
@@ -157,7 +136,7 @@ def get_val_filenames():
 
     np.random.shuffle(val_filenames)    
 
-    remainder = len(val_filenames) % batch_size
+    remainder = len(val_filenames) % args.batch_size
     val_filenames = val_filenames[:(-remainder)]
 
     return val_filenames
@@ -173,7 +152,7 @@ def get_train_filenames():
     
     np.random.shuffle(train_filenames)
 
-    remainder = len(train_filenames) % batch_size
+    remainder = len(train_filenames) % args.batch_size
     train_filenames = train_filenames[:(-remainder)]
 
     return train_filenames
@@ -206,7 +185,7 @@ filename = tf.placeholder(tf.string, shape=[None])
 
 val_dataset = tf.data.TFRecordDataset(filename)
 val_dataset = val_dataset.map(extract_fn, num_parallel_calls=4)
-val_dataset = val_dataset.batch(batch_size)
+val_dataset = val_dataset.batch(args.batch_size)
 val_dataset = val_dataset.repeat()
 val_dataset = val_dataset.prefetch(8)
 
@@ -215,7 +194,7 @@ val_dataset = val_dataset.prefetch(8)
 train_dataset = tf.data.TFRecordDataset(filename)
 # train_dataset = train_dataset.shuffle(len(train_filenames), reshuffle_each_iteration=False)
 train_dataset = train_dataset.map(extract_fn, num_parallel_calls=4)
-train_dataset = train_dataset.batch(batch_size)
+train_dataset = train_dataset.batch(args.batch_size)
 train_dataset = train_dataset.repeat()
 train_dataset = train_dataset.prefetch(8)
 
@@ -246,25 +225,25 @@ learning_rate = tf.placeholder(tf.float32, shape=())
 gray = tf.image.rgb_to_grayscale(features)
 X = features / 255.
 
-l1_1 = VGGBlock(input_shape=[batch_size, 64, 64, 3],   filter_shape=[3, 64],    strides=[1,1,1,1], init=args.init, pool_shape=[1,8,8,1], num_classes=1000, name='block1', ae_loss=args.ae_loss)
-l1_2 = VGGBlock(input_shape=[batch_size, 64, 64, 64],  filter_shape=[64, 64],   strides=[1,1,1,1], init=args.init, pool_shape=[1,8,8,1], num_classes=1000, name='block2', ae_loss=args.ae_loss)
-l1_3 = AvgPool(size=[batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+l1_1 = VGGBlock(input_shape=[args.batch_size, 64, 64, 3],   filter_shape=[3, 64],    strides=[1,1,1,1], init=args.init, pool_shape=[1,8,8,1], num_classes=1000, name='block1', ae_loss=args.ae_loss)
+l1_2 = VGGBlock(input_shape=[args.batch_size, 64, 64, 64],  filter_shape=[64, 64],   strides=[1,1,1,1], init=args.init, pool_shape=[1,8,8,1], num_classes=1000, name='block2', ae_loss=args.ae_loss)
+l1_3 = AvgPool(size=[args.batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l2_1 = VGGBlock(input_shape=[batch_size, 32, 32, 64],  filter_shape=[64, 128],  strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block3', ae_loss=args.ae_loss)
-l2_2 = VGGBlock(input_shape=[batch_size, 32, 32, 128], filter_shape=[128, 128], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block4', ae_loss=args.ae_loss)
-l2_3 = AvgPool(size=[batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+l2_1 = VGGBlock(input_shape=[args.batch_size, 32, 32, 64],  filter_shape=[64, 128],  strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block3', ae_loss=args.ae_loss)
+l2_2 = VGGBlock(input_shape=[args.batch_size, 32, 32, 128], filter_shape=[128, 128], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block4', ae_loss=args.ae_loss)
+l2_3 = AvgPool(size=[args.batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l3_1 = VGGBlock(input_shape=[batch_size, 16, 16, 128], filter_shape=[128, 256], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block5', ae_loss=args.ae_loss)
-l3_2 = VGGBlock(input_shape=[batch_size, 16, 16, 256], filter_shape=[256, 256], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block6', ae_loss=args.ae_loss)
-l3_3 = AvgPool(size=[batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+l3_1 = VGGBlock(input_shape=[args.batch_size, 16, 16, 128], filter_shape=[128, 256], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block5', ae_loss=args.ae_loss)
+l3_2 = VGGBlock(input_shape=[args.batch_size, 16, 16, 256], filter_shape=[256, 256], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block6', ae_loss=args.ae_loss)
+l3_3 = AvgPool(size=[args.batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l4_1 = VGGBlock(input_shape=[batch_size, 8, 8, 256],   filter_shape=[256, 512], strides=[1,1,1,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block7', ae_loss=args.ae_loss)
-l4_2 = VGGBlock(input_shape=[batch_size, 8, 8, 512],   filter_shape=[512, 512], strides=[1,1,1,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block8', ae_loss=args.ae_loss)
-l4_3 = AvgPool(size=[batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+l4_1 = VGGBlock(input_shape=[args.batch_size, 8, 8, 256],   filter_shape=[256, 512], strides=[1,1,1,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block7', ae_loss=args.ae_loss)
+l4_2 = VGGBlock(input_shape=[args.batch_size, 8, 8, 512],   filter_shape=[512, 512], strides=[1,1,1,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block8', ae_loss=args.ae_loss)
+l4_3 = AvgPool(size=[args.batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l5_1 = VGGBlock(input_shape=[batch_size, 4, 4, 512],   filter_shape=[512, 1024],  strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block9', ae_loss=args.ae_loss)
-l5_2 = VGGBlock(input_shape=[batch_size, 4, 4, 1024],  filter_shape=[1024, 1024], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block10', ae_loss=args.ae_loss)
-l5_3 = AvgPool(size=[batch_size, 4, 4, 1024], ksize=[1, 4, 4, 1], strides=[1, 4, 4, 1], padding="SAME")
+l5_1 = VGGBlock(input_shape=[args.batch_size, 4, 4, 512],   filter_shape=[512, 1024],  strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block9', ae_loss=args.ae_loss)
+l5_2 = VGGBlock(input_shape=[args.batch_size, 4, 4, 1024],  filter_shape=[1024, 1024], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block10', ae_loss=args.ae_loss)
+l5_3 = AvgPool(size=[args.batch_size, 4, 4, 1024], ksize=[1, 4, 4, 1], strides=[1, 4, 4, 1], padding="SAME")
 
 l6 = ConvToFullyConnected(input_shape=[1, 1, 1024])
 l7 = FullyConnected(input_shape=1024, size=1000, init=args.init, name="fc1")
@@ -284,6 +263,11 @@ l7
 model = Model(layers=layers)
 predict = tf.nn.softmax(model.predict(X=X))
 weights = model.get_weights()
+
+o0 = model.up_to(X, N=0)
+o1 = model.up_to(X, N=3)
+o2 = model.up_to(X, N=6)
+o3 = model.up_to(X, N=9)
 
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt == "momentum":
     if args.dfa:
@@ -343,9 +327,9 @@ val_accs_top5 = []
 alpha = args.alpha
 phase = 0
 
-for ii in range(0, epochs):
+for ii in range(0, args.epochs):
 
-    print('epoch {}/{}'.format(ii, epochs))
+    print('epoch {}/{}'.format(ii, args.epochs))
     
     ##################################################################
 
@@ -358,10 +342,10 @@ for ii in range(0, epochs):
     train_acc = 0.0
     train_acc_top5 = 0.0
 
-    for jj in range(0, len(train_filenames), batch_size):
+    for jj in range(0, len(train_filenames), args.batch_size):
         
-        if (jj % (100 * batch_size) == 0):
-            [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
+        if (jj % (100 * args.batch_size) == 0):
+            [_total_correct, _total_top5, _, _gray, _o0, _o1, _o2, _o3] = sess.run([total_correct, total_top5, train, gray, o0, o1, o2, o3], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
             
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
             print (p)
@@ -371,10 +355,28 @@ for ii in range(0, epochs):
 
             ####################################
 
+            rows = []
+            for _ in range(5):
+                idx = np.random.randint(low=0, high=64)
+
+                imgray = scipy.misc.imresize(_gray[0, :, :, 0], 4.)
+                im0 = scipy.misc.imresize(_o0[0, :, :, idx], 4.)
+                im1 = scipy.misc.imresize(_o1[0, :, :, idx], 8.)
+                im2 = scipy.misc.imresize(_o2[0, :, :, idx], 16.)
+                im3 = scipy.misc.imresize(_o3[0, :, :, idx], 32.)
+
+                row = np.concatenate((imgray, im0, im1, im2, im3), axis=1)
+                rows.append(row)
+                
+            img = np.concatenate(rows, axis=0)
+            plt.imsave('%d_%d_%d.jpg' % (args.dfa, jj, ii), img)
+
+            ####################################
+            
         else:
             [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
 
-        train_total += batch_size
+        train_total += args.batch_size
         train_correct += _total_correct
         train_top5 += _total_top5
 
@@ -398,18 +400,18 @@ for ii in range(0, epochs):
     val_correct = 0.0
     val_top5 = 0.0
     
-    for jj in range(0, len(val_filenames), batch_size):
+    for jj in range(0, len(val_filenames), args.batch_size):
 
         [_total_correct, _top5] = sess.run([total_correct, total_top5], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
         
-        val_total += batch_size
+        val_total += args.batch_size
         val_correct += _total_correct
         val_top5 += _top5
         
         val_acc = val_correct / val_total
         val_acc_top5 = val_top5 / val_total
         
-        if (jj % (100 * batch_size) == 0):
+        if (jj % (100 * args.batch_size) == 0):
             p = "val accuracy: %f %f" % (val_acc, val_acc_top5)
             print (p)
             f = open(results_filename, "a")
