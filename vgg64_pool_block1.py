@@ -369,7 +369,7 @@ for ii in range(0, args.epochs):
                 rows.append(row)
                 
             img = np.concatenate(rows, axis=0)
-            plt.imsave('%d_%d_%d.jpg' % (args.dfa, jj, ii), img)
+            plt.imsave('%d_%d_%f.jpg' % (args.dfa, jj, args.ae_loss), img)
 
             ####################################
             
