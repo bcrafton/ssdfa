@@ -24,7 +24,7 @@ parser.add_argument('--opt', type=str, default="adam")
 parser.add_argument('--ae_loss', type=float, default=0.0)
 
 parser.add_argument('--save', type=int, default=0)
-parser.add_argument('--name', type=str, default="vgg64x64")
+parser.add_argument('--name', type=str, default="mobile64")
 parser.add_argument('--load', type=str, default=None)
 args = parser.parse_args()
 
@@ -329,6 +329,9 @@ phase = 0
 
 for ii in range(0, epochs):
 
+    # [w] = sess.run([weights], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
+    # np.save(args.name, w)
+
     print('epoch {}/{}'.format(ii, epochs))
     
     ##################################################################
@@ -340,7 +343,7 @@ for ii in range(0, epochs):
     train_top5 = 0.0
     
     for j in range(0, len(train_filenames), batch_size):
-        print (j)
+        # print (j)
         
         [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
 
@@ -376,7 +379,7 @@ for ii in range(0, epochs):
     val_top5 = 0.0
     
     for j in range(0, len(val_filenames), batch_size):
-        print (j)
+        # print (j)
 
         [_total_correct, _top5] = sess.run([total_correct, total_top5], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
         

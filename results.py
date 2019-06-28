@@ -113,17 +113,19 @@ vgg224 = {'benchmark':'VGG224_2.py', 'epochs':100, 'batch_size':32, 'alpha':[5e-
 
 # vgg224_ae = {'benchmark':'VGG224_AE.py', 'epochs':10, 'batch_size':32, 'alpha':[0.07], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':0, 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'load':['vgg224_bp.npy', 'vgg224_lel.npy']}
 
+mobile64 = {'benchmark':'MobileNet64.py', 'epochs':20, 'batch_size':64, 'alpha':[0.05], 'l2':[0.], 'eps':[1.], 'act':['relu'], 'bias':[0.], 'dropout':[0.5], 'dfa':[0, 1], 'sparse':0, 'rank':0, 'init':['alexnet'], 'opt':'adam', 'ae_loss':[0.0], 'load':None}
+
 ################################################
 
 # params = [vgg64_ae, vgg64_pool]
 # params = [vgg64_pool]
 # params = [vgg64_ae]
 # params = [vgg64_ae_scratch]
+params = [mobile64]
 
 # params = [mobile224, vgg224]
-params = [vgg224]
+# params = [vgg224]
 # params = [mobile224]
-
 # params = [vgg224_ae]
 
 ################################################

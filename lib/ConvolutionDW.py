@@ -14,8 +14,8 @@ class ConvolutionDW(Layer):
         self.filter_sizes = filter_sizes
         self.batch_size, self.h, self.w, self.fin = self.input_sizes
         # ah we copy and pasted the "Convolution" header here and erased this part causing the error with bias
-        self.fh, self.fw, self.fin, self.factor = self.filter_sizes
-        self.fout = self.fin * self.factor
+        self.fh, self.fw, self.fin, self.mult = self.filter_sizes
+        self.fout = self.fin * self.mult
 
         bias = np.ones(shape=self.fout) * bias
         
