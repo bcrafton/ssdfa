@@ -21,6 +21,8 @@ parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
 parser.add_argument('--init', type=str, default="alexnet")
 parser.add_argument('--opt', type=str, default="adam")
+parser.add_argument('--ae_loss', type=float, default=0.0)
+
 parser.add_argument('--save', type=int, default=0)
 parser.add_argument('--name', type=str, default="vgg64x64")
 parser.add_argument('--load', type=str, default=None)
