@@ -39,8 +39,11 @@ class MobileBlock(Layer):
         self.lel_dw = LELPool(input_shape=input_shape_2, 
                               pool_shape=self.pool_shape, 
                               num_classes=self.num_classes, 
-                              name=self.name + '_lel_dw')
-                              
+                              ae_output_shape=self.input_shape, 
+                              ae_filter_shape=[3, 3, self.fin, self.fin],
+                              name=self.name + '_lel_dw',
+                              ae_loss=self.ae_loss))
+
         self.conv_pw = ConvBlock(input_shape=input_shape_2, 
                                  filter_shape=[1, 1, self.fin, self.fout], 
                                  strides=[1,1,1,1], 
@@ -50,7 +53,10 @@ class MobileBlock(Layer):
         self.lel_pw = LELPool(input_shape=input_shape_3, 
                               pool_shape=self.pool_shape, 
                               num_classes=self.num_classes, 
-                              name='_lel_pw')
+                              ae_output_shape=input_shape_2, 
+                              ae_filter_shape=[3, 3, self.fout, self.fin],
+                              name=self.name + '_lel_pw',
+                              ae_loss=self.ae_loss)
 
     ###################################################################
 
