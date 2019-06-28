@@ -5,7 +5,8 @@ import numpy as np
 from lib.Layer import Layer 
 from lib.ConvBlock import ConvBlock
 from lib.ConvDWBlock import ConvDWBlock
-from lib.LELConv import LELConv
+# from lib.LELConv import LELConv
+from lib.LELPool import LELPool
 
 class MobileBlock(Layer):
 
@@ -29,9 +30,9 @@ class MobileBlock(Layer):
         input_shape_3 = [self.batch, self.h // self.sh, self.w // self.sw, self.fout]
         
         self.conv_dw = ConvDWBlock(input_shape=input_shape_1, filter_shape=[3, 3, self.fin, 1], strides=self.strides, init=self.init, name='_conv_block_dw')
-        self.lel_dw = LELConv(input_shape=input_shape_2, pool_shape=self.pool_shape, num_classes=1000, name='_fb')
+        self.lel_dw = LELPool(input_shape=input_shape_2, pool_shape=self.pool_shape, num_classes=1000, name='_fb')
         self.conv_pw = ConvBlock(input_shape=input_shape_2, filter_shape=[1, 1, self.fin, self.fout], strides=[1,1,1,1], init=self.init, name='_conv_block_pw')
-        self.lel_pw = LELConv(input_shape=input_shape_3, pool_shape=self.pool_shape, num_classes=1000, name='_fb')
+        self.lel_pw = LELPool(input_shape=input_shape_3, pool_shape=self.pool_shape, num_classes=1000, name='_fb')
 
     ###################################################################
 
