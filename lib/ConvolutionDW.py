@@ -55,6 +55,8 @@ class ConvolutionDW(Layer):
         filter_weights_size = self.fh * self.fw * self.fin * self.mult
         bias_weights_size = self.fout
         return filter_weights_size + bias_weights_size
+        
+    ###################################################################
                 
     def forward(self, X):
         Z = tf.nn.depthwise_conv2d(X, self.filters, self.strides, self.padding)

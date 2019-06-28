@@ -24,7 +24,7 @@ from lib.ConvBlock import ConvBlock
 
 class LELPool(Layer):
 
-    def __init__(self, input_shape, pool_shape, num_classes, ae_output_shape, ae_filter_shape, name=None, ae_loss=0):
+    def __init__(self, input_shape, pool_shape, num_classes, ae_output_shape, ae_filter_shape, name=None, ae_loss=0.):
         self.input_shape = input_shape
         self.batch_size, self.h, self.w, self.fin = self.input_shape
         self.pool_shape = pool_shape

@@ -22,6 +22,7 @@ class MobileBlock(Layer):
 
         self.pool_shape = pool_shape
 
+        self.num_classes = num_classes
         self.init = init
         self.name = name
         
@@ -29,21 +30,41 @@ class MobileBlock(Layer):
         input_shape_2 = [self.batch, self.h // self.sh, self.w // self.sw, self.fin]
         input_shape_3 = [self.batch, self.h // self.sh, self.w // self.sw, self.fout]
         
-        self.conv_dw = ConvDWBlock(input_shape=input_shape_1, filter_shape=[3, 3, self.fin, 1], strides=self.strides, init=self.init, name='_conv_block_dw')
-        self.lel_dw = LELPool(input_shape=input_shape_2, pool_shape=self.pool_shape, num_classes=1000, name='_fb')
-        self.conv_pw = ConvBlock(input_shape=input_shape_2, filter_shape=[1, 1, self.fin, self.fout], strides=[1,1,1,1], init=self.init, name='_conv_block_pw')
-        self.lel_pw = LELPool(input_shape=input_shape_3, pool_shape=self.pool_shape, num_classes=1000, name='_fb')
+        self.conv_dw = ConvDWBlock(input_shape=input_shape_1, 
+                                   filter_shape=[3, 3, self.fin, 1], 
+                                   strides=self.strides, 
+                                   init=self.init, 
+                                   name=self.name + '_conv_block_dw')
+                                   
+        self.lel_dw = LELPool(input_shape=input_shape_2, 
+                              pool_shape=self.pool_shape, 
+                              num_classes=self.num_classes, 
+                              name=self.name + '_lel_dw')
+                              
+        self.conv_pw = ConvBlock(input_shape=input_shape_2, 
+                                 filter_shape=[1, 1, self.fin, self.fout], 
+                                 strides=[1,1,1,1], 
+                                 init=self.init, 
+                                 name=self.name + '_conv_block_pw')
+        
+        self.lel_pw = LELPool(input_shape=input_shape_3, 
+                              pool_shape=self.pool_shape, 
+                              num_classes=self.num_classes, 
+                              name='_lel_pw')
 
     ###################################################################
 
     def get_weights(self):
-        return []
+        weights = []
+        weights.extend(self.conv_dw.get_weights())
+        weights.extend(self.conv_pw.get_weights())
+        return weights
 
     def output_shape(self):
         return self.output_shape
 
     def num_params(self):
-        return 0
+        return self.conv_dw.num_params() + self.conv_pw.num_params()
 
     ###################################################################
 

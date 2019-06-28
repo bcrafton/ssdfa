@@ -29,20 +29,23 @@ class ConvDWBlock(Layer):
         self.name = name
         
         # self.conv = Convolution(input_sizes=self.input_shape, filter_sizes=[self.fh, self.fw, self.fin, self.fout], init=self.init, strides=self.strides, padding="SAME", name=self.name + '_conv')
-        self.conv = ConvolutionDW(input_sizes=self.input_shape, filter_sizes=self.filter_shape, init=self.init, strides=self.strides, padding="SAME", name=self.name + '_conv')
-        self.bn = BatchNorm(input_size=self.output_shape, name=self.name + '_bn')
+        self.conv = ConvolutionDW(input_sizes=self.input_shape, filter_sizes=self.filter_shape, init=self.init, strides=self.strides, padding="SAME", name=self.name + '_conv_dw')
+        self.bn = BatchNorm(input_size=self.output_shape, name=self.name + '_bn_dw')
         self.relu = Relu()
 
     ###################################################################
 
     def get_weights(self):
-        return []
+        weights = []
+        weights.extend(self.conv.get_weights())
+        weights.extend(self.bn.get_weights())
+        return weights
 
     def output_shape(self):
         return self.output_shape
 
     def num_params(self):
-        return 0
+        return self.conv.num_params() + self.bn.num_params()
 
     ###################################################################
 
