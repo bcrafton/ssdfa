@@ -10,7 +10,7 @@ from lib.LELPool import LELPool
 
 class MobileBlock(Layer):
 
-    def __init__(self, input_shape, filter_shape, strides, pool_shape=[1,1,1,1], num_classes=1000, init='alexnet', name='MobileBlock'):
+    def __init__(self, input_shape, filter_shape, strides, init, pool_shape, num_classes, name, load=None, train=True, ae_loss=0):
         self.input_shape = input_shape
         self.batch, self.h, self.w, self.fin = self.input_shape
         
@@ -20,12 +20,16 @@ class MobileBlock(Layer):
         self.strides = strides
         _, self.sh, self.sw, _ = self.strides
 
-        self.pool_shape = pool_shape
-
-        self.num_classes = num_classes
         self.init = init
+
+        self.pool_shape = pool_shape
+        self.num_classes = num_classes
+
         self.name = name
-        
+        self.load = load
+        self.train_flag = train
+        self.ae_loss = ae_loss
+
         input_shape_1 = [self.batch, self.h,            self.w,            self.fin]
         input_shape_2 = [self.batch, self.h // self.sh, self.w // self.sw, self.fin]
         input_shape_3 = [self.batch, self.h // self.sh, self.w // self.sw, self.fout]
@@ -42,7 +46,7 @@ class MobileBlock(Layer):
                               ae_output_shape=self.input_shape, 
                               ae_filter_shape=[3, 3, self.fin, self.fin],
                               name=self.name + '_lel_dw',
-                              ae_loss=self.ae_loss))
+                              ae_loss=self.ae_loss)
 
         self.conv_pw = ConvBlock(input_shape=input_shape_2, 
                                  filter_shape=[1, 1, self.fin, self.fout], 
