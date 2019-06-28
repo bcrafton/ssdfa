@@ -250,7 +250,7 @@ l8 = MobileBlock(input_shape=[batch_size, 8, 8, 512], filter_shape=[512, 512], s
 l9 = MobileBlock(input_shape=[batch_size, 8, 8, 512], filter_shape=[512, 512], strides=[1,1,1,1], pool_shape=[1,2,2,1], init=args.init, name='block9')
 
 l10 = MobileBlock(input_shape=[batch_size, 8, 8, 512],  filter_shape=[512, 1024],  strides=[1,2,2,1], pool_shape=[1,2,2,1], init=args.init, name='block10')
-l11 = MobileBlock(input_shape=[batch_size, 4, 4, 1024], filter_shape=[1024, 1024], strides=[1,1,1,1], pool_shape=[1,2,2,1], init=args.init, name='block11')
+l11 = MobileBlock(input_shape=[batch_size, 4, 4, 1024], filter_shape=[1024, 1024], strides=[1,1,1,1], pool_shape=[1,4,4,1], init=args.init, name='block11')
 
 l11 = AvgPool(size=[batch_size, 4, 4, 1024], ksize=[1, 4, 4, 1], strides=[1, 4, 4, 1], padding="SAME")
 l12 = ConvToFullyConnected(input_shape=[1, 1, 1024])
