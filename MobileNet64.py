@@ -409,22 +409,22 @@ for ii in range(0, epochs):
     if phase == 0:
         phase = 1
     elif phase == 1:
-        dacc = train_accs[-1] - train_accs[-2]
+        dacc = val_accs[-1] - val_accs[-2]
         if dacc <= 0.01:
             alpha = 0.1 * args.alpha
             phase = 2
     elif phase == 2:
-        dacc = train_accs[-1] - train_accs[-2]
+        dacc = val_accs[-1] - val_accs[-2]
         if dacc <= 0.001:
             alpha = 0.01 * args.alpha
             phase = 3
     elif phase == 3:
-        dacc = train_accs[-1] - train_accs[-2]
+        dacc = val_accs[-1] - val_accs[-2]
         if dacc <= 0.0001:
             alpha = 0.001 * args.alpha
             phase = 4
     elif phase == 4:
-        dacc = train_accs[-1] - train_accs[-2]
+        dacc = val_accs[-1] - val_accs[-2]
         if dacc <= 0.00001:
             alpha = 0.0001 * args.alpha
             phase = 5
