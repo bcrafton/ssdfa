@@ -254,13 +254,13 @@ l9 = MobileBlock(input_shape=[batch_size, 8, 8, 512], filter_shape=[512, 512], s
 l10 = MobileBlock(input_shape=[batch_size, 8, 8, 512],  filter_shape=[512, 1024],  strides=[1,2,2,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block10')
 l11 = MobileBlock(input_shape=[batch_size, 4, 4, 1024], filter_shape=[1024, 1024], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block11')
 
-l11 = AvgPool(size=[batch_size, 4, 4, 1024], ksize=[1, 4, 4, 1], strides=[1, 4, 4, 1], padding="SAME")
-l12 = ConvToFullyConnected(input_shape=[1, 1, 1024])
-l13 = FullyConnected(input_shape=1024, size=1000, init=args.init, name="fc1")
+l12 = AvgPool(size=[batch_size, 4, 4, 1024], ksize=[1, 4, 4, 1], strides=[1, 4, 4, 1], padding="SAME")
+l13 = ConvToFullyConnected(input_shape=[1, 1, 1024])
+l14 = FullyConnected(input_shape=1024, size=1000, init=args.init, name="fc1")
 
 ###############################################################
 
-model = Model(layers=[l1_1, l1_2, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13])
+model = Model(layers=[l1_1, l1_2, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14])
 
 predict = tf.nn.softmax(model.predict(X=features))
 
@@ -331,6 +331,7 @@ for ii in range(0, epochs):
 
     # [w] = sess.run([weights], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
     # np.save(args.name, w)
+    # print (w.keys())
 
     print('epoch {}/{}'.format(ii, epochs))
     
