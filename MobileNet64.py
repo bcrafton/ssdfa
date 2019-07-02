@@ -238,6 +238,9 @@ else:
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 
+gray = tf.image.rgb_to_grayscale(features)
+# X = features / 255.
+
 l1_1 = ConvBlock(input_shape=[batch_size, 64, 64, 3], filter_shape=[3, 3, 3, 32], strides=[1,1,1,1], init=args.init, name='block1')
 l1_2 = LELConv(input_shape=[batch_size, 64, 64, 32], pool_shape=[1,8,8,1], num_classes=1000, name='block1_fb')
 
@@ -263,6 +266,11 @@ l14 = FullyConnected(input_shape=1024, size=1000, init=args.init, name="fc1")
 model = Model(layers=[l1_1, l1_2, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14])
 
 predict = tf.nn.softmax(model.predict(X=features))
+
+o0 = model.up_to(features, N=0)
+o1 = model.up_to(features, N=2)
+o2 = model.up_to(features, N=4)
+o3 = model.up_to(features, N=6)
 
 if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt == "momentum":
     if args.dfa:
@@ -342,25 +350,55 @@ for ii in range(0, epochs):
     train_total = 0.0
     train_correct = 0.0
     train_top5 = 0.0
-    
-    for j in range(0, len(train_filenames), batch_size):
-        # print (j)
-        
-        [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
 
-        train_total += batch_size
-        train_correct += _total_correct
-        train_top5 += _total_top5
+    # train_acc = train_correct / train_total
+    # train_acc_top5 = train_top5 / train_total
+
+    train_acc = 0.0
+    train_acc_top5 = 0.0
+
+    for jj in range(0, len(train_filenames), batch_size):
+        # print (jj)
         
-        train_acc = train_correct / train_total
-        train_acc_top5 = train_top5 / train_total
-        
-        if (j % (100 * batch_size) == 0):
+        if (jj % (100 * batch_size) == 0):
+            [_total_correct, _total_top5, _, _gray, _o0, _o1, _o2, _o3] = sess.run([total_correct, total_top5, train, gray, o0, o1, o2, o3], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
+            
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
             print (p)
             f = open(results_filename, "a")
             f.write(p + "\n")
             f.close()
+
+            ####################################
+
+            rows = []
+            for _ in range(5):
+                idx = np.random.randint(low=0, high=32)
+
+                imgray = scipy.misc.imresize(_gray[0, :, :, 0], 4.)
+                im0 = scipy.misc.imresize(_o0[0, :, :, idx], 4.)
+                im1 = scipy.misc.imresize(_o1[0, :, :, idx], 8.)
+                im2 = scipy.misc.imresize(_o2[0, :, :, idx], 16.)
+                im3 = scipy.misc.imresize(_o3[0, :, :, idx], 32.)
+
+                row = np.concatenate((imgray, im0, im1, im2, im3), axis=1)
+                rows.append(row)
+                
+            img = np.concatenate(rows, axis=0)
+            plt.imsave('%d_%d.jpg' % (args.dfa, jj), img)
+
+            ####################################
+
+        else:
+            [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
+
+        train_total += batch_size
+        train_correct += _total_correct
+        train_top5 += _total_top5
+
+        train_acc = train_correct / train_total
+        train_acc_top5 = train_top5 / train_total
+
 
     p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
     print (p)
@@ -379,8 +417,8 @@ for ii in range(0, epochs):
     val_correct = 0.0
     val_top5 = 0.0
     
-    for j in range(0, len(val_filenames), batch_size):
-        # print (j)
+    for jj in range(0, len(val_filenames), batch_size):
+        # print (jj)
 
         [_total_correct, _top5] = sess.run([total_correct, total_top5], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
         
@@ -391,7 +429,7 @@ for ii in range(0, epochs):
         val_acc = val_correct / val_total
         val_acc_top5 = val_top5 / val_total
         
-        if (j % (100 * batch_size) == 0):
+        if (jj % (100 * batch_size) == 0):
             p = "val accuracy: %f %f" % (val_acc, val_acc_top5)
             print (p)
             f = open(results_filename, "a")
