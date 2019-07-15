@@ -264,33 +264,15 @@ model = Model(layers=layers)
 predict = tf.nn.softmax(model.predict(X=X))
 weights = model.get_weights()
 
-o0 = model.up_to(X, N=0)
-o1 = model.up_to(X, N=3)
-o2 = model.up_to(X, N=6)
-o3 = model.up_to(X, N=9)
-
-if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt == "momentum":
-    if args.dfa:
-        grads_and_vars = model.lel_gvs(X=X, Y=labels)
-    else:
-        grads_and_vars = model.gvs(X=X, Y=labels)
-        
-    if args.opt == "adam":
-        train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
-    elif args.opt == "rms":
-        train = tf.train.RMSPropOptimizer(learning_rate=learning_rate, decay=0.99, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
-    elif args.opt == "decay":
-        train = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).apply_gradients(grads_and_vars=grads_and_vars)
-    elif args.opt == "momentum":
-        train = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9).apply_gradients(grads_and_vars=grads_and_vars)
-    else:
-        assert(False)
-
+if args.dfa:
+    grads_and_vars = model.lel_gvs(X=X, Y=labels)
 else:
-    if args.dfa:
-        train = model.lel(X=X, Y=labels)
-    else:
-        train = model.train(X=X, Y=labels)
+    grads_and_vars = model.gvs(X=X, Y=labels)
+    
+train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
+
+lel_backwards = model.lel_backwards(X=X, Y=labels)
+bp_backwards = model.backwards(X=X, Y=labels)
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
@@ -345,7 +327,7 @@ for ii in range(0, args.epochs):
     for jj in range(0, len(train_filenames), args.batch_size):
         
         if (jj % (100 * args.batch_size) == 0):
-            [_total_correct, _total_top5, _, _gray, _o0, _o1, _o2, _o3] = sess.run([total_correct, total_top5, train, gray, o0, o1, o2, o3], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
+            [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
             
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
             print (p)
@@ -353,26 +335,6 @@ for ii in range(0, args.epochs):
             f.write(p + "\n")
             f.close()
 
-            ####################################
-
-            rows = []
-            for _ in range(5):
-                idx = np.random.randint(low=0, high=64)
-
-                imgray = scipy.misc.imresize(_gray[0, :, :, 0], 4.)
-                im0 = scipy.misc.imresize(_o0[0, :, :, idx], 4.)
-                im1 = scipy.misc.imresize(_o1[0, :, :, idx], 8.)
-                im2 = scipy.misc.imresize(_o2[0, :, :, idx], 16.)
-                im3 = scipy.misc.imresize(_o3[0, :, :, idx], 32.)
-
-                row = np.concatenate((imgray, im0, im1, im2, im3), axis=1)
-                rows.append(row)
-                
-            img = np.concatenate(rows, axis=0)
-            plt.imsave('%d_%d_%f.jpg' % (args.dfa, jj, args.ae_loss), img)
-
-            ####################################
-            
         else:
             [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
 

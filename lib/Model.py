@@ -258,7 +258,7 @@ class Model:
             else:
                 D[ii] = l.backward(A[ii-1]['aout'], A[ii]['aout'], D[ii+1]['dout'], A[ii]['cache'])
                 
-        return D[0]['dout']
+        return D
     
     def dfa_backwards(self, X, Y):
         A = [None] * self.num_layers
@@ -287,8 +287,37 @@ class Model:
             else:
                 D[ii] = l.dfa_backward(A[ii-1]['aout'], A[ii]['aout'], D[ii+1]['dout'], A[ii]['cache'])
                 
-        return D[0]['dout']
-    
+        return D
+
+    def lel_backwards(self, X, Y):
+        A = [None] * self.num_layers
+        D = [None] * self.num_layers
+        grads_and_vars = []
+        
+        for ii in range(self.num_layers):
+            l = self.layers[ii]
+            if ii == 0:
+                A[ii] = l.forward(X)
+            else:
+                A[ii] = l.forward(A[ii-1]['aout'])
+
+        E = tf.nn.softmax(A[self.num_layers-1]['aout']) - Y
+        N = tf.shape(A[self.num_layers-1]['aout'])[0]
+        N = tf.cast(N, dtype=tf.float32)
+        E = E / N
+            
+        for ii in range(self.num_layers-1, -1, -1):
+            l = self.layers[ii]
+
+            if (ii == self.num_layers-1):
+                D[ii] = l.lel_backward(A[ii-1]['aout'], A[ii]['aout'], E, E,               Y, A[ii]['cache'])
+            elif (ii == 0):
+                D[ii] = l.lel_backward(X,               A[ii]['aout'], E, D[ii+1]['dout'], Y, A[ii]['cache'])
+            else:
+                D[ii] = l.lel_backward(A[ii-1]['aout'], A[ii]['aout'], E, D[ii+1]['dout'], Y, A[ii]['cache'])
+                
+        return D
+
     ####################################################################
     
     def predict(self, X):

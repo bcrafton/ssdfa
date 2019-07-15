@@ -115,7 +115,7 @@ class LELPool(Layer):
         dpool = self.pool.backward(AI, pool['aout'], dconv2fc['dout'])
 
         ############
-        
+        '''
         AE_X = cache['AE_X']
         
         decode_conv = self.decode_conv.forward(AI)
@@ -126,17 +126,18 @@ class LELPool(Layer):
         grad = grads[0]
         
         ddecode_conv = self.decode_conv.backward(AI, decode_conv['aout'], grad, decode_conv['cache'])
-
+        '''
         ############
 
         cache = {'pool':pool['aout'], 'conv2fc':conv2fc['aout'], 'fc':fc['aout']}
         cache.update({'dpool':dpool['dout'], 'dconv2fc':dconv2fc['dout'], 'dfc':dfc['dout'], 'dpred':E})
-        cache.update({'decode_conv':decode_conv})
-        cache.update({'ddecode_conv':ddecode_conv, 'dae':grad})
+        # cache.update({'decode_conv':decode_conv})
+        # cache.update({'ddecode_conv':ddecode_conv, 'dae':grad})
 
         ############
 
-        DI = dpool['dout'] + self.ae_loss * ddecode_conv['dout']
+        DI = dpool['dout']
+        # DI = dpool['dout'] + self.ae_loss * ddecode_conv['dout']
         # DI = tf.Print(DI, [tf.keras.backend.std(dpool['dout']) / tf.keras.backend.std(ddecode_conv['dout'])], message='', summarize=1000)
 
         return {'dout':DI, 'cache':cache}
@@ -151,18 +152,18 @@ class LELPool(Layer):
         dfc = self.fc.gv(conv2fc, fc, dpred)
         
         ############
-
+        '''
         decode_conv = cache['decode_conv']['aout']
         ddecode_conv = cache['ddecode_conv']['dout']
         dae = cache['dae']
 
         ddecode_conv = self.decode_conv.gv(AI, decode_conv, dae, cache['ddecode_conv']['cache'])
-
+        '''
         ############
 
         grads = []
         grads.extend(dfc)
-        grads.extend(ddecode_conv)
+        # grads.extend(ddecode_conv)
         return grads
 
     def lel(self, AI, AO, E, DO, Y): 
