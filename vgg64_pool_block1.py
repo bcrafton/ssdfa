@@ -41,8 +41,8 @@ if exxact:
     val_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/val/'
     train_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/train/'
 else:
-    val_path = '/usr/scratch/64x64/tfrecord/val/'
-    train_path = '/usr/scratch/64x64/tfrecord/train/'
+    val_path = '/usr/scratch/bcrafton/64x64/tfrecord/val/'
+    train_path = '/usr/scratch/bcrafton/64x64/tfrecord/train/'
 
 ##############################################
 
@@ -327,13 +327,22 @@ for ii in range(0, args.epochs):
     for jj in range(0, len(train_filenames), args.batch_size):
         
         if (jj % (100 * args.batch_size) == 0):
-            [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
+            [_total_correct, _total_top5, _, _bp_back, _lel_back] = sess.run([total_correct, total_top5, train, bp_backwards, lel_backwards], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
             
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
             print (p)
             f = open(results_filename, "a")
             f.write(p + "\n")
             f.close()
+
+            for back in _bp_back:
+                # print (back.keys())
+                # print (np.shape(back['dout']))
+                print (np.count_nonzero(back['dout']) * 1.0 / np.prod(np.shape(back['dout'])))
+            for back in _lel_back:
+                # print (back.keys())
+                # print (np.shape(back['dout']))
+                print (np.count_nonzero(back['dout']) * 1.0 / np.prod(np.shape(back['dout'])))
 
         else:
             [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
