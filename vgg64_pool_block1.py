@@ -336,13 +336,16 @@ for ii in range(0, args.epochs):
             f.close()
 
             for back in _bp_back:
-                # print (back.keys())
-                # print (np.shape(back['dout']))
-                print (np.count_nonzero(back['dout']) * 1.0 / np.prod(np.shape(back['dout'])))
+                if len(np.shape(back['dout'])) == 4:
+                    img = scipy.misc.imresize(back['dout'][0], 4.)
+                    plt.imsave('bp_%d.jpg' % (args.dfa, jj), img)
+                    break
+                    
             for back in _lel_back:
-                # print (back.keys())
-                # print (np.shape(back['dout']))
-                print (np.count_nonzero(back['dout']) * 1.0 / np.prod(np.shape(back['dout'])))
+                if len(np.shape(back['dout'])) == 4:
+                    img = scipy.misc.imresize(back['dout'][0], 4.)
+                    plt.imsave('lel_%d.jpg' % (args.dfa, jj), img)
+                    break
 
         else:
             [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
