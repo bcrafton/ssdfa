@@ -9,7 +9,10 @@ from lib.Layer import Layer
 from lib.conv_utils import conv_output_length
 from lib.conv_utils import conv_input_length
 
-class MaxPool(Layer):
+# /home/brian/environments/py3/lib/python3.5/site-packages/tensorflow/python/ops/gen_nn_ops.py
+# def avg_pool_grad(orig_input_shape, grad, ksize, strides, padding, data_format="NHWC", name=None):
+
+class AvgPool(Layer):
     def __init__(self, size, ksize, strides, padding):
         self.size = size
         self.batch_size, self.h, self.w, self.fin = self.size
@@ -37,32 +40,42 @@ class MaxPool(Layer):
         return 0
 
     def forward(self, X):
-        A = tf.nn.max_pool(X, ksize=self.ksize, strides=self.strides, padding=self.padding)
+        A = tf.nn.avg_pool(X, ksize=self.ksize, strides=self.strides, padding=self.padding)
         return {'aout':A, 'cache':{}}
             
     ###################################################################           
         
     def backward(self, AI, AO, DO, cache):    
-        DI = gen_nn_ops.max_pool_grad(grad=DO, orig_input=AI, orig_output=AO, ksize=self.ksize, strides=self.strides, padding=self.padding)
+        DI = gen_nn_ops.avg_pool_grad(orig_input_shape=self.size, grad=DO, ksize=self.ksize, strides=self.strides, padding=self.padding)
         return {'dout':DI, 'cache':{}}
 
-    def gv(self, AI, AO, DO, cache):
+    def gv(self, AI, AO, DO, cache):    
+        return []
+        
+    def train(self, AI, AO, DO): 
         return []
         
     ###################################################################
 
     def dfa_backward(self, AI, AO, E, DO):
-        return self.backward(AI, AO, DO)
+        grad = gen_nn_ops.avg_pool_grad(orig_input_shape=self.size, grad=DO, ksize=self.ksize, strides=self.strides, padding=self.padding)
+        return grad
         
     def dfa_gv(self, AI, AO, E, DO):
         return []
         
+    def dfa(self, AI, AO, E, DO): 
+        return []
+        
     ###################################################################   
     
-    def lel_backward(self, AI, AO, DO, Y):
-        return self.backward(AI, AO, DO)
+    def lel_backward(self, AI, AO, E, DO, cache):
+        return self.backward(AI, AO, DO, cache)
+
+    def lel_gv(self, AI, AO, E, DO, Y, cache):
+        return []
         
-    def lel_gv(self, AI, AO, E, DO, Y):
+    def lel(self, AI, AO, E, DO, Y): 
         return []
         
     ###################################################################

@@ -20,14 +20,16 @@ class Dropout(Layer):
 
     def forward(self, X):
         self.dropout_mask = tf.cast(tf.random_uniform(shape=tf.shape(X)) > self.rate, tf.float32) # np.random.binomial(size=X.shape, n=1, p=1 - self.rate)
-        return X * self.dropout_mask
-            
+        A = X * self.dropout_mask
+        return {'aout':A, 'cache':{}}
+
     ###################################################################
 
-    def backward(self, AI, AO, DO):
-        return DO * self.dropout_mask
-        
-    def gv(self, AI, AO, DO):
+    def backward(self, AI, AO, DO, cache):
+        DI = DO * self.dropout_mask
+        return {'dout':DI, 'cache':{}}
+
+    def gv(self, AI, AO, DO, cache):
         return []
         
     def train(self, AI, AO, DO): 
@@ -35,10 +37,11 @@ class Dropout(Layer):
         
     ###################################################################
 
-    def dfa_backward(self, AI, AO, E, DO):
-        return DO * self.dropout_mask
+    def dfa_backward(self, AI, AO, E, DO, cache):
+        DI = DO * self.dropout_mask
+        return {'dout':DI, 'cache':{}}
 
-    def dfa_gv(self, AI, AO, E, DO):
+    def dfa_gv(self, AI, AO, E, DO, cache):
         return []
 
     def dfa(self, AI, AO, E, DO):
@@ -46,10 +49,11 @@ class Dropout(Layer):
 
     ###################################################################
 
-    def lel_backward(self, AI, AO, E, DO, Y):
-        return DO * self.dropout_mask
-        
-    def lel_gv(self, AI, AO, E, DO, Y):
+    def lel_backward(self, AI, AO, E, DO, Y, cache):
+        DI = DO * self.dropout_mask
+        return {'dout':DI, 'cache':{}}
+
+    def lel_gv(self, AI, AO, E, DO, Y, cache):
         return []
         
     def lel(self, AI, AO, E, DO, Y): 

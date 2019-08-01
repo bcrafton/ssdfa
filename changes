@@ -1,0 +1,19 @@
+
+> want to use newer layers with cleaner api...
+  > whwere we have tons of default params and got rid of nonsense.
+  
+>> so the big question will be: DO WE USE THE CACHE OR NOT ??? MEANS MOVING OVER LOTS OF CODE.
+  SHOULD PROBABLY DO 1 BACKWARD/GRADIENT FUNCTION ...
+  
+we can cache anyways.
+yeah guess we doing the big clean up.
+
+> get rid of Y in LEL
+> get rid of train or just make gv -> train
+> make gv and backward the same thing.
+> use the weight init function -> init filters, init matrix or w.e.
+> get rid of all the optimizers besides ADAM.
+
+all easy changes that we have made, take 1 step at a time. 
+combine backward and gv last ...
+

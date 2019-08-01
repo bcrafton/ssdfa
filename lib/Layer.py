@@ -15,15 +15,15 @@ class Layer:
     def num_params(self):
         pass
 
+    ###################################################################
+
     def forward(self, X):
-        pass
-
-    ###################################################################           
+        pass    
         
-    def backward(self, AI, AO, DO):    
+    def backward(self, AI, AO, DO, cache=None):    
         pass
 
-    def gv(self, AI, AO, DO):    
+    def gv(self, AI, AO, DO, cache=None):    
         pass
         
     def train(self, AI, AO, DO): 
@@ -42,10 +42,10 @@ class Layer:
         
     ###################################################################   
     
-    def lel_backward(self, AI, AO, E, DO, Y):
+    def lel_backward(self, AI, AO, E, DO, Y, cache):
         assert(False)
         
-    def lel_gv(self, AI, AO, E, DO, Y):
+    def lel_gv(self, AI, AO, E, DO, Y, cache):
         assert(False)
         
     def lel(self, AI, AO, E, DO, Y): 
