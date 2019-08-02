@@ -10,45 +10,26 @@ from lib.Activation import Linear
 from lib.conv_utils import conv_output_length
 from lib.conv_utils import conv_input_length
 
+from lib.init_tensor import init_filters
+
 class Convolution(Layer):
 
-    def __init__(self, input_shape, filter_sizes, init, strides=[1,1,1,1], padding='SAME', alpha=0., activation=None, bias=0., use_bias=False, name=None, load=None, train=True):
+    def __init__(self, input_shape, filter_sizes, init, strides=[1,1,1,1], padding='SAME', activation=None, bias=0., use_bias=False, name=None, load=None, train=True):
         self.input_shape = input_shape
         self.filter_sizes = filter_sizes
         self.batch_size, self.h, self.w, self.fin = self.input_shape
         self.fh, self.fw, self.fin, self.fout = self.filter_sizes
-        
-        bias = np.ones(shape=self.fout) * bias
-        self.use_bias = use_bias
-
+        self.init = init
         self.strides = strides
         _, self.sh, self.sw, _ = self.strides
-
         self.padding = padding
-        self.alpha = alpha
         self.activation = Linear() if activation == None else activation
+        self.use_bias = use_bias
         self.name = name
-        self._train = train
+        self.train_flag = train
         
-        if load:
-            print ("Loading Weights: " + self.name)
-            weight_dict = np.load(load, encoding='latin1', allow_pickle=True).item()
-            filters = weight_dict[self.name]
-            bias = weight_dict[self.name + '_bias']
-        else:
-            if init == "zero":
-                filters = np.zeros(shape=self.filter_sizes)
-            elif init == "sqrt_fan_in":
-                sqrt_fan_in = math.sqrt(self.h*self.w*self.fin)
-                filters = np.random.uniform(low=-1.0/sqrt_fan_in, high=1.0/sqrt_fan_in, size=self.filter_sizes)
-            elif init == "alexnet":
-                filters = np.random.normal(loc=0.0, scale=0.01, size=self.filter_sizes)
-            else:
-                fan_in = self.h * self.w * self.fin
-                fan_out = self.fout
-                high = np.sqrt(6. / (fan_in + fan_out))
-                low = -high
-                filters = np.random.uniform(low=low, high=high, size=self.filter_sizes)
+        filters = init_filters(size=self.filter_sizes, init=self.init)
+        bias = np.ones(shape=self.fout) * bias
 
         self.filters = tf.Variable(filters, dtype=tf.float32)
         self.bias = tf.Variable(bias, dtype=tf.float32)
@@ -85,7 +66,7 @@ class Convolution(Layer):
         return {'dout':DI, 'cache':{}}
 
     def gv(self, AI, AO, DO, cache=None):    
-        if not self._train:
+        if not self.train_flag:
             return []
     
         DO = tf.multiply(DO, self.activation.gradient(AO))
@@ -93,9 +74,6 @@ class Convolution(Layer):
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
 
         return [(DF, self.filters), (DB, self.bias)]
-        
-    def train(self, AI, AO, DO): 
-        assert(False)
         
     ###################################################################
 
@@ -103,7 +81,7 @@ class Convolution(Layer):
         return tf.ones(shape=(tf.shape(AI)))
         
     def dfa_gv(self, AI, AO, E, DO):
-        if not self._train:
+        if not self.train_flag:
             return []
     
         DO = tf.multiply(DO, self.activation.gradient(AO))
@@ -111,28 +89,13 @@ class Convolution(Layer):
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
         return [(DF, self.filters), (DB, self.bias)]
         
-    def dfa(self, AI, AO, E, DO): 
-        if not self._train:
-            return []
-
-        DO = tf.multiply(DO, self.activation.gradient(AO))
-        DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
-        DB = tf.reduce_sum(DO, axis=[0, 1, 2])
-
-        self.filters = self.filters.assign(tf.subtract(self.filters, tf.scalar_mul(self.alpha, DF)))
-        self.bias = self.bias.assign(tf.subtract(self.bias, tf.scalar_mul(self.alpha, DB)))
-        return [(DF, self.filters), (DB, self.bias)]
-        
     ###################################################################    
         
-    def lel_backward(self, AI, AO, E, DO, Y, cache):
+    def lel_backward(self, AI, AO, DO, Y, cache):
         return self.backward(AI, AO, DO, cache)
 
-    def lel_gv(self, AI, AO, E, DO, Y, cache):
+    def lel_gv(self, AI, AO, DO, Y, cache):
         return self.gv(AI, AO, DO, cache)
-        
-    def lel(self, AI, AO, E, DO, Y): 
-        return self.train(AI, AO, DO)
 
     ################################################################### 
         

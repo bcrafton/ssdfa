@@ -7,20 +7,19 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=100)
-parser.add_argument('--batch_size', type=int, default=128)
-parser.add_argument('--alpha', type=float, default=1e-4)
+parser.add_argument('--batch_size', type=int, default=64)
+parser.add_argument('--lr', type=float, default=1e-4)
 parser.add_argument('--l2', type=float, default=0.)
 parser.add_argument('--decay', type=float, default=1.)
 parser.add_argument('--eps', type=float, default=1e-5)
 parser.add_argument('--dropout', type=float, default=0.5)
-parser.add_argument('--act', type=str, default='tanh')
+parser.add_argument('--act', type=str, default='relu')
 parser.add_argument('--bias', type=float, default=0.)
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--dfa', type=int, default=0)
 parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
-parser.add_argument('--init', type=str, default="sqrt_fan_in")
-parser.add_argument('--opt', type=str, default="adam")
+parser.add_argument('--init', type=str, default="glorot_uniform")
 parser.add_argument('--save', type=int, default=0)
 parser.add_argument('--name', type=str, default="cifar10_conv")
 parser.add_argument('--load', type=str, default=None)
@@ -95,7 +94,7 @@ tf.reset_default_graph()
 
 batch_size = tf.placeholder(tf.int32, shape=())
 dropout_rate = tf.placeholder(tf.float32, shape=())
-learning_rate = tf.placeholder(tf.float32, shape=())
+lr = tf.placeholder(tf.float32, shape=())
 
 X = tf.placeholder(tf.float32, [None, 32, 32, 3])
 X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), X)
@@ -131,7 +130,7 @@ if args.dfa:
 else:
     grads_and_vars = model.gvs(X=X, Y=Y)
         
-train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
+train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(Y,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
@@ -159,12 +158,6 @@ for ii in range(args.epochs):
 
     print (ii)
 
-    if args.opt == 'decay' or args.opt == 'gd':
-        decay = np.power(args.decay, ii)
-        lr = args.alpha * decay
-    else:
-        lr = args.alpha
-    
     #############################
     
     _total_correct = 0
@@ -174,7 +167,7 @@ for ii in range(args.epochs):
         xs = x_train[s:e]
         ys = y_train[s:e]
         
-        _correct, _ = sess.run([total_correct, train], feed_dict={batch_size: args.batch_size, dropout_rate: args.dropout, learning_rate: lr, X: xs, Y: ys})
+        _correct, _ = sess.run([total_correct, train], feed_dict={batch_size: args.batch_size, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
         _total_correct += _correct
 
     train_acc = 1.0 * _total_correct / (train_examples - (train_examples % args.batch_size))
@@ -189,7 +182,7 @@ for ii in range(args.epochs):
         xs = x_test[s:e]
         ys = x_test[s:e]
         
-        _correct = sess.run(total_correct, feed_dict={batch_size: args.batch_size, dropout_rate: 0.0, learning_rate: 0.0, X: xs, Y: ys})
+        _correct = sess.run(total_correct, feed_dict={batch_size: args.batch_size, dropout_rate: 0.0, lr: 0.0, X: xs, Y: ys})
         _total_correct += _correct
         
     test_acc = 1.0 * _total_correct / (test_examples - (test_examples % args.batch_size))

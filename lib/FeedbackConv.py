@@ -10,21 +10,17 @@ from lib.FeedbackMatrix import FeedbackMatrix
 
 class FeedbackConv(Layer):
 
-    def __init__(self, size : tuple, num_classes : int, sparse : int, rank : int, name=None, load=None):
+    def __init__(self, size, num_classes, sparse, rank, name=None):
         self.size = size
+        self.num_output = self.h * self.w * self.f
+        self.batch_size, self.h, self.w, self.f = self.size
         self.num_classes = num_classes
         self.sparse = sparse
         self.rank = rank
-        self.batch_size, self.h, self.w, self.f = self.size
         self.name = name
-        self.num_output = self.h * self.w * self.f
-
-        if load:
-            weight_dict = np.load(load).item()
-            self.B = tf.cast(tf.Variable(weight_dict[self.name]), tf.float32)
-        else:
-            b = FeedbackMatrix(size=(self.num_classes, self.num_output), sparse=self.sparse, rank=self.rank)
-            self.B = tf.cast(tf.Variable(b), tf.float32) 
+        
+        b = FeedbackMatrix(size=(self.num_classes, self.num_output), sparse=self.sparse, rank=self.rank)
+        self.B = tf.cast(tf.Variable(b), tf.float32) 
 
     ###################################################################
     
