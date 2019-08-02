@@ -36,11 +36,11 @@ class ConvToFullyConnected(Layer):
         
     ###################################################################
 
-    def dfa_backward(self, AI, AO, DO):
-        return tf.ones(shape=(tf.shape(AI)))
+    def dfa_backward(self, AI, AO, E, DO, cache):
+        return self.backward(AI, AO, DO, cache)
         
-    def dfa_gv(self, AI, AO, DO):
-        return []
+    def dfa_gv(self, AI, AO, E, DO, cache):
+        return self.gv(AI, AO, DO, cache)
         
     ###################################################################    
     

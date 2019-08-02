@@ -32,9 +32,6 @@ class Dropout(Layer):
     def gv(self, AI, AO, DO, cache):
         return []
         
-    def train(self, AI, AO, DO): 
-        return []
-        
     ###################################################################
 
     def dfa_backward(self, AI, AO, E, DO, cache):
@@ -42,22 +39,17 @@ class Dropout(Layer):
         return {'dout':DI, 'cache':{}}
 
     def dfa_gv(self, AI, AO, E, DO, cache):
-        return []
-
-    def dfa(self, AI, AO, E, DO):
-        return []
+        return self.gv(AI, AO, DO, cache)
 
     ###################################################################
 
-    def lel_backward(self, AI, AO, E, DO, Y, cache):
+    def lel_backward(self, AI, AO, DO, Y, cache):
         DI = DO * self.dropout_mask
         return {'dout':DI, 'cache':{}}
 
-    def lel_gv(self, AI, AO, E, DO, Y, cache):
-        return []
+    def lel_gv(self, AI, AO, DO, Y, cache):
+        return self.gv(AI, AO, DO, cache)
         
-    def lel(self, AI, AO, E, DO, Y): 
-        return []
         
         
 

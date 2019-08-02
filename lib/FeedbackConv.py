@@ -48,7 +48,6 @@ class FeedbackConv(Layer):
     def dfa_backward(self, AI, AO, E, DO, cache):
         DI = tf.matmul(E, self.B)
         DI = tf.reshape(DI, self.size)
-        DI = tf.multiply(DI, DO)
         return {'dout':DI, 'cache':{}}
         
     def dfa_gv(self, AI, AO, E, DO, cache):

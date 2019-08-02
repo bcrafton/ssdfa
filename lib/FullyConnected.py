@@ -48,7 +48,6 @@ class FullyConnected(Layer):
     def backward(self, AI, AO, DO, cache):
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DI = tf.matmul(DO, tf.transpose(self.weights))
-        # DI = tf.Print(DI, [tf.shape(DI)], message='', summarize=1000)
         return {'dout':DI, 'cache':{}}
         
     def gv(self, AI, AO, DO, cache):
@@ -64,20 +63,10 @@ class FullyConnected(Layer):
     ###################################################################
     
     def dfa_backward(self, AI, AO, E, DO, cache):
-        return tf.ones_like(AI)
+        return self.backward(AI, AO, DO, cache)
         
     def dfa_gv(self, AI, AO, E, DO, cache):
-        if not self.train_flag:
-            return []
-
-        N = tf.shape(AI)[0]
-        N = tf.cast(N, dtype=tf.float32)
-
-        DO = tf.multiply(DO, self.activation.gradient(AO))
-        DW = tf.matmul(tf.transpose(AI), DO) 
-        DB = tf.reduce_sum(DO, axis=0)
-        
-        return [(DW, self.weights), (DB, self.bias)]
+        return self.gv(AI, AO, DO, cache)
         
     ###################################################################
         

@@ -51,19 +51,19 @@ class MaxPool(Layer):
         
     ###################################################################
 
-    def dfa_backward(self, AI, AO, E, DO):
-        return self.backward(AI, AO, DO)
+    def dfa_backward(self, AI, AO, E, DO, cache):
+        return self.backward(AI, AO, DO, cache)
         
-    def dfa_gv(self, AI, AO, E, DO):
-        return []
+    def dfa_gv(self, AI, AO, E, DO, cache):
+        return self.gv(AI, AO, DO, cache)
         
     ###################################################################   
     
-    def lel_backward(self, AI, AO, DO, Y):
-        return self.backward(AI, AO, DO)
+    def lel_backward(self, AI, AO, DO, Y, cache):
+        return self.backward(AI, AO, DO, cache)
         
-    def lel_gv(self, AI, AO, DO, Y):
-        return []
+    def lel_gv(self, AI, AO, DO, Y, cache):
+        return self.gv(AI, AO, DO, cache)
         
     ###################################################################
     

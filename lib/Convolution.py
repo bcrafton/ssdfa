@@ -78,16 +78,10 @@ class Convolution(Layer):
     ###################################################################
 
     def dfa_backward(self, AI, AO, E, DO, cache):
-        return tf.ones(shape=(tf.shape(AI)))
+        return self.backward(AI, AO, DO, cache)
         
     def dfa_gv(self, AI, AO, E, DO, cache):
-        if not self.train_flag:
-            return []
-    
-        DO = tf.multiply(DO, self.activation.gradient(AO))
-        DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
-        DB = tf.reduce_sum(DO, axis=[0, 1, 2])
-        return [(DF, self.filters), (DB, self.bias)]
+        return self.gv(AI, AO, DO, cache)
         
     ###################################################################    
         
