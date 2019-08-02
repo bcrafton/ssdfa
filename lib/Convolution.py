@@ -50,8 +50,6 @@ class Convolution(Layer):
         bias_weights_size = self.fout
         return filter_weights_size + bias_weights_size
 
-    ###################################################################
-
     def forward(self, X):
         Z = tf.nn.conv2d(X, self.filters, self.strides, self.padding)
         if self.use_bias:
@@ -59,13 +57,15 @@ class Convolution(Layer):
 
         A = self.activation.forward(Z)
         return {'aout':A, 'cache':{}}
-        
-    def backward(self, AI, AO, DO, cache=None):    
+
+    ###################################################################
+    
+    def backward(self, AI, AO, DO, cache):    
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
         return {'dout':DI, 'cache':{}}
 
-    def gv(self, AI, AO, DO, cache=None):    
+    def gv(self, AI, AO, DO, cache):    
         if not self.train_flag:
             return []
     
@@ -77,10 +77,10 @@ class Convolution(Layer):
         
     ###################################################################
 
-    def dfa_backward(self, AI, AO, E, DO):
+    def dfa_backward(self, AI, AO, E, DO, cache):
         return tf.ones(shape=(tf.shape(AI)))
         
-    def dfa_gv(self, AI, AO, E, DO):
+    def dfa_gv(self, AI, AO, E, DO, cache):
         if not self.train_flag:
             return []
     

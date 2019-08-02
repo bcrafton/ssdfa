@@ -9,8 +9,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--lr', type=float, default=1e-4)
-parser.add_argument('--l2', type=float, default=0.)
-parser.add_argument('--decay', type=float, default=1.)
 parser.add_argument('--eps', type=float, default=1e-5)
 parser.add_argument('--dropout', type=float, default=0.5)
 parser.add_argument('--act', type=str, default='relu')
@@ -31,10 +29,8 @@ if args.gpu >= 0:
 
 ##############################################
 
-import time
 import tensorflow as tf
 import keras
-import math
 import numpy as np
 
 from lib.Model import Model
@@ -48,13 +44,8 @@ from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
 
-from lib.Activation import Activation
-from lib.Activation import Sigmoid
 from lib.Activation import Relu
 from lib.Activation import Tanh
-from lib.Activation import Softmax
-from lib.Activation import LeakyRelu
-from lib.Activation import Linear
 
 ##############################################
 
@@ -78,15 +69,6 @@ elif args.act == 'relu':
 else:
     assert(False)
 
-train_fc=True
-if args.load:
-    train_conv=False
-else:
-    train_conv=True
-
-weights_fc=None
-weights_conv=args.load
-
 ##############################################
 
 tf.set_random_seed(0)
@@ -100,13 +82,13 @@ X = tf.placeholder(tf.float32, [None, 32, 32, 3])
 X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), X)
 Y = tf.placeholder(tf.float32, [None, 10])
 
-l0 = Convolution(input_shape=[batch_size, 32, 32, 3], filter_sizes=[5, 5, 3, 96], init=args.init, activation=act, bias=args.bias, name='conv1', load=weights_conv, train=train_conv)
+l0 = Convolution(input_shape=[batch_size, 32, 32, 3], filter_sizes=[5, 5, 3, 96], init=args.init, activation=act, bias=args.bias, name='conv1')
 l1 = MaxPool(size=[batch_size, 32, 32, 96], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l2 = Convolution(input_shape=[batch_size, 16, 16, 96], filter_sizes=[5, 5, 96, 128], init=args.init, activation=act, bias=args.bias, name='conv2', load=weights_conv, train=train_conv)
+l2 = Convolution(input_shape=[batch_size, 16, 16, 96], filter_sizes=[5, 5, 96, 128], init=args.init, activation=act, bias=args.bias, name='conv2')
 l3 = MaxPool(size=[batch_size, 16, 16, 128], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l4 = Convolution(input_shape=[batch_size, 8, 8, 128], filter_sizes=[5, 5, 128, 256], init=args.init, activation=act, bias=args.bias, name='conv3', load=weights_conv, train=train_conv)
+l4 = Convolution(input_shape=[batch_size, 8, 8, 128], filter_sizes=[5, 5, 128, 256], init=args.init, activation=act, bias=args.bias, name='conv3')
 l5 = MaxPool(size=[batch_size, 8, 8, 256], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
 
 l6 = ConvToFullyConnected(input_shape=[4, 4, 256])
@@ -163,11 +145,13 @@ for ii in range(args.epochs):
     _total_correct = 0
     for jj in range(0, train_examples, args.batch_size):
         s = jj
-        e = jj + args.batch_size
+        e = min(jj + args.batch_size, train_examples)
+        b = e - s
+        
         xs = x_train[s:e]
         ys = y_train[s:e]
         
-        _correct, _ = sess.run([total_correct, train], feed_dict={batch_size: args.batch_size, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
+        _correct, _ = sess.run([total_correct, train], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
         _total_correct += _correct
 
     train_acc = 1.0 * _total_correct / (train_examples - (train_examples % args.batch_size))
@@ -178,11 +162,13 @@ for ii in range(args.epochs):
     _total_correct = 0
     for jj in range(0, test_examples, args.batch_size):
         s = jj
-        e = jj + args.batch_size
-        xs = x_test[s:e]
-        ys = x_test[s:e]
+        e = min(jj + args.batch_size, test_examples)
+        b = e - s
         
-        _correct = sess.run(total_correct, feed_dict={batch_size: args.batch_size, dropout_rate: 0.0, lr: 0.0, X: xs, Y: ys})
+        xs = x_test[s:e]
+        ys = y_test[s:e]
+        
+        _correct = sess.run(total_correct, feed_dict={batch_size: b, dropout_rate: 0.0, lr: 0.0, X: xs, Y: ys})
         _total_correct += _correct
         
     test_acc = 1.0 * _total_correct / (test_examples - (test_examples % args.batch_size))
@@ -192,7 +178,7 @@ for ii in range(args.epochs):
             
     p = "train acc: %f test acc: %f" % (train_acc, test_acc)
     print (p)
-    f = open(results_filename, "a")
+    f = open(filename, "a")
     f.write(p + "\n")
     f.close()
 

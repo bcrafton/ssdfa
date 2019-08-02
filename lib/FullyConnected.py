@@ -36,21 +36,22 @@ class FullyConnected(Layer):
         bias_size = self.output_size
         return weights_size + bias_size
 
-    ###################################################################
-
     def forward(self, X):
         Z = tf.matmul(X, self.weights) 
         if self.use_bias:
             Z = Z + self.bias
         A = self.activation.forward(Z)
         return {'aout':A, 'cache':{}}
-            
-    def backward(self, AI, AO, DO, cache=None):
+
+    ###################################################################
+        
+    def backward(self, AI, AO, DO, cache):
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DI = tf.matmul(DO, tf.transpose(self.weights))
+        # DI = tf.Print(DI, [tf.shape(DI)], message='', summarize=1000)
         return {'dout':DI, 'cache':{}}
         
-    def gv(self, AI, AO, DO, cache=None):
+    def gv(self, AI, AO, DO, cache):
         if not self.train_flag:
             return []
         
@@ -62,10 +63,10 @@ class FullyConnected(Layer):
         
     ###################################################################
     
-    def dfa_backward(self, AI, AO, E, DO):
+    def dfa_backward(self, AI, AO, E, DO, cache):
         return tf.ones_like(AI)
         
-    def dfa_gv(self, AI, AO, E, DO):
+    def dfa_gv(self, AI, AO, E, DO, cache):
         if not self.train_flag:
             return []
 

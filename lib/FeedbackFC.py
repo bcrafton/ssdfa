@@ -26,42 +26,41 @@ class FeedbackFC(Layer):
     def get_weights(self):
         return [(self.name, self.B)]
 
-    def get_feedback(self):
-        return self.B
-
     def num_params(self):
         return 0
         
     def forward(self, X):
-        return X
+        A = X
+        return {'aout':A, 'cache':{}}
         
     ###################################################################           
         
-    def backward(self, AI, AO, DO):    
-        return DO
+    def backward(self, AI, AO, DO, cache):
+        DI = DO
+        return {'dout':DI, 'cache':{}}
 
-    def gv(self, AI, AO, DO):    
+    def gv(self, AI, AO, DO, cache):    
         return []
         
     ###################################################################
 
-    def dfa_backward(self, AI, AO, E, DO):
-        E = tf.matmul(E, self.B)
-        E = tf.multiply(E, DO)
-        return E
+    def dfa_backward(self, AI, AO, E, DO, cache):
+        DI = tf.matmul(E, self.B)
+        DI = tf.multiply(DI, DO)
+        return {'dout':DI, 'cache':{}}
         
-    def dfa_gv(self, AI, AO, E, DO):
+    def dfa_gv(self, AI, AO, E, DO, cache):
         return []
         
     ###################################################################  
         
-    def lel_backward(self, AI, AO, DO, Y):
+    def lel_backward(self, AI, AO, DO, Y, cache):
         S = tf.matmul(AO, tf.transpose(self.B))
         ES = tf.subtract(tf.nn.softmax(S), Y)
-        DO = tf.matmul(ES, self.B)
-        return DO
+        DI = tf.matmul(ES, self.B)
+        return {'dout':DI, 'cache':{}}
         
-    def lel_gv(self, AI, AO, DO, Y):
+    def lel_gv(self, AI, AO, DO, Y, cache):
         return []
         
     ###################################################################  

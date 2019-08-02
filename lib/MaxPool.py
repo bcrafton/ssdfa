@@ -62,7 +62,7 @@ class MaxPool(Layer):
     def lel_backward(self, AI, AO, DO, Y):
         return self.backward(AI, AO, DO)
         
-    def lel_gv(self, AI, AO, E, DO, Y):
+    def lel_gv(self, AI, AO, DO, Y):
         return []
         
     ###################################################################

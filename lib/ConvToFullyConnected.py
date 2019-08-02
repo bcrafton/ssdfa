@@ -21,40 +21,31 @@ class ConvToFullyConnected(Layer):
     def num_params(self):
         return 0
 
-    ###################################################################           
-
     def forward(self, X):
         A = tf.reshape(X, [tf.shape(X)[0], -1])
         return {'aout':A, 'cache':{}}
+    
+    ###################################################################
         
-    def backward(self, AI, AO, DO, cache=None):    
+    def backward(self, AI, AO, DO, cache):
         DI = tf.reshape(DO, [tf.shape(AI)[0]] + self.shape)
         return {'dout':DI, 'cache':{}}
 
-    def gv(self, AI, AO, DO, cache=None):    
+    def gv(self, AI, AO, DO, cache):    
         return []
-        
-    def train(self, AI, AO, DO): 
-        assert(False)
         
     ###################################################################
 
-    def dfa_backward(self, AI, AO, E, DO):
+    def dfa_backward(self, AI, AO, DO):
         return tf.ones(shape=(tf.shape(AI)))
         
-    def dfa_gv(self, AI, AO, E, DO):
-        return []
-        
-    def dfa(self, AI, AO, E, DO): 
+    def dfa_gv(self, AI, AO, DO):
         return []
         
     ###################################################################    
     
-    def lel_backward(self, AI, AO, E, DO, Y, cache):
+    def lel_backward(self, AI, AO, DO, Y, cache):
         return self.backward(AI, AO, DO, cache)
         
-    def lel_gv(self, AI, AO, E, DO, Y, cache):
+    def lel_gv(self, AI, AO, DO, Y, cache):
         return self.gv(AI, AO, DO, cache)
-        
-    def lel(self, AI, AO, E, DO, Y): 
-        return self.train(AI, AO, DO)
