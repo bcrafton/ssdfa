@@ -20,26 +20,13 @@ class Layer:
 
     ###################################################################    
         
-    def backward(self, AI, AO, DO, cache):    
+    def bp(self, AI, AO, DO, cache):    
         assert(False)
 
-    def gv(self, AI, AO, DO, cache):
+    def dfa(self, AI, AO, E, DO, cache):
         assert(False)
-        
-    ###################################################################
 
-    def dfa_backward(self, AI, AO, E, DO, cache):
-        assert(False)
-        
-    def dfa_gv(self, AI, AO, E, DO, cache):
-        assert(False)
-               
-    ###################################################################   
-    
-    def lel_backward(self, AI, AO, DO, Y, cache):
-        assert(False)
-        
-    def lel_gv(self, AI, AO, DO, Y, cache):
+    def lel(self, AI, AO, DO, Y, cache):
         assert(False)
         
     ###################################################################   

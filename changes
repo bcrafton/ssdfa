@@ -13,6 +13,7 @@ yeah guess we doing the big clean up.
 > make gv and backward the same thing.
 > use the weight init function -> init filters, init matrix or w.e.
 > get rid of all the optimizers besides ADAM.
+> relu as separate layer, batch norm
 
 all easy changes that we have made, take 1 step at a time. 
 combine backward and gv last ...
@@ -20,8 +21,4 @@ combine backward and gv last ...
 ----
 
 no idea if caching is the right idea
-only useful for blocks
-
-will say backward/gv combined is def the best way.
-
-
+> actually, really dosnt change anything if u ignore the cache.

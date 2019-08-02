@@ -60,36 +60,20 @@ class Convolution(Layer):
 
     ###################################################################
     
-    def backward(self, AI, AO, DO, cache):    
+    def bp(self, AI, AO, DO, cache):    
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
-        return {'dout':DI, 'cache':{}}
-
-    def gv(self, AI, AO, DO, cache):    
-        if not self.train_flag:
-            return []
-    
-        DO = tf.multiply(DO, self.activation.gradient(AO))
+        
         DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
+        
+        return {'dout':DI, 'cache':{}}, [(DF, self.filters), (DB, self.bias)]
 
-        return [(DF, self.filters), (DB, self.bias)]
+    def dfa(self, AI, AO, E, DO, cache):
+        return self.bp(AI, AO, DO, cache)
         
-    ###################################################################
-
-    def dfa_backward(self, AI, AO, E, DO, cache):
-        return self.backward(AI, AO, DO, cache)
-        
-    def dfa_gv(self, AI, AO, E, DO, cache):
-        return self.gv(AI, AO, DO, cache)
-        
-    ###################################################################    
-        
-    def lel_backward(self, AI, AO, DO, Y, cache):
-        return self.backward(AI, AO, DO, cache)
-
-    def lel_gv(self, AI, AO, DO, Y, cache):
-        return self.gv(AI, AO, DO, cache)
+    def lel(self, AI, AO, DO, Y, cache):
+        return self.bp(AI, AO, DO, cache)
 
     ################################################################### 
         

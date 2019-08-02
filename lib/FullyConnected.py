@@ -45,36 +45,21 @@ class FullyConnected(Layer):
 
     ###################################################################
         
-    def backward(self, AI, AO, DO, cache):
+    def bp(self, AI, AO, DO, cache):
         DO = tf.multiply(DO, self.activation.gradient(AO))
         DI = tf.matmul(DO, tf.transpose(self.weights))
-        return {'dout':DI, 'cache':{}}
         
-    def gv(self, AI, AO, DO, cache):
-        if not self.train_flag:
-            return []
-        
-        DO = tf.multiply(DO, self.activation.gradient(AO))
         DW = tf.matmul(tf.transpose(AI), DO) 
         DB = tf.reduce_sum(DO, axis=0)
-
-        return [(DW, self.weights), (DB, self.bias)]
         
+        return {'dout':DI, 'cache':{}}, [(DW, self.weights), (DB, self.bias)]
+
+    def dfa(self, AI, AO, E, DO, cache):
+        return self.bp(AI, AO, DO, cache)
+        
+    def lel(self, AI, AO, DO, Y, cache):
+        return self.bp(AI, AO, DO, cache)
+
     ###################################################################
     
-    def dfa_backward(self, AI, AO, E, DO, cache):
-        return self.backward(AI, AO, DO, cache)
-        
-    def dfa_gv(self, AI, AO, E, DO, cache):
-        return self.gv(AI, AO, DO, cache)
-        
-    ###################################################################
-        
-    def lel_backward(self, AI, AO, DO, Y, cache):
-        return self.backward(AI, AO, DO, cache)
-
-    def lel_gv(self, AI, AO, DO, Y, cache):
-        return self.gv(AI, AO, DO, cache)
-        
-
         

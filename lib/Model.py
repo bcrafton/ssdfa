@@ -60,16 +60,13 @@ class Model:
             l = self.layers[ii]
             
             if (ii == self.num_layers-1):
-                D[ii] = l.backward(A[ii-1]['aout'], A[ii]['aout'], E,               A[ii]['cache'])
-                gvs =         l.gv(A[ii-1]['aout'], A[ii]['aout'], E,               D[ii]['cache'])
+                D[ii], gvs = l.bp(A[ii-1]['aout'], A[ii]['aout'], E,               A[ii]['cache'])
                 grads_and_vars.extend(gvs)
             elif (ii == 0):
-                D[ii] = l.backward(X,               A[ii]['aout'], D[ii+1]['dout'], A[ii]['cache'])
-                gvs =         l.gv(X,               A[ii]['aout'], D[ii+1]['dout'], D[ii]['cache'])
+                D[ii], gvs = l.bp(X,               A[ii]['aout'], D[ii+1]['dout'], A[ii]['cache'])
                 grads_and_vars.extend(gvs)
             else:
-                D[ii] = l.backward(A[ii-1]['aout'], A[ii]['aout'], D[ii+1]['dout'], A[ii]['cache'])
-                gvs =         l.gv(A[ii-1]['aout'], A[ii]['aout'], D[ii+1]['dout'], D[ii]['cache'])
+                D[ii], gvs = l.bp(A[ii-1]['aout'], A[ii]['aout'], D[ii+1]['dout'], A[ii]['cache'])
                 grads_and_vars.extend(gvs)
 
         return grads_and_vars
@@ -95,16 +92,13 @@ class Model:
             l = self.layers[ii]
 
             if (ii == self.num_layers-1):
-                D[ii] = l.dfa_backward(A[ii-1]['aout'], A[ii]['aout'], E, E,               A[ii]['cache'])
-                gvs =         l.dfa_gv(A[ii-1]['aout'], A[ii]['aout'], E, E,               D[ii]['cache'])
+                D[ii], gvs = l.dfa(A[ii-1]['aout'], A[ii]['aout'], E, E,               A[ii]['cache'])
                 grads_and_vars.extend(gvs)
             elif (ii == 0):
-                D[ii] = l.dfa_backward(X,               A[ii]['aout'], E, D[ii+1]['dout'], A[ii]['cache'])
-                gvs =         l.dfa_gv(X,               A[ii]['aout'], E, D[ii+1]['dout'], D[ii]['cache'])
+                D[ii], gvs = l.dfa(X,               A[ii]['aout'], E, D[ii+1]['dout'], A[ii]['cache'])
                 grads_and_vars.extend(gvs)
             else:
-                D[ii] = l.dfa_backward(A[ii-1]['aout'], A[ii]['aout'], E, D[ii+1]['dout'], A[ii]['cache'])
-                gvs =         l.dfa_gv(A[ii-1]['aout'], A[ii]['aout'], E, D[ii+1]['dout'], D[ii]['cache'])
+                D[ii], gvs = l.dfa(A[ii-1]['aout'], A[ii]['aout'], E, D[ii+1]['dout'], A[ii]['cache'])
                 grads_and_vars.extend(gvs)
                 
         return grads_and_vars
@@ -130,16 +124,13 @@ class Model:
             l = self.layers[ii]
 
             if (ii == self.num_layers-1):
-                D[ii] = l.lel_backward(A[ii-1]['aout'], A[ii]['aout'], E, E,               Y, A[ii]['cache'])
-                gvs =         l.lel_gv(A[ii-1]['aout'], A[ii]['aout'], E, E,               Y, D[ii]['cache'])
+                D[ii], gvs = l.lel(A[ii-1]['aout'], A[ii]['aout'], E, E,               Y, A[ii]['cache'])
                 grads_and_vars.extend(gvs)
             elif (ii == 0):
-                D[ii] = l.lel_backward(X,               A[ii]['aout'], E, D[ii+1]['dout'], Y, A[ii]['cache'])
-                gvs =         l.lel_gv(X,               A[ii]['aout'], E, D[ii+1]['dout'], Y, D[ii]['cache'])
+                D[ii], gvs = l.lel(X,               A[ii]['aout'], E, D[ii+1]['dout'], Y, A[ii]['cache'])
                 grads_and_vars.extend(gvs)
             else:
-                D[ii] = l.lel_backward(A[ii-1]['aout'], A[ii]['aout'], E, D[ii+1]['dout'], Y, A[ii]['cache'])
-                gvs =         l.lel_gv(A[ii-1]['aout'], A[ii]['aout'], E, D[ii+1]['dout'], Y, D[ii]['cache'])
+                D[ii], gvs = l.lel(A[ii-1]['aout'], A[ii]['aout'], E, D[ii+1]['dout'], Y, A[ii]['cache'])
                 grads_and_vars.extend(gvs)
                 
         return grads_and_vars

@@ -42,29 +42,16 @@ class MaxPool(Layer):
             
     ###################################################################           
         
-    def backward(self, AI, AO, DO, cache):    
+    def bp(self, AI, AO, DO, cache):    
         DI = gen_nn_ops.max_pool_grad(grad=DO, orig_input=AI, orig_output=AO, ksize=self.ksize, strides=self.strides, padding=self.padding)
-        return {'dout':DI, 'cache':{}}
+        return {'dout':DI, 'cache':{}}, []
 
-    def gv(self, AI, AO, DO, cache):
-        return []
+    def dfa(self, AI, AO, E, DO, cache):
+        return self.bp(AI, AO, DO, cache)
         
-    ###################################################################
+    def lel(self, AI, AO, DO, Y, cache):
+        return self.bp(AI, AO, DO, cache)
 
-    def dfa_backward(self, AI, AO, E, DO, cache):
-        return self.backward(AI, AO, DO, cache)
-        
-    def dfa_gv(self, AI, AO, E, DO, cache):
-        return self.gv(AI, AO, DO, cache)
-        
-    ###################################################################   
-    
-    def lel_backward(self, AI, AO, DO, Y, cache):
-        return self.backward(AI, AO, DO, cache)
-        
-    def lel_gv(self, AI, AO, DO, Y, cache):
-        return self.gv(AI, AO, DO, cache)
-        
     ###################################################################
     
     

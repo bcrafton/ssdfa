@@ -35,33 +35,20 @@ class FeedbackFC(Layer):
         
     ###################################################################           
         
-    def backward(self, AI, AO, DO, cache):
+    def bp(self, AI, AO, DO, cache):
         DI = DO
-        return {'dout':DI, 'cache':{}}
+        return {'dout':DI, 'cache':{}}, []
 
-    def gv(self, AI, AO, DO, cache):    
-        return []
-        
-    ###################################################################
-
-    def dfa_backward(self, AI, AO, E, DO, cache):
+    def dfa(self, AI, AO, E, DO, cache):
         DI = tf.matmul(E, self.B)
-        return {'dout':DI, 'cache':{}}
+        return {'dout':DI, 'cache':{}}, []
         
-    def dfa_gv(self, AI, AO, E, DO, cache):
-        return []
-        
-    ###################################################################  
-        
-    def lel_backward(self, AI, AO, DO, Y, cache):
+    def lel(self, AI, AO, DO, Y, cache):
         S = tf.matmul(AO, tf.transpose(self.B))
         ES = tf.subtract(tf.nn.softmax(S), Y)
         DI = tf.matmul(ES, self.B)
-        return {'dout':DI, 'cache':{}}
-        
-    def lel_gv(self, AI, AO, DO, Y, cache):
-        return []
-        
+        return {'dout':DI, 'cache':{}}, []
+
     ###################################################################  
         
         

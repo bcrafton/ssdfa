@@ -25,30 +25,17 @@ class Dropout(Layer):
 
     ###################################################################
 
-    def backward(self, AI, AO, DO, cache):
+    def bp(self, AI, AO, DO, cache):
         DI = DO * self.dropout_mask
-        return {'dout':DI, 'cache':{}}
+        return {'dout':DI, 'cache':{}}, []
 
-    def gv(self, AI, AO, DO, cache):
-        return []
-        
-    ###################################################################
-
-    def dfa_backward(self, AI, AO, E, DO, cache):
-        DI = DO * self.dropout_mask
-        return {'dout':DI, 'cache':{}}
-
-    def dfa_gv(self, AI, AO, E, DO, cache):
-        return self.gv(AI, AO, DO, cache)
+    def dfa(self, AI, AO, E, DO, cache):
+        return self.bp(AI, AO, DO, cache)
+    
+    def lel(self, AI, AO, DO, Y, cache):
+        return self.bp(AI, AO, DO, cache)
 
     ###################################################################
-
-    def lel_backward(self, AI, AO, DO, Y, cache):
-        DI = DO * self.dropout_mask
-        return {'dout':DI, 'cache':{}}
-
-    def lel_gv(self, AI, AO, DO, Y, cache):
-        return self.gv(AI, AO, DO, cache)
         
         
         

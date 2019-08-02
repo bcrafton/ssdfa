@@ -36,26 +36,16 @@ class FeedbackConv(Layer):
                 
     ###################################################################           
         
-    def backward(self, AI, AO, DO, cache):    
+    def bp(self, AI, AO, DO, cache):    
         DI = DO
-        return {'dout':DI, 'cache':{}}
+        return {'dout':DI, 'cache':{}}, []
 
-    def gv(self, AI, AO, DO, cache):    
-        return []
-        
-    ###################################################################
-
-    def dfa_backward(self, AI, AO, E, DO, cache):
+    def dfa(self, AI, AO, E, DO, cache):
         DI = tf.matmul(E, self.B)
         DI = tf.reshape(DI, self.size)
-        return {'dout':DI, 'cache':{}}
-        
-    def dfa_gv(self, AI, AO, E, DO, cache):
-        return []
-        
-    ###################################################################   
-        
-    def lel_backward(self, AI, AO, DO, Y, cache):
+        return {'dout':DI, 'cache':{}}, []
+
+    def lel(self, AI, AO, DO, Y, cache):
         shape = tf.shape(AO)
         N = shape[0]
         AO = tf.reshape(AO, (N, self.num_output))
@@ -63,10 +53,7 @@ class FeedbackConv(Layer):
         ES = tf.subtract(tf.nn.softmax(S), Y)
         DI = tf.matmul(ES, self.B)
         DI = tf.reshape(DI, self.size)
-        return {'dout':DI, 'cache':{}}
-        
-    def lel_gv(self, AI, AO, DO, Y, cache):
-        return []
+        return {'dout':DI, 'cache':{}}, []
         
     ###################################################################
         
