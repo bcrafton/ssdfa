@@ -17,3 +17,11 @@ yeah guess we doing the big clean up.
 all easy changes that we have made, take 1 step at a time. 
 combine backward and gv last ...
 
+----
+
+no idea if caching is the right idea
+only useful for blocks
+
+will say backward/gv combined is def the best way.
+
+
