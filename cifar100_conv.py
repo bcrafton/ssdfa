@@ -19,7 +19,7 @@ parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
 parser.add_argument('--init', type=str, default="glorot_uniform")
 parser.add_argument('--save', type=int, default=0)
-parser.add_argument('--name', type=str, default="cifar10_conv")
+parser.add_argument('--name', type=str, default="cifar100_conv")
 parser.add_argument('--load', type=str, default=None)
 args = parser.parse_args()
 

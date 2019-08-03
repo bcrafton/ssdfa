@@ -19,7 +19,7 @@ parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
 parser.add_argument('--init', type=str, default="glorot_uniform")
 parser.add_argument('--save', type=int, default=0)
-parser.add_argument('--name', type=str, default="cifar10_conv")
+parser.add_argument('--name', type=str, default="cifar10_fc")
 parser.add_argument('--load', type=str, default=None)
 args = parser.parse_args()
 
@@ -80,28 +80,28 @@ lr = tf.placeholder(tf.float32, shape=())
 
 X = tf.placeholder(tf.float32, [None, 32, 32, 3])
 X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), X)
-X = tf.reshape(X, [batch_size, 32*32*3])
 Y = tf.placeholder(tf.float32, [None, 10])
 
-l0 = Dropout(rate=0.1)
+l0 = ConvToFullyConnected(input_shape=[32, 32, 3])
+l1 = Dropout(rate=0.1)
 
-l1 = FullyConnected(input_shape=3072, size=1000, init=args.init, activation=act, bias=args.bias, name='fc1')
-l2 = Dropout(rate=dropout_rate)
-l3 = FeedbackFC(size=[3072, 1000], num_classes=10, sparse=args.sparse, rank=args.rank, name='fc1_fb')
+l2 = FullyConnected(input_shape=3072, size=1000, init=args.init, activation=act, bias=args.bias, name='fc1')
+l3 = Dropout(rate=dropout_rate)
+l4 = FeedbackFC(size=[3072, 1000], num_classes=10, sparse=args.sparse, rank=args.rank, name='fc1_fb')
 
-l4 = FullyConnected(input_shape=1000, size=1000, init=args.init, activation=act, bias=args.bias, name='fc2')
-l5 = Dropout(rate=dropout_rate)
-l6 = FeedbackFC(size=[1000, 1000], num_classes=10, sparse=args.sparse, rank=args.rank, name='fc2_fb')
+l5 = FullyConnected(input_shape=1000, size=1000, init=args.init, activation=act, bias=args.bias, name='fc2')
+l6 = Dropout(rate=dropout_rate)
+l7 = FeedbackFC(size=[1000, 1000], num_classes=10, sparse=args.sparse, rank=args.rank, name='fc2_fb')
 
-l7 = FullyConnected(input_shape=1000, size=1000, init=args.init, activation=act, bias=args.bias, name='fc3')
-l8 = Dropout(rate=dropout_rate)
-l9 = FeedbackFC(size=[1000, 1000], num_classes=10, sparse=args.sparse, rank=args.rank, name='fc3_fb')
+l8 = FullyConnected(input_shape=1000, size=1000, init=args.init, activation=act, bias=args.bias, name='fc3')
+l9 = Dropout(rate=dropout_rate)
+l10 = FeedbackFC(size=[1000, 1000], num_classes=10, sparse=args.sparse, rank=args.rank, name='fc3_fb')
 
-l10 = FullyConnected(input_shape=1000, size=10, init=args.init, bias=args.bias, name='fc4')
+l11 = FullyConnected(input_shape=1000, size=10, init=args.init, bias=args.bias, name='fc4')
 
 ##############################################
 
-model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10])
+model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11])
 predict = model.predict(X=X)
 weights = model.get_weights()
 
