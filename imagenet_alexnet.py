@@ -136,12 +136,9 @@ def get_validation_dataset():
     for ii in range(len(lines)):
         validation_labels.append(int(lines[ii]))
 
-    print (len(validation_images), len(validation_labels))
     remainder = len(validation_labels) % args.batch_size
     validation_images = validation_images[:(-remainder)]
     validation_labels = validation_labels[:(-remainder)]
-
-    print("validation data is ready...")
 
     return validation_images, validation_labels
     
@@ -150,8 +147,6 @@ def get_train_dataset():
     label_counter = 0
     training_images = []
     training_labels = []
-
-    print ("making labels dict")
 
     f = open('/home/bcrafton3/dfa/imagenet_labels/train_labels.txt', 'r')
     lines = f.readlines()
@@ -164,7 +159,7 @@ def get_train_dataset():
 
     f.close()
 
-    print ("building dataset")
+    print ("building train dataset")
 
     for subdir, dirs, files in os.walk('/home/bcrafton3/Data_SSD/ILSVRC2012/train/'):
         for folder in dirs:
@@ -176,8 +171,6 @@ def get_train_dataset():
     remainder = len(training_labels) % args.batch_size
     training_images = training_images[:(-remainder)]
     training_labels = training_labels[:(-remainder)]
-
-    print("Data is ready...")
 
     return training_images, training_labels
 
@@ -358,9 +351,7 @@ for ii in range(args.epochs):
     train_top5 = 0.0
     
     for j in range(0, len(train_imgs), args.batch_size):
-        print (j)
-        
-        _total_correct, _top5, _ = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
+        [_total_correct, _top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
         
         train_total += args.batch_size
         train_correct += _total_correct
@@ -369,7 +360,7 @@ for ii in range(args.epochs):
         train_acc = train_correct / train_total
         train_acc_top5 = train_top5 / train_total
         
-        if (j % (100 * args.batch_size) == 0):
+        if (j % (1000 * args.batch_size) == 0):
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
             print (p)
             f = open(results_filename, "a")
@@ -388,8 +379,6 @@ for ii in range(args.epochs):
     val_top5 = 0.0
     
     for j in range(0, len(val_imgs), args.batch_size):
-        print (j)
-
         [_total_correct, _top5] = sess.run([total_correct, total_top5], feed_dict={handle: val_handle, batch_size: args.batch_size, dropout_rate: 0.0, lr: 0.0})
         
         val_total += args.batch_size
@@ -399,7 +388,7 @@ for ii in range(args.epochs):
         val_acc = val_correct / val_total
         val_acc_top5 = val_top5 / val_total
         
-        if (j % (100 * args.batch_size) == 0):
+        if (j % (1000 * args.batch_size) == 0):
             p = "val accuracy: %f %f" % (val_acc, val_acc_top5)
             print (p)
             f = open(results_filename, "a")
