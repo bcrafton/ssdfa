@@ -34,19 +34,19 @@ import tensorflow as tf
 import numpy as np
 np.set_printoptions(threshold=1000)
 
-from Model import Model
+from lib.Model import Model
 
-from Layer import Layer 
-from ConvToFullyConnected import ConvToFullyConnected
-from FullyConnected import FullyConnected
-from Convolution import Convolution
-from MaxPool import MaxPool
-from Dropout import Dropout
-from FeedbackFC import FeedbackFC
-from FeedbackConv import FeedbackConv
+from lib.Layer import Layer 
+from lib.ConvToFullyConnected import ConvToFullyConnected
+from lib.FullyConnected import FullyConnected
+from lib.Convolution import Convolution
+from lib.MaxPool import MaxPool
+from lib.Dropout import Dropout
+from lib.FeedbackFC import FeedbackFC
+from lib.FeedbackConv import FeedbackConv
 
-from Activation import Activation
-from Activation import Relu
+from lib.Activation import Activation
+from lib.Activation import Relu
 
 ##############################################
 
@@ -273,7 +273,7 @@ l20 = FullyConnected(size=[4096, num_classes], num_classes=num_classes, init_wei
 
 ###############################################################
 
-l0 = Convolution(input_shape=[batch_size, 227, 227, 3], filter_sizes=[11, 11, 3, 96], init=args.init, padding="VALID", activation=act, bias=args.bias, name='conv1')
+l0 = Convolution(input_shape=[batch_size, 227, 227, 3], filter_sizes=[11, 11, 3, 96], init=args.init, strides=[1,4,4,1], padding="VALID", activation=act, bias=args.bias, name='conv1')
 l1 = MaxPool(size=[batch_size, 55, 55, 96], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="VALID")
 l2 = FeedbackConv(size=[batch_size, 27, 27, 96], num_classes=1000, sparse=args.sparse, rank=args.rank, name='conv1_fb')
 
@@ -284,8 +284,8 @@ l5 = FeedbackConv(size=[batch_size, 13, 13, 256], num_classes=1000, sparse=args.
 l6 = Convolution(input_shape=[batch_size, 13, 13, 256], filter_sizes=[3, 3, 256, 384], init=args.init, activation=act, bias=args.bias, name='conv3')
 l7 = FeedbackConv(size=[batch_size, 13, 13, 384], num_classes=1000, sparse=args.sparse, rank=args.rank, name='conv3_fb')
 
-l6 = Convolution(input_shape=[batch_size, 13, 13, 384], filter_sizes=[3, 3, 384, 384], init=args.init, activation=act, bias=args.bias, name='conv4')
-l7 = FeedbackConv(size=[batch_size, 13, 13, 384], num_classes=1000, sparse=args.sparse, rank=args.rank, name='conv4_fb')
+l8 = Convolution(input_shape=[batch_size, 13, 13, 384], filter_sizes=[3, 3, 384, 384], init=args.init, activation=act, bias=args.bias, name='conv4')
+l9 = FeedbackConv(size=[batch_size, 13, 13, 384], num_classes=1000, sparse=args.sparse, rank=args.rank, name='conv4_fb')
 
 l10 = Convolution(input_shape=[batch_size, 13, 13, 384], filter_sizes=[3, 3, 384, 256], init=args.init, activation=act, bias=args.bias, name='conv5')
 l11 = MaxPool(size=[batch_size, 13, 13, 256], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="VALID")
@@ -314,7 +314,7 @@ if args.dfa:
 else:
     grads_and_vars = model.gvs(X=features, Y=labels)
         
-train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
+train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
@@ -360,7 +360,7 @@ for ii in range(args.epochs):
     for j in range(0, len(train_imgs), args.batch_size):
         print (j)
         
-        _total_correct, _top5, _ = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: lr_decay})
+        _total_correct, _top5, _ = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
         
         train_total += args.batch_size
         train_correct += _total_correct
@@ -390,7 +390,7 @@ for ii in range(args.epochs):
     for j in range(0, len(val_imgs), args.batch_size):
         print (j)
 
-        [_total_correct, _top5] = sess.run([total_correct, total_top5], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
+        [_total_correct, _top5] = sess.run([total_correct, total_top5], feed_dict={handle: val_handle, batch_size: args.batch_size, dropout_rate: 0.0, lr: 0.0})
         
         val_total += args.batch_size
         val_correct += _total_correct
