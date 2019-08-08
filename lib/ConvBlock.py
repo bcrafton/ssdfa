@@ -26,7 +26,7 @@ class ConvBlock(Layer):
         self.load = load
         self.train_flag = train
         
-        self.conv = Convolution(input_sizes=self.input_shape, 
+        self.conv = Convolution(input_shape=self.input_shape, 
                                 filter_sizes=self.filter_shape, 
                                 init=self.init, 
                                 strides=self.strides, 

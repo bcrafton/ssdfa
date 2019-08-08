@@ -28,7 +28,15 @@ class ConvDWBlock(Layer):
         self.load = load
         self.train_flag = train
         
-        self.conv = ConvolutionDW(input_sizes=self.input_shape, filter_sizes=self.filter_shape, init=self.init, strides=self.strides, padding="SAME", name=self.name + '_conv_dw')
+        self.conv = ConvolutionDW(input_shape=self.input_shape, 
+                                  filter_sizes=self.filter_shape, 
+                                  init=self.init, 
+                                  strides=self.strides, 
+                                  padding="SAME", 
+                                  name=self.name + '_conv_dw',
+                                  load=self.load, 
+                                  train=self.train_flag)
+                                
         self.bn = BatchNorm(input_size=self.output_shape, name=self.name + '_bn_dw')
         self.relu = Relu()
 
