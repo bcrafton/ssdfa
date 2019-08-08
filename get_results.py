@@ -29,7 +29,7 @@ for ii in range(num_runs):
                                                param['init']
                                                )
 
-    res = np.load(name).item()
+    res = np.load(name, allow_pickle=True).item()
     key = (param['benchmark'], param['dfa'], param['sparse'])
     val = max(res['test_acc'])
 
