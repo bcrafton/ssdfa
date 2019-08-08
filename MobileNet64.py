@@ -53,6 +53,10 @@ from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
 
+from lib.ConvBlock import ConvBlock
+from lib.VGGBlock import VGGBlock
+from lib.MobileBlock import MobileBlock
+
 ##############################################
 
 MEAN = [122.77093945, 116.74601272, 104.09373519]
@@ -151,7 +155,7 @@ iterator = tf.data.Iterator.from_string_handle(handle, train_dataset.output_type
 features, labels = iterator.get_next()
 
 features = tf.reshape(features, (args.batch_size, 64, 64, 3))
-labels = tf.one_hot(labels, depth=num_classes)
+labels = tf.one_hot(labels, depth=1000)
 
 train_iterator = train_dataset.make_initializable_iterator()
 val_iterator = val_dataset.make_initializable_iterator()
