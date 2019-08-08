@@ -45,39 +45,14 @@ class AvgPool(Layer):
             
     ###################################################################           
         
-    def backward(self, AI, AO, DO, cache):    
+    def bp(self, AI, AO, DO, cache):    
         DI = gen_nn_ops.avg_pool_grad(orig_input_shape=self.size, grad=DO, ksize=self.ksize, strides=self.strides, padding=self.padding)
-        return {'dout':DI, 'cache':{}}
+        return {'dout':DI, 'cache':{}}, []
 
-    def gv(self, AI, AO, DO, cache):    
-        return []
+    def dfa(self, AI, AO, E, DO, cache):
+        return self.bp(AI, AO, DO, cache)
         
-    def train(self, AI, AO, DO): 
-        return []
-        
+    def lel(self, AI, AO, DO, Y, cache):
+        return self.bp(AI, AO, DO, cache)
+
     ###################################################################
-
-    def dfa_backward(self, AI, AO, E, DO):
-        grad = gen_nn_ops.avg_pool_grad(orig_input_shape=self.size, grad=DO, ksize=self.ksize, strides=self.strides, padding=self.padding)
-        return grad
-        
-    def dfa_gv(self, AI, AO, E, DO):
-        return []
-        
-    def dfa(self, AI, AO, E, DO): 
-        return []
-        
-    ###################################################################   
-    
-    def lel_backward(self, AI, AO, E, DO, cache):
-        return self.backward(AI, AO, DO, cache)
-
-    def lel_gv(self, AI, AO, E, DO, Y, cache):
-        return []
-        
-    def lel(self, AI, AO, E, DO, Y): 
-        return []
-        
-    ###################################################################
-    
-    

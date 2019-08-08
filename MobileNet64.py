@@ -49,6 +49,7 @@ from lib.ConvToFullyConnected import ConvToFullyConnected
 from lib.FullyConnected import FullyConnected
 from lib.Convolution import Convolution
 from lib.MaxPool import MaxPool
+from lib.AvgPool import AvgPool
 from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
@@ -165,21 +166,20 @@ val_iterator = val_dataset.make_initializable_iterator()
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 
-l1_1 = ConvBlock(input_shape=[args.batch_size, 64, 64, 3], filter_shape=[3, 3, 3, 32], strides=[1,1,1,1], init=args.init, name='block1')
-l1_2 = LELConv(input_shape=[args.batch_size, 64, 64, 32], pool_shape=[1,8,8,1], num_classes=1000, name='block1_fb')
+l1 = ConvBlock(input_shape=[args.batch_size, 64, 64, 3], filter_shape=[3, 3, 3, 32], strides=[1,1,1,1], init=args.init, name='block1')
 
-l2 = MobileBlock(input_shape=[args.batch_size, 64, 64, 32],  filter_shape=[32, 64],   strides=[1,2,2,1], init=args.init, pool_shape=[1,8,8,1], num_classes=1000, name='block2')
-l3 = MobileBlock(input_shape=[args.batch_size, 32, 32, 64],  filter_shape=[64, 128],  strides=[1,1,1,1], init=args.init, pool_shape=[1,8,8,1], num_classes=1000, name='block3')
-l4 = MobileBlock(input_shape=[args.batch_size, 32, 32, 128], filter_shape=[128, 256], strides=[1,2,2,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block4')
-l5 = MobileBlock(input_shape=[args.batch_size, 16, 16, 256], filter_shape=[256, 512], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block5')
-l6 = MobileBlock(input_shape=[args.batch_size, 16, 16, 512], filter_shape=[512, 512], strides=[1,2,2,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block6')
+l2 = MobileBlock(input_shape=[args.batch_size, 64, 64, 32],  filter_shape=[32, 64],   strides=[1,2,2,1], init=args.init, name='block2')
+l3 = MobileBlock(input_shape=[args.batch_size, 32, 32, 64],  filter_shape=[64, 128],  strides=[1,1,1,1], init=args.init, name='block3')
+l4 = MobileBlock(input_shape=[args.batch_size, 32, 32, 128], filter_shape=[128, 256], strides=[1,2,2,1], init=args.init, name='block4')
+l5 = MobileBlock(input_shape=[args.batch_size, 16, 16, 256], filter_shape=[256, 512], strides=[1,1,1,1], init=args.init, name='block5')
+l6 = MobileBlock(input_shape=[args.batch_size, 16, 16, 512], filter_shape=[512, 512], strides=[1,2,2,1], init=args.init, name='block6')
 
-l7 = MobileBlock(input_shape=[args.batch_size, 8, 8, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block7')
-l8 = MobileBlock(input_shape=[args.batch_size, 8, 8, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block8')
-l9 = MobileBlock(input_shape=[args.batch_size, 8, 8, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block9')
+l7 = MobileBlock(input_shape=[args.batch_size, 8, 8, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=args.init, name='block7')
+l8 = MobileBlock(input_shape=[args.batch_size, 8, 8, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=args.init, name='block8')
+l9 = MobileBlock(input_shape=[args.batch_size, 8, 8, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=args.init, name='block9')
 
-l10 = MobileBlock(input_shape=[args.batch_size, 8, 8, 512],  filter_shape=[512, 1024],  strides=[1,2,2,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block10')
-l11 = MobileBlock(input_shape=[args.batch_size, 4, 4, 1024], filter_shape=[1024, 1024], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block11')
+l10 = MobileBlock(input_shape=[args.batch_size, 8, 8, 512],  filter_shape=[512, 1024],  strides=[1,2,2,1], init=args.init, name='block10')
+l11 = MobileBlock(input_shape=[args.batch_size, 4, 4, 1024], filter_shape=[1024, 1024], strides=[1,1,1,1], init=args.init, name='block11')
 
 l12 = AvgPool(size=[args.batch_size, 4, 4, 1024], ksize=[1, 4, 4, 1], strides=[1, 4, 4, 1], padding="SAME")
 l13 = ConvToFullyConnected(input_shape=[1, 1, 1024])
@@ -187,7 +187,7 @@ l14 = FullyConnected(input_shape=1024, size=1000, init=args.init, name="fc1")
 
 ###############################################################
 
-layers = [l1_1, l1_2, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14]
+layers = [l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14]
 model = Model(layers=layers)
 predict = tf.nn.softmax(model.predict(X=features))
 weights = model.get_weights()

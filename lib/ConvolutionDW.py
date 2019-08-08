@@ -19,6 +19,7 @@ class ConvolutionDW(Layer):
         self.strides = strides
         _, self.sh, self.sw, _ = self.strides
         self.padding = padding
+        self.use_bias = use_bias
         self.name = name
         self.train_flag = train
         
