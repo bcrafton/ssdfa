@@ -6,9 +6,9 @@ import sys
 ##############################################
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--epochs', type=int, default=100)
+parser.add_argument('--epochs', type=int, default=200)
 parser.add_argument('--batch_size', type=int, default=50)
-parser.add_argument('--lr', type=float, default=1e-3)
+parser.add_argument('--lr', type=float, default=1e-4)
 parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--dropout', type=float, default=0.5)
 parser.add_argument('--act', type=str, default='relu')
@@ -39,6 +39,7 @@ from lib.Layer import Layer
 from lib.ConvToFullyConnected import ConvToFullyConnected
 from lib.FullyConnected import FullyConnected
 from lib.Convolution import Convolution
+from lib.AvgPool import AvgPool
 from lib.MaxPool import MaxPool
 from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
@@ -86,13 +87,13 @@ X = tf.placeholder(tf.float32, [None, 32, 32, 6])
 Y = tf.placeholder(tf.float32, [None, 10])
 
 l0 = Convolution(input_shape=[batch_size, 32, 32, 6], filter_sizes=[5, 5, 6, 128], init=args.init, activation=act, bias=args.bias, name='conv1')
-l1 = MaxPool(size=[batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+l1 = AvgPool(size=[batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
 l2 = Convolution(input_shape=[batch_size, 16, 16, 128], filter_sizes=[5, 5, 128, 192], init=args.init, activation=act, bias=args.bias, name='conv2')
-l3 = MaxPool(size=[batch_size, 16, 16, 192], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+l3 = AvgPool(size=[batch_size, 16, 16, 192], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
 l4 = Convolution(input_shape=[batch_size, 8, 8, 192], filter_sizes=[5, 5, 192, 256], init=args.init, activation=act, bias=args.bias, name='conv3')
-l5 = MaxPool(size=[batch_size, 8, 8, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+l5 = AvgPool(size=[batch_size, 8, 8, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
 l6 = ConvToFullyConnected(input_shape=[4, 4, 256])
 
@@ -114,6 +115,7 @@ else:
 train1 = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=[fc1, conv1])
 train2 = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=[fc1, conv2])
 train3 = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=[fc1, conv3])
+train4 = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=[fc1, conv3, conv2, conv1])
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(Y,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
@@ -150,13 +152,15 @@ for ii in range(args.epochs):
         xs = x_train[s:e]
         ys = y_train[s:e]
         
-        if ii < 5:
+        if ii < 10:
             _correct, _ = sess.run([total_correct, train1], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
-        elif ii < 10:
+        elif ii < 20:
             _correct, _ = sess.run([total_correct, train2], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
-        elif ii < 15:
+        elif ii < 30:
             _correct, _ = sess.run([total_correct, train3], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
-            
+        else:
+            _correct, _ = sess.run([total_correct, train4], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
+
         _total_correct += _correct
 
     train_acc = 1.0 * _total_correct / (train_examples - (train_examples % args.batch_size))
