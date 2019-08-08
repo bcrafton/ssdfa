@@ -4,18 +4,15 @@ import numpy as np
 import math
 
 from lib.Layer import Layer 
-from lib.Activation import Activation
-from lib.Activation import Linear
 
 from lib.init_tensor import init_matrix
 
 class FullyConnected(Layer):
 
-    def __init__(self, input_shape, size, init, activation=None, bias=0., use_bias=True, name=None, load=None, train=True):
+    def __init__(self, input_shape, size, init, bias=0., use_bias=True, name=None, load=None, train=True):
         self.input_size = input_shape
         self.output_size = size
         self.init = init
-        self.activation = Linear() if activation == None else activation
         self.name = name
         self.train_flag = train
         self.use_bias = use_bias
@@ -40,18 +37,15 @@ class FullyConnected(Layer):
         Z = tf.matmul(X, self.weights) 
         if self.use_bias:
             Z = Z + self.bias
-        A = self.activation.forward(Z)
-        return {'aout':A, 'cache':{}}
+            
+        return {'aout':Z, 'cache':{}}
 
     ###################################################################
         
     def bp(self, AI, AO, DO, cache):
-        DO = tf.multiply(DO, self.activation.gradient(AO))
         DI = tf.matmul(DO, tf.transpose(self.weights))
-        
         DW = tf.matmul(tf.transpose(AI), DO) 
         DB = tf.reduce_sum(DO, axis=0)
-        
         return {'dout':DI, 'cache':{}}, [(DW, self.weights), (DB, self.bias)]
 
     def dfa(self, AI, AO, E, DO, cache):
