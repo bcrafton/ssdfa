@@ -65,9 +65,9 @@ class ConvDWBlock(Layer):
 
     def bp(self, AI, AO, DO, cache):    
         conv, bn, relu = cache['conv'], cache['bn'], cache['relu']
-        drelu, grelu = self.relu.bp(bn, relu, DO)
-        dbn,   gbn   = self.bn.bp(conv, bn, drelu['dout'])
-        dconv, gconv = self.conv.bp(AI, conv, dbn['dout'])
+        drelu, grelu = self.relu.bp(bn, relu, DO, None)
+        dbn,   gbn   = self.bn.bp(conv, bn, drelu['dout'], None)
+        dconv, gconv = self.conv.bp(AI, conv, dbn['dout'], None)
         cache.update({'dconv':dconv['dout'], 'dbn':dbn['dout'], 'drelu':drelu['dout']})
         grads = []
         grads.extend(dconv)
