@@ -28,16 +28,16 @@ class Convolution(Layer):
         self.name = name
         self.train_flag = train
         
-        filters = init_filters(size=self.filter_sizes, init=self.init)
-        bias = np.ones(shape=self.fout) * bias
+        filters = np.absolute(init_filters(size=self.filter_sizes, init=self.init))
+        sign = np.array([1.] * (self.fout // 2) + [-1.] * (self.fout // 2))
 
-        self.filters = tf.Variable(filters, dtype=tf.float32)
-        self.bias = tf.Variable(bias, dtype=tf.float32)
+        self.filters = tf.Variable(filters, dtype=tf.float32, constraint=lambda x: tf.clip_by_value(x, 0, np.infty))
+        self.sign = tf.constant(sign, dtype=tf.float32)
 
     ###################################################################
 
     def get_weights(self):
-        return [(self.name, self.filters), (self.name + "_bias", self.bias)]
+        return [(self.name, self.filters)]
 
     def output_shape(self):
         oh = conv_output_length(self.h, self.fh, self.padding.lower(), self.sh)
@@ -47,27 +47,23 @@ class Convolution(Layer):
 
     def num_params(self):
         filter_weights_size = self.fh * self.fw * self.fin * self.fout
-        bias_weights_size = self.fout
-        return filter_weights_size + bias_weights_size
+        return filter_weights_size 
 
     def forward(self, X):
         Z = tf.nn.conv2d(X, self.filters, self.strides, self.padding)
-        if self.use_bias:
-            Z = Z + tf.reshape(self.bias, (1, 1, 1, self.fout))
-
-        A = self.activation.forward(Z)
+        A = self.activation.forward(Z) * self.sign
         return {'aout':A, 'cache':{}}
 
     ###################################################################
     
-    def bp(self, AI, AO, DO, cache):    
-        DO = tf.multiply(DO, self.activation.gradient(AO))
+    def bp(self, AI, AO, DO, cache):
+        DO = DO * self.activation.gradient(tf.abs(AO)) * self.sign
         DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
         
         DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
         
-        return {'dout':DI, 'cache':{}}, [(DF, self.filters), (DB, self.bias)]
+        return {'dout':DI, 'cache':{}}, [(DF, self.filters)]
 
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)

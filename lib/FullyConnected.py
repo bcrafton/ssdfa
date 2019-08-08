@@ -20,26 +20,20 @@ class FullyConnected(Layer):
         self.train_flag = train
         self.use_bias = use_bias
         
-        bias = np.ones(shape=self.output_size) * bias
         weights = init_matrix(size=(self.input_size, self.output_size), init=self.init)
-        
         self.weights = tf.Variable(weights, dtype=tf.float32)
-        self.bias = tf.Variable(bias, dtype=tf.float32)
 
     ###################################################################
         
     def get_weights(self):
-        return [(self.name, self.weights), (self.name + "_bias", self.bias)]
+        return [(self.name, self.weights)]
 
     def num_params(self):
         weights_size = self.input_size * self.output_size
-        bias_size = self.output_size
-        return weights_size + bias_size
+        return weights_size 
 
     def forward(self, X):
         Z = tf.matmul(X, self.weights) 
-        if self.use_bias:
-            Z = Z + self.bias
         A = self.activation.forward(Z)
         return {'aout':A, 'cache':{}}
 
@@ -52,7 +46,7 @@ class FullyConnected(Layer):
         DW = tf.matmul(tf.transpose(AI), DO) 
         DB = tf.reduce_sum(DO, axis=0)
         
-        return {'dout':DI, 'cache':{}}, [(DW, self.weights), (DB, self.bias)]
+        return {'dout':DI, 'cache':{}}, [(DW, self.weights)]
 
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)
