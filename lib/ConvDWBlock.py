@@ -3,39 +3,33 @@ import tensorflow as tf
 import numpy as np
 
 from lib.Layer import Layer 
+from lib.ConvolutionDW import ConvolutionDW
 from lib.Convolution import Convolution
 from lib.BatchNorm import BatchNorm
 from lib.Activation import Relu
 
-class ConvBlock(Layer):
+class ConvDWBlock(Layer):
 
     def __init__(self, input_shape, filter_shape, strides, init, name, load=None, train=True):
         self.input_shape = input_shape
         self.batch, self.h, self.w, self.fin = self.input_shape
         
         self.filter_shape = filter_shape
-        self.fh, self.fw, self.fin, self.fout = self.filter_shape
-        
+        self.fh, self.fw, self.fin, self.mult = self.filter_shape
+        self.fout = self.fin * self.mult
+
         self.strides = strides
         _, self.sh, self.sw, _ = self.strides
-        
+
         self.output_shape = [self.batch, self.h // self.sh, self.w // self.sw, self.fout]
-        
+
         self.init = init
         self.name = name
         self.load = load
         self.train_flag = train
         
-        self.conv = Convolution(input_sizes=self.input_shape, 
-                                filter_sizes=self.filter_shape, 
-                                init=self.init, 
-                                strides=self.strides, 
-                                padding="SAME", 
-                                name=self.name + '_conv', 
-                                load=self.load, 
-                                train=self.train_flag)
-                                
-        self.bn = BatchNorm(input_size=self.output_shape, name=self.name + '_bn')
+        self.conv = ConvolutionDW(input_sizes=self.input_shape, filter_sizes=self.filter_shape, init=self.init, strides=self.strides, padding="SAME", name=self.name + '_conv_dw')
+        self.bn = BatchNorm(input_size=self.output_shape, name=self.name + '_bn_dw')
         self.relu = Relu()
 
     ###################################################################

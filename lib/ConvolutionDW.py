@@ -7,18 +7,18 @@ from lib.conv_utils import conv_output_length
 from lib.conv_utils import conv_input_length
 from lib.init_tensor import init_filters
 
-class Convolution(Layer):
+class ConvolutionDW(Layer):
 
     def __init__(self, input_shape, filter_sizes, init, strides=[1,1,1,1], padding='SAME', bias=0., use_bias=True, name=None, load=None, train=True):
         self.input_shape = input_shape
         self.filter_sizes = filter_sizes
         self.batch_size, self.h, self.w, self.fin = self.input_shape
-        self.fh, self.fw, self.fin, self.fout = self.filter_sizes
+        self.fh, self.fw, self.fin, self.mult = self.filter_sizes
+        self.fout = self.fin * self.mult
         self.init = init
         self.strides = strides
         _, self.sh, self.sw, _ = self.strides
         self.padding = padding
-        self.use_bias = use_bias
         self.name = name
         self.train_flag = train
         
@@ -40,21 +40,21 @@ class Convolution(Layer):
         return [oh, oh, od]
 
     def num_params(self):
-        filter_weights_size = self.fh * self.fw * self.fin * self.fout
+        filter_weights_size = self.fh * self.fw * self.fin * self.mult
         bias_weights_size = self.fout
         return filter_weights_size + bias_weights_size
-
+                
     def forward(self, X):
-        Z = tf.nn.conv2d(X, self.filters, self.strides, self.padding)
+        Z = tf.nn.depthwise_conv2d(X, self.filters, self.strides, self.padding)
         if self.use_bias:
             Z = Z + self.bias
         return {'aout':Z, 'cache':{}}
 
     ###################################################################
-    
-    def bp(self, AI, AO, DO, cache):    
-        DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
-        DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
+
+    def bp(self, AI, AO, DO, cache=None): 
+        DI = tf.nn.depthwise_conv2d_native_backprop_input(input_sizes=self.input_sizes, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+        DF = tf.nn.depthwise_conv2d_native_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
         return {'dout':DI, 'cache':{}}, [(DF, self.filters), (DB, self.bias)]
 
@@ -63,7 +63,6 @@ class Convolution(Layer):
         
     def lel(self, AI, AO, DO, Y, cache):
         return self.bp(AI, AO, DO, cache)
-
-    ################################################################### 
-        
+    
+    ###################################################################
         
