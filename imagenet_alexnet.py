@@ -50,6 +50,10 @@ from lib.Activation import Relu
 
 ##############################################
 
+IMAGENET_MEAN = [123.68, 116.78, 103.94]
+
+##############################################
+
 def in_top_k(x, y, k):
     x = tf.cast(x, dtype=tf.float32)
     y = tf.cast(y, dtype=tf.int32)
@@ -60,11 +64,6 @@ def in_top_k(x, y, k):
     correct = tf.cast(correct, dtype=tf.int32)
     correct = tf.reduce_sum(correct, axis=0)
     return correct
-    
-##############################################
-
-num_classes = 1000
-IMAGENET_MEAN = [123.68, 116.78, 103.94]
 
 ##############################################
 
@@ -209,7 +208,7 @@ handle = tf.placeholder(tf.string, shape=[])
 iterator = tf.data.Iterator.from_string_handle(handle, train_dataset.output_types, train_dataset.output_shapes)
 features, labels = iterator.get_next()
 features = tf.reshape(features, (-1, 227, 227, 3))
-labels = tf.one_hot(labels, depth=num_classes)
+labels = tf.one_hot(labels, depth=1000)
 
 train_iterator = train_dataset.make_initializable_iterator()
 val_iterator = val_dataset.make_initializable_iterator()
@@ -231,40 +230,6 @@ else:
 batch_size = tf.placeholder(tf.int32, shape=())
 dropout_rate = tf.placeholder(tf.float32, shape=())
 lr = tf.placeholder(tf.float32, shape=())
-
-'''
-l0 = Convolution(input_sizes=[batch_size, 227, 227, 3], filter_sizes=[11, 11, 3, 96], num_classes=num_classes, init_filters=args.init, strides=[1, 4, 4, 1], padding="VALID", alpha=learning_rate, activation=Relu(), bias=bias, last_layer=False, name="conv1", load=weights_conv, train=train_conv)
-l1 = MaxPool(size=[batch_size, 55, 55, 96], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="VALID")
-l2 = FeedbackConv(size=[batch_size, 27, 27, 96], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="conv1_fb")
-
-l3 = Convolution(input_sizes=[batch_size, 27, 27, 96], filter_sizes=[5, 5, 96, 256], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=1., last_layer=False, name="conv2", load=weights_conv, train=train_conv)
-l4 = MaxPool(size=[batch_size, 27, 27, 256], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="VALID")
-l5 = FeedbackConv(size=[batch_size, 13, 13, 256], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="conv2_fb")
-
-l6 = Convolution(input_sizes=[batch_size, 13, 13, 256], filter_sizes=[3, 3, 256, 384], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=bias, last_layer=False, name="conv3", load=weights_conv, train=train_conv)
-l7 = FeedbackConv(size=[batch_size, 13, 13, 384], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="conv3_fb")
-
-l8 = Convolution(input_sizes=[batch_size, 13, 13, 384], filter_sizes=[3, 3, 384, 384], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=1., last_layer=False, name="conv4", load=weights_conv, train=train_conv)
-l9 = FeedbackConv(size=[batch_size, 13, 13, 384], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="conv4_fb")
-
-l10 = Convolution(input_sizes=[batch_size, 13, 13, 384], filter_sizes=[3, 3, 384, 256], num_classes=num_classes, init_filters=args.init, strides=[1, 1, 1, 1], padding="SAME", alpha=learning_rate, activation=Relu(), bias=1., last_layer=False, name="conv5", load=weights_conv, train=train_conv)
-l11 = MaxPool(size=[batch_size, 13, 13, 256], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="VALID")
-l12 = FeedbackConv(size=[batch_size, 6, 6, 256], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="conv5_fb")
-
-l13 = ConvToFullyConnected(shape=[6, 6, 256])
-
-l14 = FullyConnected(size=[6*6*256, 4096], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, l2=args.l2, name="fc1", load=weights_fc, train=train_fc)
-l15 = Dropout(rate=dropout_rate)
-l16 = FeedbackFC(size=[6*6*256, 4096], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="fc1_fb", std=0.01)
-
-l17 = FullyConnected(size=[4096, 4096], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=act, bias=args.bias, last_layer=False, l2=args.l2, name="fc2", load=weights_fc, train=train_fc)
-l18 = Dropout(rate=dropout_rate)
-l19 = FeedbackFC(size=[4096, 4096], num_classes=num_classes, sparse=args.sparse, rank=args.rank, name="fc2_fb", std=0.01)
-
-l20 = FullyConnected(size=[4096, num_classes], num_classes=num_classes, init_weights=args.init, alpha=learning_rate, activation=Linear(), bias=args.bias, last_layer=True, l2=args.l2, name="fc3", load=weights_fc, train=train_fc)
-'''
-
-###############################################################
 
 l0 = Convolution(input_shape=[batch_size, 227, 227, 3], filter_sizes=[11, 11, 3, 96], init=args.init, strides=[1,4,4,1], padding="VALID", activation=act, bias=args.bias, name='conv1')
 l1 = MaxPool(size=[batch_size, 55, 55, 96], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="VALID")

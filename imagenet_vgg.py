@@ -50,6 +50,10 @@ from lib.Activation import Relu
 
 ##############################################
 
+IMAGENET_MEAN = [123.68, 116.78, 103.94]
+
+##############################################
+
 def in_top_k(x, y, k):
     x = tf.cast(x, dtype=tf.float32)
     y = tf.cast(y, dtype=tf.int32)
@@ -60,11 +64,6 @@ def in_top_k(x, y, k):
     correct = tf.cast(correct, dtype=tf.int32)
     correct = tf.reduce_sum(correct, axis=0)
     return correct
-    
-##############################################
-
-num_classes = 1000
-IMAGENET_MEAN = [123.68, 116.78, 103.94]
 
 ##############################################
 
@@ -91,12 +90,12 @@ def parse_function(filename, label):
     return resized_image, label
 
 # Preprocessing (for training)
-# (3) Take a random 227x227 crop to the scaled image
+# (3) Take a random 224x224 crop to the scaled image
 # (4) Horizontally flip the image with probability 1/2
 # (5) Substract the per color mean `IMAGENET_MEAN`
 # Note: we don't normalize the data here, as VGG was trained without normalization
 def train_preprocess(image, label):
-    crop_image = tf.random_crop(image, [227, 227, 3])                       # (3)
+    crop_image = tf.random_crop(image, [224, 224, 3])                       # (3)
     flip_image = tf.image.random_flip_left_right(crop_image)                # (4)
 
     means = tf.reshape(tf.constant(IMAGENET_MEAN), [1, 1, 3])
@@ -106,11 +105,11 @@ def train_preprocess(image, label):
     
 
 # Preprocessing (for validation)
-# (3) Take a central 227x227 crop to the scaled image
+# (3) Take a central 224x224 crop to the scaled image
 # (4) Substract the per color mean `IMAGENET_MEAN`
 # Note: we don't normalize the data here, as VGG was trained without normalization
 def val_preprocess(image, label):
-    crop_image = tf.image.resize_image_with_crop_or_pad(image, 227, 227)    # (3)
+    crop_image = tf.image.resize_image_with_crop_or_pad(image, 224, 224)    # (3)
 
     means = tf.reshape(tf.constant(IMAGENET_MEAN), [1, 1, 3])
     centered_image = crop_image - means                                     # (4)
@@ -208,8 +207,8 @@ train_dataset = train_dataset.prefetch(8)
 handle = tf.placeholder(tf.string, shape=[])
 iterator = tf.data.Iterator.from_string_handle(handle, train_dataset.output_types, train_dataset.output_shapes)
 features, labels = iterator.get_next()
-features = tf.reshape(features, (-1, 227, 227, 3))
-labels = tf.one_hot(labels, depth=num_classes)
+features = tf.reshape(features, (-1, 224, 224, 3))
+labels = tf.one_hot(labels, depth=1000)
 
 train_iterator = train_dataset.make_initializable_iterator()
 val_iterator = val_dataset.make_initializable_iterator()
