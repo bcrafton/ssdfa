@@ -70,8 +70,8 @@ class ConvDWBlock(Layer):
         dconv, gconv = self.conv.bp(AI, conv, dbn['dout'], None)
         cache.update({'dconv':dconv['dout'], 'dbn':dbn['dout'], 'drelu':drelu['dout']})
         grads = []
-        grads.extend(dconv)
-        grads.extend(dbn)
+        grads.extend(gconv)
+        grads.extend(gbn)
         return {'dout':dconv['dout'], 'cache':cache}, grads
         
     def dfa(self, AI, AO, DO, cache):    
