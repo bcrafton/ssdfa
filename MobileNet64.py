@@ -158,27 +158,26 @@ val_iterator = val_dataset.make_initializable_iterator()
 
 ###############################################################
 
-batch_size = tf.placeholder(tf.int32, shape=())
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 
-l1_1 = ConvBlock(input_shape=[batch_size, 64, 64, 3], filter_shape=[3, 3, 3, 32], strides=[1,1,1,1], init=args.init, name='block1')
-l1_2 = LELConv(input_shape=[batch_size, 64, 64, 32], pool_shape=[1,8,8,1], num_classes=1000, name='block1_fb')
+l1_1 = ConvBlock(input_shape=[args.batch_size, 64, 64, 3], filter_shape=[3, 3, 3, 32], strides=[1,1,1,1], init=args.init, name='block1')
+l1_2 = LELConv(input_shape=[args.batch_size, 64, 64, 32], pool_shape=[1,8,8,1], num_classes=1000, name='block1_fb')
 
-l2 = MobileBlock(input_shape=[batch_size, 64, 64, 32],  filter_shape=[32, 64],   strides=[1,2,2,1], init=args.init, pool_shape=[1,8,8,1], num_classes=1000, name='block2')
-l3 = MobileBlock(input_shape=[batch_size, 32, 32, 64],  filter_shape=[64, 128],  strides=[1,1,1,1], init=args.init, pool_shape=[1,8,8,1], num_classes=1000, name='block3')
-l4 = MobileBlock(input_shape=[batch_size, 32, 32, 128], filter_shape=[128, 256], strides=[1,2,2,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block4')
-l5 = MobileBlock(input_shape=[batch_size, 16, 16, 256], filter_shape=[256, 512], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block5')
-l6 = MobileBlock(input_shape=[batch_size, 16, 16, 512], filter_shape=[512, 512], strides=[1,2,2,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block6')
+l2 = MobileBlock(input_shape=[args.batch_size, 64, 64, 32],  filter_shape=[32, 64],   strides=[1,2,2,1], init=args.init, pool_shape=[1,8,8,1], num_classes=1000, name='block2')
+l3 = MobileBlock(input_shape=[args.batch_size, 32, 32, 64],  filter_shape=[64, 128],  strides=[1,1,1,1], init=args.init, pool_shape=[1,8,8,1], num_classes=1000, name='block3')
+l4 = MobileBlock(input_shape=[args.batch_size, 32, 32, 128], filter_shape=[128, 256], strides=[1,2,2,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block4')
+l5 = MobileBlock(input_shape=[args.batch_size, 16, 16, 256], filter_shape=[256, 512], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block5')
+l6 = MobileBlock(input_shape=[args.batch_size, 16, 16, 512], filter_shape=[512, 512], strides=[1,2,2,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block6')
 
-l7 = MobileBlock(input_shape=[batch_size, 8, 8, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block7')
-l8 = MobileBlock(input_shape=[batch_size, 8, 8, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block8')
-l9 = MobileBlock(input_shape=[batch_size, 8, 8, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block9')
+l7 = MobileBlock(input_shape=[args.batch_size, 8, 8, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block7')
+l8 = MobileBlock(input_shape=[args.batch_size, 8, 8, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block8')
+l9 = MobileBlock(input_shape=[args.batch_size, 8, 8, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block9')
 
-l10 = MobileBlock(input_shape=[batch_size, 8, 8, 512],  filter_shape=[512, 1024],  strides=[1,2,2,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block10')
-l11 = MobileBlock(input_shape=[batch_size, 4, 4, 1024], filter_shape=[1024, 1024], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block11')
+l10 = MobileBlock(input_shape=[args.batch_size, 8, 8, 512],  filter_shape=[512, 1024],  strides=[1,2,2,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block10')
+l11 = MobileBlock(input_shape=[args.batch_size, 4, 4, 1024], filter_shape=[1024, 1024], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block11')
 
-l12 = AvgPool(size=[batch_size, 4, 4, 1024], ksize=[1, 4, 4, 1], strides=[1, 4, 4, 1], padding="SAME")
+l12 = AvgPool(size=[args.batch_size, 4, 4, 1024], ksize=[1, 4, 4, 1], strides=[1, 4, 4, 1], padding="SAME")
 l13 = ConvToFullyConnected(input_shape=[1, 1, 1024])
 l14 = FullyConnected(input_shape=1024, size=1000, init=args.init, name="fc1")
 
