@@ -59,64 +59,35 @@ class BatchNorm(Layer):
         else:
             assert(False)
 
-    ###################################################################
-
     def forward(self, X):
         mean = tf.reduce_mean(X, axis=self.dims)
         _, var = tf.nn.moments(X - mean, axes=self.dims)
         A = tf.nn.batch_normalization(x=X, mean=mean, variance=var, offset=self.beta, scale=self.gamma, variance_epsilon=self.eps)
         return {'aout':A, 'cache':{}}
-        
-    def backward(self, AI, AO, DO, cache=None):
-        mean = tf.reduce_mean(AI, axis=self.dims)
-        _, var = tf.nn.moments(AI - mean, axes=self.dims)
-        ivar = 1. / tf.sqrt(self.eps + var)
 
-        if len(self.input_size) == 2:
-            AI = tf.reshape(AI, (self.input_size[0], 1, 1, self.input_size[1]))
-            DO = tf.reshape(AI, (self.input_size[0], 1, 1, self.size))
-            
-        [DI, dgamma, dbeta, _, _] = gen_nn_ops.fused_batch_norm_grad_v2(y_backprop=DO, x=AI, scale=self.gamma, reserve_space_1=mean, reserve_space_2=ivar, epsilon=self.eps, is_training=True)
-        
-        if len(self.input_size) == 2:
-            DI = tf.reshape(DI, (self.input_size[0], self.size))
-            
-        return {'dout':DI, 'cache':{}}
-
-    def gv(self, AI, AO, DO, cache=None):
-        if not self._train:
-            return []
-
-        mean = tf.reduce_mean(AI, axis=self.dims)
-        _, var = tf.nn.moments(AI - mean, axes=self.dims)
-        ivar = 1. / tf.sqrt(self.eps + var)
-
-        if len(self.input_size) == 2:
-            AI = tf.reshape(AI, (self.input_size[0], 1, 1, self.input_size[1]))
-            DO = tf.reshape(AI, (self.input_size[0], 1, 1, self.size))
-
-        [DI, dgamma, dbeta, _, _] = gen_nn_ops.fused_batch_norm_grad_v2(y_backprop=DO, x=AI, scale=self.gamma, reserve_space_1=mean, reserve_space_2=ivar, epsilon=self.eps, is_training=True)
-        
-        if len(self.input_size) == 2:
-            DI = tf.reshape(DI, (self.input_size[0], self.size))
-        
-        return [(dgamma, self.gamma), (dbeta, self.beta)]
-        
     ###################################################################
 
-    def dfa_backward(self, AI, AO, E, DO):
-        return self.backward(AI, AO, DO)
-        
-    def dfa_gv(self, AI, AO, E, DO):
-        return self.gv(AI, AO, DO)
+    def bp(self, AI, AO, DO, cache=None):
+        mean = tf.reduce_mean(AI, axis=self.dims)
+        _, var = tf.nn.moments(AI - mean, axes=self.dims)
+        ivar = 1. / tf.sqrt(self.eps + var)
 
-    ###################################################################   
-    
-    def lel_backward(self, AI, AO, E, DO, Y, cache):
-        return self.backward(AI, AO, DO, cache)
+        if len(self.input_size) == 2:
+            AI = tf.reshape(AI, (self.input_size[0], 1, 1, self.input_size[1]))
+            DO = tf.reshape(AI, (self.input_size[0], 1, 1, self.size))
+            
+        [DI, dgamma, dbeta, _, _] = gen_nn_ops.fused_batch_norm_grad_v2(y_backprop=DO, x=AI, scale=self.gamma, reserve_space_1=mean, reserve_space_2=ivar, epsilon=self.eps, is_training=True)
         
-    def lel_gv(self, AI, AO, E, DO, Y, cache):
-        return self.gv(AI, AO, DO, cache)
+        if len(self.input_size) == 2:
+            DI = tf.reshape(DI, (self.input_size[0], self.size))
+            
+        return {'dout':DI, 'cache':{}}, [(dgamma, self.gamma), (dbeta, self.beta)]
+
+    def dfa(self, AI, AO, DO, cache):    
+        return self.bp(AI, AO, DO, cache)
+    
+    def lel(self, AI, AO, DO, cache):
+        return self.bp(AI, AO, DO, cache)
 
     ###################################################################  
 
