@@ -2,3 +2,4 @@
 *.results
 *.npy
 nohup.out
+*.pyc

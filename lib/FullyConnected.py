@@ -11,7 +11,7 @@ from lib.init_tensor import init_matrix
 
 class FullyConnected(Layer):
 
-    def __init__(self, input_shape, size, init, activation=None, bias=0., use_bias=False, name=None, load=None, train=True):
+    def __init__(self, input_shape, size, init, activation=None, bias=0., use_bias=True, name=None, load=None, train=True):
         self.input_size = input_shape
         self.output_size = size
         self.init = init

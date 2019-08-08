@@ -14,7 +14,7 @@ from lib.init_tensor import init_filters
 
 class Convolution(Layer):
 
-    def __init__(self, input_shape, filter_sizes, init, strides=[1,1,1,1], padding='SAME', activation=None, bias=0., use_bias=False, name=None, load=None, train=True):
+    def __init__(self, input_shape, filter_sizes, init, strides=[1,1,1,1], padding='SAME', activation=None, bias=0., use_bias=True, name=None, load=None, train=True):
         self.input_shape = input_shape
         self.filter_sizes = filter_sizes
         self.batch_size, self.h, self.w, self.fin = self.input_shape
