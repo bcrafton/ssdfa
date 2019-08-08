@@ -19,7 +19,7 @@ parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
 parser.add_argument('--init', type=str, default="glorot_uniform")
 parser.add_argument('--save', type=int, default=0)
-parser.add_argument('--name', type=str, default="imagenet_alexnet")
+parser.add_argument('--name', type=str, default="imagenet_mobilenet")
 parser.add_argument('--load', type=str, default=None)
 args = parser.parse_args()
 
@@ -53,9 +53,6 @@ from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
 
-from lib.Activation import Activation
-from lib.Activation import Relu
-
 ##############################################
 
 MEAN = [122.77093945, 116.74601272, 104.09373519]
@@ -86,7 +83,7 @@ def get_val_filenames():
 
     np.random.shuffle(val_filenames)    
 
-    remainder = len(val_filenames) % batch_size
+    remainder = len(val_filenames) % args.batch_size
     val_filenames = val_filenames[:(-remainder)]
 
     return val_filenames
@@ -102,7 +99,7 @@ def get_train_filenames():
     
     np.random.shuffle(train_filenames)
 
-    remainder = len(train_filenames) % batch_size
+    remainder = len(train_filenames) % args.batch_size
     train_filenames = train_filenames[:(-remainder)]
 
     return train_filenames
@@ -135,7 +132,7 @@ filename = tf.placeholder(tf.string, shape=[None])
 
 val_dataset = tf.data.TFRecordDataset(filename)
 val_dataset = val_dataset.map(extract_fn, num_parallel_calls=4)
-val_dataset = val_dataset.batch(batch_size)
+val_dataset = val_dataset.batch(args.batch_size)
 val_dataset = val_dataset.repeat()
 val_dataset = val_dataset.prefetch(8)
 
@@ -143,7 +140,7 @@ val_dataset = val_dataset.prefetch(8)
 
 train_dataset = tf.data.TFRecordDataset(filename)
 train_dataset = train_dataset.map(extract_fn, num_parallel_calls=4)
-train_dataset = train_dataset.batch(batch_size)
+train_dataset = train_dataset.batch(args.batch_size)
 train_dataset = train_dataset.repeat()
 train_dataset = train_dataset.prefetch(8)
 
@@ -161,6 +158,7 @@ val_iterator = val_dataset.make_initializable_iterator()
 
 ###############################################################
 
+batch_size = tf.placeholder(tf.int32, shape=())
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 
@@ -239,17 +237,17 @@ for ii in range(epochs):
     train_correct = 0.0
     train_top5 = 0.0
     
-    for j in range(0, len(train_filenames), batch_size):
+    for j in range(0, len(train_filenames), args.batch_size):
         [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: lr_decay})
 
-        train_total += batch_size
+        train_total += args.batch_size
         train_correct += _total_correct
         train_top5 += _total_top5
         
         train_acc = train_correct / train_total
         train_acc_top5 = train_top5 / train_total
         
-        if (j % (100 * batch_size) == 0):
+        if (j % (100 * args.batch_size) == 0):
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
             print (p)
             f = open(results_filename, "a")
@@ -273,17 +271,17 @@ for ii in range(epochs):
     val_correct = 0.0
     val_top5 = 0.0
     
-    for j in range(0, len(val_filenames), batch_size):
+    for j in range(0, len(val_filenames), args.batch_size):
         [_total_correct, _top5] = sess.run([total_correct, total_top5], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
         
-        val_total += batch_size
+        val_total += args.batch_size
         val_correct += _total_correct
         val_top5 += _top5
         
         val_acc = val_correct / val_total
         val_acc_top5 = val_top5 / val_total
         
-        if (j % (100 * batch_size) == 0):
+        if (j % (100 * args.batch_size) == 0):
             p = "val accuracy: %f %f" % (val_acc, val_acc_top5)
             print (p)
             f = open(results_filename, "a")
