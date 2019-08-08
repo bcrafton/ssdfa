@@ -101,7 +101,11 @@ l7 = FullyConnected(input_shape=4*4*256, size=10, init=args.init, bias=args.bias
 
 ##############################################
 
-model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7])
+auto = False
+
+##############################################
+
+model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7], auto=auto)
 predict = model.predict(X=X)
 weights = model.get_weights()
 
@@ -110,7 +114,10 @@ if args.dfa:
 else:
     grads_and_vars = model.gvs(X=X, Y=Y)
 
-[conv3, conv2, conv1, fc1] = grads_and_vars
+if auto:
+    [conv1, conv2, conv3, fc1] = grads_and_vars
+else:
+    [fc1, conv3, conv2, conv1] = grads_and_vars
         
 train1 = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=[fc1, conv1])
 train2 = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=[fc1, conv2])
@@ -162,6 +169,12 @@ for ii in range(args.epochs):
             _correct, _ = sess.run([total_correct, train4], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
 
         _total_correct += _correct
+        
+        '''
+        [fc1, conv1, conv2, conv3] = sess.run([fc1, conv1, conv2, conv3], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
+        print ('fc1', np.shape(fc1), 'conv1', np.shape(conv1), 'conv2', np.shape(conv2), 'conv3', np.shape(conv3))
+        assert(False)
+        '''
 
     train_acc = 1.0 * _total_correct / (train_examples - (train_examples % args.batch_size))
     train_accs.append(train_acc)

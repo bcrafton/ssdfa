@@ -4,10 +4,11 @@ import numpy as np
 np.set_printoptions(threshold=1000)
 
 class Model:
-    def __init__(self, layers : tuple):
+    def __init__(self, layers, auto):
         self.num_layers = len(layers)
         self.layers = layers
-        
+        self.auto = auto
+
     def num_params(self):
         param_sum = 0
         for ii in range(self.num_layers):
@@ -51,31 +52,30 @@ class Model:
             else:
                 A[ii] = l.forward(A[ii-1]['aout'])
 
+        if self.auto:
+            params = tf.trainable_variables()
+            loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=Y, logits=A[self.num_layers-1]['aout'])
+            grads = tf.gradients(loss, params)
+            grads_and_vars = zip(grads, params)
 
-        params = tf.trainable_variables()
-        loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=Y, logits=A[self.num_layers-1]['aout'])
-        grads = tf.gradients(loss, params)
-        grads_and_vars = zip(grads, params)
-
-        '''
-        E = tf.nn.softmax(A[self.num_layers-1]['aout']) - Y
-        N = tf.shape(A[self.num_layers-1]['aout'])[0]
-        N = tf.cast(N, dtype=tf.float32)
-        E = E / N
+        else:
+            E = tf.nn.softmax(A[self.num_layers-1]['aout']) - Y
+            N = tf.shape(A[self.num_layers-1]['aout'])[0]
+            N = tf.cast(N, dtype=tf.float32)
+            # E = E / N
             
-        for ii in range(self.num_layers-1, -1, -1):
-            l = self.layers[ii]
+            for ii in range(self.num_layers-1, -1, -1):
+                l = self.layers[ii]
             
-            if (ii == self.num_layers-1):
-                D[ii], gvs = l.bp(A[ii-1]['aout'], A[ii]['aout'], E,               A[ii]['cache'])
-                grads_and_vars.extend(gvs)
-            elif (ii == 0):
-                D[ii], gvs = l.bp(X,               A[ii]['aout'], D[ii+1]['dout'], A[ii]['cache'])
-                grads_and_vars.extend(gvs)
-            else:
-                D[ii], gvs = l.bp(A[ii-1]['aout'], A[ii]['aout'], D[ii+1]['dout'], A[ii]['cache'])
-                grads_and_vars.extend(gvs)
-        '''
+                if (ii == self.num_layers-1):
+                    D[ii], gvs = l.bp(A[ii-1]['aout'], A[ii]['aout'], E,               A[ii]['cache'])
+                    grads_and_vars.extend(gvs)
+                elif (ii == 0):
+                    D[ii], gvs = l.bp(X,               A[ii]['aout'], D[ii+1]['dout'], A[ii]['cache'])
+                    grads_and_vars.extend(gvs)
+                else:
+                    D[ii], gvs = l.bp(A[ii-1]['aout'], A[ii]['aout'], D[ii+1]['dout'], A[ii]['cache'])
+                    grads_and_vars.extend(gvs)
 
         return grads_and_vars
     
