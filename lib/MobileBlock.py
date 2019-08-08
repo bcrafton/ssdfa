@@ -63,7 +63,7 @@ class MobileBlock(Layer):
     def bp(self, AI, AO, DO, cache):    
         conv_dw, conv_pw = cache['conv_dw'], cache['conv_pw']
         dconv_pw, gconv_pw = self.conv_pw.bp(conv_dw['aout'], conv_pw['aout'], DO,               conv_pw['cache'])
-        dconv_dw, gconv_dw, = self.conv_dw.bp(AI,             conv_dw['aout'], dconv_pw['dout'], conv_dw['cache'])
+        dconv_dw, gconv_dw = self.conv_dw.bp(AI,              conv_dw['aout'], dconv_pw['dout'], conv_dw['cache'])
         cache.update({'dconv_dw':dconv_dw, 'dconv_pw':dconv_pw})
         grads = []
         grads.extend(gconv_dw)

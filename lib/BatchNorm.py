@@ -67,7 +67,7 @@ class BatchNorm(Layer):
 
     ###################################################################
 
-    def bp(self, AI, AO, DO, cache=None):
+    def bp(self, AI, AO, DO, cache):
         mean = tf.reduce_mean(AI, axis=self.dims)
         _, var = tf.nn.moments(AI - mean, axes=self.dims)
         ivar = 1. / tf.sqrt(self.eps + var)

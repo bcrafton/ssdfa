@@ -164,7 +164,7 @@ val_iterator = val_dataset.make_initializable_iterator()
 ###############################################################
 
 dropout_rate = tf.placeholder(tf.float32, shape=())
-learning_rate = tf.placeholder(tf.float32, shape=())
+lr = tf.placeholder(tf.float32, shape=())
 
 l1 = ConvBlock(input_shape=[args.batch_size, 64, 64, 3], filter_shape=[3, 3, 3, 32], strides=[1,1,1,1], init=args.init, name='block1')
 
@@ -232,8 +232,7 @@ val_accs_top5 = []
 phase = 0
 lr_decay = args.lr
 
-for ii in range(epochs):
-
+for ii in range(args.epochs):
     sess.run(train_iterator.initializer, feed_dict={filename: train_filenames})
 
     train_total = 0.0
@@ -241,7 +240,7 @@ for ii in range(epochs):
     train_top5 = 0.0
     
     for j in range(0, len(train_filenames), args.batch_size):
-        [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: lr_decay})
+        [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, lr: lr_decay})
 
         train_total += args.batch_size
         train_correct += _total_correct
@@ -257,12 +256,6 @@ for ii in range(epochs):
             f.write(p + "\n")
             f.close()
 
-    p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
-    print (p)
-    f = open(results_filename, "a")
-    f.write(p + "\n")
-    f.close()
-
     train_accs.append(train_acc)
     train_accs_top5.append(train_acc_top5)
     
@@ -275,7 +268,7 @@ for ii in range(epochs):
     val_top5 = 0.0
     
     for j in range(0, len(val_filenames), args.batch_size):
-        [_total_correct, _top5] = sess.run([total_correct, total_top5], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
+        [_total_correct, _top5] = sess.run([total_correct, total_top5], feed_dict={handle: val_handle, dropout_rate: 0.0, lr: 0.0})
         
         val_total += args.batch_size
         val_correct += _total_correct
