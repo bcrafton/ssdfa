@@ -10,7 +10,7 @@ np.set_printoptions(threshold=np.inf)
 
 class FeedbackFC(Layer):
     num = 0
-    def __init__(self, size, num_classes, sparse, rank, name=None):
+    def __init__(self, size, num_classes, sparse=0, rank=0, name=None):
         self.size = size
         self.input_size, self.output_size = self.size
         self.num_classes = num_classes

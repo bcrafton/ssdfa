@@ -8,7 +8,7 @@ from lib.FeedbackMatrix import FeedbackMatrix
 
 class FeedbackConv(Layer):
 
-    def __init__(self, size, num_classes, sparse, rank, name=None):
+    def __init__(self, size, num_classes, sparse=0, rank=0, name=None):
         self.size = size
         self.batch_size, self.h, self.w, self.f = self.size
         self.num_output = self.h * self.w * self.f
