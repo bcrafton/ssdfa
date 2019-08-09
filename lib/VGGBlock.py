@@ -7,14 +7,14 @@ from lib.ConvBlock import ConvBlock
 
 class VGGBlock(Layer):
 
-    def __init__(self, input_shape, filter_shape, strides, init, name, load=None, train=True):
+    def __init__(self, input_shape, filter_shape, init, name, load=None, train=True):
         self.input_shape = input_shape
         self.batch, self.h, self.w, self.fin = self.input_shape
         
         self.filter_shape = filter_shape
         self.fin, self.fout = self.filter_shape
         
-        self.strides = strides
+        self.strides = [1,1,1,1]
         _, self.sh, self.sw, _ = self.strides
 
         self.init = init

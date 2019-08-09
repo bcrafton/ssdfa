@@ -1,7 +1,4 @@
 
-# https://learningai.io/projects/2017/06/29/tiny-imagenet.html
-# not getting that great of acc
-
 import argparse
 import os
 import sys
@@ -11,24 +8,18 @@ import sys
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--batch_size', type=int, default=64)
-parser.add_argument('--alpha', type=float, default=5e-2)
-parser.add_argument('--l2', type=float, default=0.)
-parser.add_argument('--decay', type=float, default=1.)
+parser.add_argument('--lr', type=float, default=5e-2)
 parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--dropout', type=float, default=0.5)
 parser.add_argument('--act', type=str, default='relu')
 parser.add_argument('--bias', type=float, default=0.)
 parser.add_argument('--gpu', type=int, default=0)
-parser.add_argument('--dfa', type=int, default=1)
+parser.add_argument('--dfa', type=int, default=0)
 parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
 parser.add_argument('--init', type=str, default="alexnet")
-parser.add_argument('--opt', type=str, default="adam")
-
-parser.add_argument('--ae_loss', type=float, default=0)
-
 parser.add_argument('--save', type=int, default=0)
-parser.add_argument('--name', type=str, default="vgg64x64")
+parser.add_argument('--name', type=str, default="imagenet_mobilenet")
 parser.add_argument('--load', type=str, default=None)
 args = parser.parse_args()
 
@@ -47,28 +38,9 @@ else:
 ##############################################
 
 import keras
-from keras.datasets import cifar10
-from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation, Flatten
-from keras.layers import Conv2D, MaxPooling2D
-from keras.layers import Convolution2D, MaxPooling2D
-from keras.optimizers import SGD
-
 import tensorflow as tf
-import os
-import math
-import numpy
 import numpy as np
 np.set_printoptions(threshold=1000)
-import time
-import re
-
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-import numpy as np
-from PIL import Image
-import scipy.misc
 
 from lib.Model import Model
 
@@ -77,27 +49,19 @@ from lib.ConvToFullyConnected import ConvToFullyConnected
 from lib.FullyConnected import FullyConnected
 from lib.Convolution import Convolution
 from lib.MaxPool import MaxPool
+from lib.AvgPool import AvgPool
 from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
-from lib.BatchNorm import BatchNorm
 
-from lib.AvgPool import AvgPool
-from lib.LELPool import LELPool
-
-from lib.Activation import Activation
-from lib.Activation import Sigmoid
-from lib.Activation import Relu
-from lib.Activation import Tanh
-from lib.Activation import Softmax
-from lib.Activation import LeakyRelu
-from lib.Activation import Linear
-
+from lib.ConvBlock import ConvBlock
 from lib.VGGBlock import VGGBlock
+from lib.MobileBlock import MobileBlock
+from lib.BatchNorm import BatchNorm
 
 ##############################################
 
-num_classes = 1000
+# MEAN = [122.77093945, 116.74601272, 104.09373519]
 
 ##############################################
 
@@ -113,17 +77,6 @@ def in_top_k(x, y, k):
     return correct
 
 ##############################################
-
-def parse_function(filename, label):
-    conv = tf.read_file(filename)
-    return conv, label
-
-##############################################
-
-def pre(fn):
-    [fn] = re.findall('\d+.tfrecord', fn)
-    [fn] = re.findall('\d+', fn)
-    return int(fn)
 
 def get_val_filenames():
     val_filenames = []
@@ -192,7 +145,6 @@ val_dataset = val_dataset.prefetch(8)
 ###############################################################
 
 train_dataset = tf.data.TFRecordDataset(filename)
-# train_dataset = train_dataset.shuffle(len(train_filenames), reshuffle_each_iteration=False)
 train_dataset = train_dataset.map(extract_fn, num_parallel_calls=4)
 train_dataset = train_dataset.batch(args.batch_size)
 train_dataset = train_dataset.repeat()
@@ -203,46 +155,38 @@ train_dataset = train_dataset.prefetch(8)
 handle = tf.placeholder(tf.string, shape=[])
 iterator = tf.data.Iterator.from_string_handle(handle, train_dataset.output_types, train_dataset.output_shapes)
 features, labels = iterator.get_next()
+
 features = tf.reshape(features, (args.batch_size, 64, 64, 3))
-labels = tf.one_hot(labels, depth=num_classes)
+labels = tf.one_hot(labels, depth=1000)
 
 train_iterator = train_dataset.make_initializable_iterator()
 val_iterator = val_dataset.make_initializable_iterator()
 
 ###############################################################
 
-weights_conv = None
-weights_fc = None
-
-train_conv = True
-train_fc = True
-
-###############################################################
-
 dropout_rate = tf.placeholder(tf.float32, shape=())
 learning_rate = tf.placeholder(tf.float32, shape=())
 
-gray = tf.image.rgb_to_grayscale(features)
-X = features / 255.
+l0 = BatchNorm(input_size=[args.batch_size, 64, 64, 3], name='bn0')
 
-l1_1 = VGGBlock(input_shape=[args.batch_size, 64, 64, 3],   filter_shape=[3, 64],    strides=[1,1,1,1], init=args.init, pool_shape=[1,8,8,1], num_classes=1000, name='block1', ae_loss=args.ae_loss)
-l1_2 = VGGBlock(input_shape=[args.batch_size, 64, 64, 64],  filter_shape=[64, 64],   strides=[1,1,1,1], init=args.init, pool_shape=[1,8,8,1], num_classes=1000, name='block2', ae_loss=args.ae_loss)
+l1_1 = VGGBlock(input_shape=[args.batch_size, 64, 64, 3], filter_shape=[3, 64], init=args.init, name='block1')
+l1_2 = VGGBlock(input_shape=[args.batch_size, 64, 64, 64], filter_shape=[64, 64], init=args.init, name='block2')
 l1_3 = AvgPool(size=[args.batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l2_1 = VGGBlock(input_shape=[args.batch_size, 32, 32, 64],  filter_shape=[64, 128],  strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block3', ae_loss=args.ae_loss)
-l2_2 = VGGBlock(input_shape=[args.batch_size, 32, 32, 128], filter_shape=[128, 128], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block4', ae_loss=args.ae_loss)
+l2_1 = VGGBlock(input_shape=[args.batch_size, 32, 32, 64],  filter_shape=[64, 128], init=args.init, name='block3')
+l2_2 = VGGBlock(input_shape=[args.batch_size, 32, 32, 128], filter_shape=[128, 128], init=args.init, name='block4')
 l2_3 = AvgPool(size=[args.batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l3_1 = VGGBlock(input_shape=[args.batch_size, 16, 16, 128], filter_shape=[128, 256], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block5', ae_loss=args.ae_loss)
-l3_2 = VGGBlock(input_shape=[args.batch_size, 16, 16, 256], filter_shape=[256, 256], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block6', ae_loss=args.ae_loss)
+l3_1 = VGGBlock(input_shape=[args.batch_size, 16, 16, 128], filter_shape=[128, 256], init=args.init, name='block5')
+l3_2 = VGGBlock(input_shape=[args.batch_size, 16, 16, 256], filter_shape=[256, 256], init=args.init, name='block6')
 l3_3 = AvgPool(size=[args.batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l4_1 = VGGBlock(input_shape=[args.batch_size, 8, 8, 256],   filter_shape=[256, 512], strides=[1,1,1,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block7', ae_loss=args.ae_loss)
-l4_2 = VGGBlock(input_shape=[args.batch_size, 8, 8, 512],   filter_shape=[512, 512], strides=[1,1,1,1], init=args.init, pool_shape=[1,2,2,1], num_classes=1000, name='block8', ae_loss=args.ae_loss)
+l4_1 = VGGBlock(input_shape=[args.batch_size, 8, 8, 256],   filter_shape=[256, 512], init=args.init, name='block7')
+l4_2 = VGGBlock(input_shape=[args.batch_size, 8, 8, 512],   filter_shape=[512, 512], init=args.init, name='block8')
 l4_3 = AvgPool(size=[args.batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l5_1 = VGGBlock(input_shape=[args.batch_size, 4, 4, 512],   filter_shape=[512, 1024],  strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block9', ae_loss=args.ae_loss)
-l5_2 = VGGBlock(input_shape=[args.batch_size, 4, 4, 1024],  filter_shape=[1024, 1024], strides=[1,1,1,1], init=args.init, pool_shape=[1,4,4,1], num_classes=1000, name='block10', ae_loss=args.ae_loss)
+l5_1 = VGGBlock(input_shape=[args.batch_size, 4, 4, 512],   filter_shape=[512, 1024],  init=args.init, name='block9')
+l5_2 = VGGBlock(input_shape=[args.batch_size, 4, 4, 1024],  filter_shape=[1024, 1024], init=args.init, name='block10')
 l5_3 = AvgPool(size=[args.batch_size, 4, 4, 1024], ksize=[1, 4, 4, 1], strides=[1, 4, 4, 1], padding="SAME")
 
 l6 = ConvToFullyConnected(input_shape=[1, 1, 1024])
@@ -251,6 +195,7 @@ l7 = FullyConnected(input_shape=1024, size=1000, init=args.init, name="fc1")
 ###############################################################
 
 layers = [
+l0,
 l1_1, l1_2, l1_3,
 l2_1, l2_2, l2_3,
 l3_1, l3_2, l3_3,
@@ -259,42 +204,19 @@ l5_1, l5_2, l5_3,
 l6, 
 l7
 ]
-
 model = Model(layers=layers)
 predict = tf.nn.softmax(model.predict(X=X))
 weights = model.get_weights()
 
-o0 = model.up_to(X, N=0)
-o1 = model.up_to(X, N=3)
-o2 = model.up_to(X, N=6)
-o3 = model.up_to(X, N=9)
-
-if args.opt == "adam" or args.opt == "rms" or args.opt == "decay" or args.opt == "momentum":
-    if args.dfa:
-        grads_and_vars = model.lel_gvs(X=X, Y=labels)
-    else:
-        grads_and_vars = model.gvs(X=X, Y=labels)
-        
-    if args.opt == "adam":
-        train = tf.train.AdamOptimizer(learning_rate=learning_rate, beta1=0.9, beta2=0.999, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
-    elif args.opt == "rms":
-        train = tf.train.RMSPropOptimizer(learning_rate=learning_rate, decay=0.99, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
-    elif args.opt == "decay":
-        train = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).apply_gradients(grads_and_vars=grads_and_vars)
-    elif args.opt == "momentum":
-        train = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9).apply_gradients(grads_and_vars=grads_and_vars)
-    else:
-        assert(False)
-
+if args.dfa:
+    grads_and_vars = model.dfa_gvs(X=features, Y=labels)
 else:
-    if args.dfa:
-        train = model.lel(X=X, Y=labels)
-    else:
-        train = model.train(X=X, Y=labels)
+    grads_and_vars = model.gvs(X=features, Y=labels)
+        
+train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
-
 top5 = in_top_k(predict, tf.argmax(labels,1), k=5)
 total_top5 = tf.reduce_sum(tf.cast(top5, tf.float32))
 
@@ -320,74 +242,35 @@ f.close()
 
 train_accs = []
 train_accs_top5 = []
-
 val_accs = []
 val_accs_top5 = []
 
-alpha = args.alpha
 phase = 0
+lr_decay = args.lr
 
-for ii in range(0, args.epochs):
-
-    print('epoch {}/{}'.format(ii, args.epochs))
-    
-    ##################################################################
-
+for ii in range(args.epochs):
     sess.run(train_iterator.initializer, feed_dict={filename: train_filenames})
 
     train_total = 0.0
     train_correct = 0.0
     train_top5 = 0.0
     
-    train_acc = 0.0
-    train_acc_top5 = 0.0
-
     for jj in range(0, len(train_filenames), args.batch_size):
+        [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, lr: lr_decay})
+
+        train_total += args.batch_size
+        train_correct += _total_correct
+        train_top5 += _total_top5
+        
+        train_acc = train_correct / train_total
+        train_acc_top5 = train_top5 / train_total
         
         if (jj % (100 * args.batch_size) == 0):
-            [_total_correct, _total_top5, _, _gray, _o0, _o1, _o2, _o3] = sess.run([total_correct, total_top5, train, gray, o0, o1, o2, o3], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
-            
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
             print (p)
             f = open(results_filename, "a")
             f.write(p + "\n")
             f.close()
-
-            ####################################
-
-            rows = []
-            for _ in range(5):
-                idx = np.random.randint(low=0, high=64)
-
-                imgray = scipy.misc.imresize(_gray[0, :, :, 0], 4.)
-                im0 = scipy.misc.imresize(_o0[0, :, :, idx], 4.)
-                im1 = scipy.misc.imresize(_o1[0, :, :, idx], 8.)
-                im2 = scipy.misc.imresize(_o2[0, :, :, idx], 16.)
-                im3 = scipy.misc.imresize(_o3[0, :, :, idx], 32.)
-
-                row = np.concatenate((imgray, im0, im1, im2, im3), axis=1)
-                rows.append(row)
-                
-            img = np.concatenate(rows, axis=0)
-            plt.imsave('%d_%d_%f.jpg' % (args.dfa, jj, args.ae_loss), img)
-
-            ####################################
-            
-        else:
-            [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, learning_rate: alpha})
-
-        train_total += args.batch_size
-        train_correct += _total_correct
-        train_top5 += _total_top5
-
-        train_acc = train_correct / train_total
-        train_acc_top5 = train_top5 / train_total
-
-    p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
-    print (p)
-    f = open(results_filename, "a")
-    f.write(p + "\n")
-    f.close()
 
     train_accs.append(train_acc)
     train_accs_top5.append(train_acc_top5)
@@ -401,8 +284,7 @@ for ii in range(0, args.epochs):
     val_top5 = 0.0
     
     for jj in range(0, len(val_filenames), args.batch_size):
-
-        [_total_correct, _top5] = sess.run([total_correct, total_top5], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
+        [_total_correct, _top5] = sess.run([total_correct, total_top5], feed_dict={handle: val_handle, dropout_rate: 0.0, lr: 0.0})
         
         val_total += args.batch_size
         val_correct += _total_correct
@@ -418,49 +300,26 @@ for ii in range(0, args.epochs):
             f.write(p + "\n")
             f.close()
 
-    p = "val accuracy: %f %f" % (val_acc, val_acc_top5)
-    print (p)
-    f = open(results_filename, "a")
-    f.write(p + "\n")
-    f.close()
-
     val_accs.append(val_acc)
     val_accs_top5.append(val_acc_top5)
 
     if phase == 0:
         phase = 1
+        print ('phase 1')
     elif phase == 1:
-        dacc = val_accs[-1] - val_accs[-2]
+        dacc = train_accs[-1] - train_accs[-2]
         if dacc <= 0.01:
-            alpha = 0.1 * args.alpha
+            lr_decay = 0.1 * args.lr
             phase = 2
+            print ('phase 2')
     elif phase == 2:
-        dacc = val_accs[-1] - val_accs[-2]
-        if dacc <= 0.001:
-            alpha = 0.01 * args.alpha
+        dacc = train_accs[-1] - train_accs[-2]
+        if dacc <= 0.005:
+            lr_decay = 0.05 * args.lr
             phase = 3
-    elif phase == 3:
-        dacc = val_accs[-1] - val_accs[-2]
-        if dacc <= 0.0001:
-            alpha = 0.001 * args.alpha
-            phase = 4
-    elif phase == 4:
-        dacc = val_accs[-1] - val_accs[-2]
-        if dacc <= 0.00001:
-            alpha = 0.0001 * args.alpha
-            phase = 5
+            print ('phase 3')
 
-    p = "Phase: %d" % (phase)
-    print (p)
-    f = open(results_filename, "a")
-    f.write(p + "\n")
-    f.close()
+    print('epoch %d/%d' % (ii, args.epochs))
 
-    if args.save:
-        [w] = sess.run([weights], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
-        w['train_acc'] = train_accs
-        w['train_acc_top5'] = train_accs_top5
-        w['val_acc'] = val_accs
-        w['val_acc_top5'] = val_accs_top5
-        np.save(args.name, w)
+
 
