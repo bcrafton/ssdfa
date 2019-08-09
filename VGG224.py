@@ -7,7 +7,7 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=100)
-parser.add_argument('--batch_size', type=int, default=128)
+parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--lr', type=float, default=1e-2)
 parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--dropout', type=float, default=0.5)
@@ -17,15 +17,27 @@ parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--dfa', type=int, default=0)
 parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
-parser.add_argument('--init', type=str, default="glorot_uniform")
+parser.add_argument('--init', type=str, default="alexnet")
 parser.add_argument('--save', type=int, default=0)
-parser.add_argument('--name', type=str, default="imagenet_alexnet")
+parser.add_argument('--name', type=str, default="imagenet_vgg")
 parser.add_argument('--load', type=str, default=None)
 args = parser.parse_args()
 
 if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
+
+exxact = 0
+if exxact:
+    assert (False)
+    val_path = ''
+    train_path = ''
+else:
+    val_path = '/usr/scratch/bcrafton/ILSVRC2012/val/'
+    train_path = '/usr/scratch/bcrafton/ILSVRC2012/train/'
+
+val_labels = './imagenet_labels/validation_labels.txt'
+train_labels = './imagenet_labels/train_labels.txt'
 
 ##############################################
 
@@ -44,8 +56,6 @@ from lib.MaxPool import MaxPool
 from lib.Dropout import Dropout
 from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
-
-from lib.Activation import Activation
 from lib.Activation import Relu
 
 ##############################################
@@ -125,12 +135,12 @@ def get_validation_dataset():
 
     print ("building validation dataset")
 
-    for subdir, dirs, files in os.walk('/home/bcrafton3/Data_SSD/ILSVRC2012/val/'):
+    for subdir, dirs, files in os.walk(val_path):
         for file in files:
-            validation_images.append(os.path.join('/home/bcrafton3/Data_SSD/ILSVRC2012/val/', file))
+            validation_images.append(os.path.join(val_path, file))
     validation_images = sorted(validation_images)
 
-    validation_labels_file = open('/home/bcrafton3/dfa/imagenet_labels/validation_labels.txt')
+    validation_labels_file = open(val_labels)
     lines = validation_labels_file.readlines()
     for ii in range(len(lines)):
         validation_labels.append(int(lines[ii]))
@@ -147,7 +157,7 @@ def get_train_dataset():
     training_images = []
     training_labels = []
 
-    f = open('/home/bcrafton3/dfa/imagenet_labels/train_labels.txt', 'r')
+    f = open(train_labels, 'r')
     lines = f.readlines()
 
     labels = {}
@@ -160,7 +170,7 @@ def get_train_dataset():
 
     print ("building train dataset")
 
-    for subdir, dirs, files in os.walk('/home/bcrafton3/Data_SSD/ILSVRC2012/train/'):
+    for subdir, dirs, files in os.walk(train_path):
         for folder in dirs:
             for folder_subdir, folder_dirs, folder_files in os.walk(os.path.join(subdir, folder)):
                 for file in folder_files:
@@ -215,60 +225,74 @@ val_iterator = val_dataset.make_initializable_iterator()
 
 ###############################################################
 
-bias = 0.0
-if args.act == 'tanh':
-    act = Tanh()
-elif args.act == 'relu':
-    act = Relu()
-    if args.dfa:
-        bias = 0.1
-else:
-    assert(False)
-
-###############################################################
-
 batch_size = tf.placeholder(tf.int32, shape=())
 dropout_rate = tf.placeholder(tf.float32, shape=())
 lr = tf.placeholder(tf.float32, shape=())
 
-l0 = Convolution(input_shape=[batch_size, 224, 224, 3],  filter_sizes=[3, 3, 3, 64],  init=args.init, padding="SAME", activation=act, bias=args.bias, name='conv1')
-l1 = Convolution(input_shape=[batch_size, 224, 224, 64], filter_sizes=[3, 3, 64, 64], init=args.init, padding="SAME", activation=act, bias=args.bias, name='conv2')
-l2 = MaxPool(size=[batch_size, 224, 224, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+l1_1 = Convolution(input_shape=[batch_size, 224, 224, 3],  filter_sizes=[3, 3, 3, 64],  init=args.init, padding="SAME", bias=args.bias, name='conv1')
+l1_2 = Relu()
+l1_3 = Convolution(input_shape=[batch_size, 224, 224, 64], filter_sizes=[3, 3, 64, 64], init=args.init, padding="SAME", bias=args.bias, name='conv2')
+l1_4 = Relu()
+l1_5 = MaxPool(size=[batch_size, 224, 224, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l3 = Convolution(input_shape=[batch_size, 112, 112, 64], filter_sizes=[3, 3, 64, 128], init=args.init, padding="SAME", activation=act, bias=args.bias, name='conv3')
-l4 = Convolution(input_shape=[batch_size, 112, 112, 128], filter_sizes=[3, 3, 128, 128], init=args.init, padding="SAME", activation=act, bias=args.bias, name='conv4')
-l5 = MaxPool(size=[batch_size, 112, 112, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+l2_1 = Convolution(input_shape=[batch_size, 112, 112, 64], filter_sizes=[3, 3, 64, 128], init=args.init, padding="SAME", bias=args.bias, name='conv3')
+l2_2 = Relu()
+l2_3 = Convolution(input_shape=[batch_size, 112, 112, 128], filter_sizes=[3, 3, 128, 128], init=args.init, padding="SAME", bias=args.bias, name='conv4')
+l2_4 = Relu()
+l2_5 = MaxPool(size=[batch_size, 112, 112, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l6 = Convolution(input_shape=[batch_size, 56, 56, 128], filter_sizes=[3, 3, 128, 256], init=args.init, padding="SAME", activation=act, bias=args.bias, name='conv5')
-l7 = Convolution(input_shape=[batch_size, 56, 56, 256], filter_sizes=[3, 3, 256, 256], init=args.init, padding="SAME", activation=act, bias=args.bias, name='conv6')
-l8 = Convolution(input_shape=[batch_size, 56, 56, 256], filter_sizes=[3, 3, 256, 256], init=args.init, padding="SAME", activation=act, bias=args.bias, name='conv7')
-l9 = MaxPool(size=[batch_size, 56, 56, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+l3_1 = Convolution(input_shape=[batch_size, 56, 56, 128], filter_sizes=[3, 3, 128, 256], init=args.init, padding="SAME", bias=args.bias, name='conv5')
+l3_2 = Relu()
+l3_3 = Convolution(input_shape=[batch_size, 56, 56, 256], filter_sizes=[3, 3, 256, 256], init=args.init, padding="SAME", bias=args.bias, name='conv6')
+l3_4 = Relu()
+l3_5 = Convolution(input_shape=[batch_size, 56, 56, 256], filter_sizes=[3, 3, 256, 256], init=args.init, padding="SAME", bias=args.bias, name='conv7')
+l3_6 = Relu()
+l3_7 = MaxPool(size=[batch_size, 56, 56, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l10 = Convolution(input_shape=[batch_size, 28, 28, 256], filter_sizes=[3, 3, 256, 512], init=args.init, padding="SAME", activation=act, bias=args.bias, name='conv8')
-l11 = Convolution(input_shape=[batch_size, 28, 28, 512], filter_sizes=[3, 3, 512, 512], init=args.init, padding="SAME", activation=act, bias=args.bias, name='conv9')
-l12 = Convolution(input_shape=[batch_size, 28, 28, 512], filter_sizes=[3, 3, 512, 512], init=args.init, padding="SAME", activation=act, bias=args.bias, name='conv10')
-l13 = MaxPool(size=[batch_size, 28, 28, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+l4_1 = Convolution(input_shape=[batch_size, 28, 28, 256], filter_sizes=[3, 3, 256, 512], init=args.init, padding="SAME", bias=args.bias, name='conv8')
+l4_2 = Relu()
+l4_3 = Convolution(input_shape=[batch_size, 28, 28, 512], filter_sizes=[3, 3, 512, 512], init=args.init, padding="SAME", bias=args.bias, name='conv9')
+l4_4 = Relu()
+l4_5 = Convolution(input_shape=[batch_size, 28, 28, 512], filter_sizes=[3, 3, 512, 512], init=args.init, padding="SAME", bias=args.bias, name='conv10')
+l4_6 = Relu()
+l4_7 = MaxPool(size=[batch_size, 28, 28, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l14 = Convolution(input_shape=[batch_size, 14, 14, 512], filter_sizes=[3, 3, 512, 512], init=args.init, padding="SAME", activation=act, bias=args.bias, name='conv11')
-l15 = Convolution(input_shape=[batch_size, 14, 14, 512], filter_sizes=[3, 3, 512, 512], init=args.init, padding="SAME", activation=act, bias=args.bias, name='conv12')
-l16 = Convolution(input_shape=[batch_size, 14, 14, 512], filter_sizes=[3, 3, 512, 512], init=args.init, padding="SAME", activation=act, bias=args.bias, name='conv13')
-l17 = MaxPool(size=[batch_size, 14, 14, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+l5_1 = Convolution(input_shape=[batch_size, 14, 14, 512], filter_sizes=[3, 3, 512, 512], init=args.init, padding="SAME", bias=args.bias, name='conv11')
+l5_2 = Relu()
+l5_3 = Convolution(input_shape=[batch_size, 14, 14, 512], filter_sizes=[3, 3, 512, 512], init=args.init, padding="SAME", bias=args.bias, name='conv12')
+l5_4 = Relu()
+l5_5 = Convolution(input_shape=[batch_size, 14, 14, 512], filter_sizes=[3, 3, 512, 512], init=args.init, padding="SAME", bias=args.bias, name='conv13')
+l5_6 = Relu()
+l5_7 = MaxPool(size=[batch_size, 14, 14, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l18 = ConvToFullyConnected(input_shape=[7, 7, 512])
+l6 = ConvToFullyConnected(input_shape=[7, 7, 512])
 
-l19 = FullyConnected(input_shape=7*7*512, size=4096, init=args.init, activation=act, bias=args.bias, name='fc1')
-l20 = Dropout(rate=dropout_rate)
-l21 = FeedbackFC(size=[7*7*512, 4096], num_classes=1000, sparse=args.sparse, rank=args.rank, name='fc1_fb')
+l7_1 = FullyConnected(input_shape=7*7*512, size=4096, init=args.init, bias=args.bias, name='fc1')
+l7_2 = Relu()
+l7_3 = Dropout(rate=dropout_rate)
+l7_4 = FeedbackFC(size=[7*7*512, 4096], num_classes=1000, sparse=args.sparse, rank=args.rank, name='fc1_fb')
 
-l22 = FullyConnected(input_shape=4096, size=4096, init=args.init, activation=act, bias=args.bias, name='fc2')
-l23 = Dropout(rate=dropout_rate)
-l24 = FeedbackFC(size=[4096, 4096], num_classes=1000, sparse=args.sparse, rank=args.rank, name='fc2_fb')
+l8_1 = FullyConnected(input_shape=4096, size=4096, init=args.init, bias=args.bias, name='fc2')
+l8_2 = Relu()
+l8_3 = Dropout(rate=dropout_rate)
+l8_4 = FeedbackFC(size=[4096, 4096], num_classes=1000, sparse=args.sparse, rank=args.rank, name='fc2_fb')
 
-l25 = FullyConnected(input_shape=4096, size=1000, init=args.init, bias=args.bias, name='fc3')
+l9 = FullyConnected(input_shape=4096, size=1000, init=args.init, bias=args.bias, name='fc3')
 
 ###############################################################
 
-model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16, l17, l18, l19, l20])
+layers = [
+l1_1, l1_2, l1_3, l1_4, l1_5, 
+l2_1, l2_2, l2_3, l2_4, l2_5, 
+l3_1, l3_2, l3_3, l3_4, l3_5, l3_6, l3_7, 
+l4_1, l4_2, l4_3, l4_4, l4_5, l4_6, l4_7, 
+l5_1, l5_2, l5_3, l5_4, l5_5, l5_6, l5_7, 
+l6,
+l7_1, l7_2, l7_3, l7_4, 
+l8_1, l8_2, l8_3, l8_4, 
+l9
+]
+model = Model(layers=layers)
 predict = tf.nn.softmax(model.predict(X=features))
 weights = model.get_weights()
 

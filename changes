@@ -24,3 +24,11 @@ no idea if caching is the right idea
 > actually, really dosnt change anything if u ignore the cache.
 
 dfa w/ init=zero, act=relu, needs bias=not zero.
+
+----
+
+ImageNet224.
+ImageNet64.
+
+then select the model to load.
+
