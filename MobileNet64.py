@@ -7,8 +7,8 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=100)
-parser.add_argument('--batch_size', type=int, default=128)
-parser.add_argument('--lr', type=float, default=1e-2)
+parser.add_argument('--batch_size', type=int, default=64)
+parser.add_argument('--lr', type=float, default=5e-2)
 parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--dropout', type=float, default=0.5)
 parser.add_argument('--act', type=str, default='relu')
@@ -17,7 +17,7 @@ parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--dfa', type=int, default=0)
 parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
-parser.add_argument('--init', type=str, default="glorot_uniform")
+parser.add_argument('--init', type=str, default="alexnet")
 parser.add_argument('--save', type=int, default=0)
 parser.add_argument('--name', type=str, default="imagenet_mobilenet")
 parser.add_argument('--load', type=str, default=None)
@@ -27,7 +27,7 @@ if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
     
-exxact = 1
+exxact = 0
 if exxact:
     val_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/val/'
     train_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/train/'
@@ -57,10 +57,11 @@ from lib.FeedbackConv import FeedbackConv
 from lib.ConvBlock import ConvBlock
 from lib.VGGBlock import VGGBlock
 from lib.MobileBlock import MobileBlock
+from lib.BatchNorm import BatchNorm
 
 ##############################################
 
-MEAN = [122.77093945, 116.74601272, 104.09373519]
+# MEAN = [122.77093945, 116.74601272, 104.09373519]
 
 ##############################################
 
@@ -82,9 +83,9 @@ def get_val_filenames():
 
     print ("building validation dataset")
 
-    for subdir, dirs, files in os.walk('/home/bcrafton3/Data_SSD/64x64/tfrecord/val/'):
+    for subdir, dirs, files in os.walk(val_path):
         for file in files:
-            val_filenames.append(os.path.join('/home/bcrafton3/Data_SSD/64x64/tfrecord/val/', file))
+            val_filenames.append(os.path.join(val_path, file))
 
     np.random.shuffle(val_filenames)    
 
@@ -98,9 +99,9 @@ def get_train_filenames():
 
     print ("building training dataset")
 
-    for subdir, dirs, files in os.walk('/home/bcrafton3/Data_SSD/64x64/tfrecord/train/'):
+    for subdir, dirs, files in os.walk(train_path):
         for file in files:
-            train_filenames.append(os.path.join('/home/bcrafton3/Data_SSD/64x64/tfrecord/train/', file))
+            train_filenames.append(os.path.join(train_path, file))
     
     np.random.shuffle(train_filenames)
 
@@ -120,8 +121,8 @@ def extract_fn(record):
     image = tf.cast(image, dtype=tf.float32)
     image = tf.reshape(image, (1, 64, 64, 3))
 
-    means = tf.reshape(tf.constant(MEAN), [1, 1, 1, 3])
-    image = image - means
+    # means = tf.reshape(tf.constant(MEAN), [1, 1, 1, 3])
+    # image = image - means
 
     label = sample['label']
     return [image, label]
@@ -166,6 +167,7 @@ val_iterator = val_dataset.make_initializable_iterator()
 dropout_rate = tf.placeholder(tf.float32, shape=())
 lr = tf.placeholder(tf.float32, shape=())
 
+l0 = BatchNorm(input_size=[args.batch_size, 64, 64, 3], name='bn0')
 l1 = ConvBlock(input_shape=[args.batch_size, 64, 64, 3], filter_shape=[3, 3, 3, 32], strides=[1,1,1,1], init=args.init, name='block1')
 
 l2 = MobileBlock(input_shape=[args.batch_size, 64, 64, 32],  filter_shape=[32, 64],   strides=[1,2,2,1], init=args.init, name='block2')
@@ -187,7 +189,7 @@ l14 = FullyConnected(input_shape=1024, size=1000, init=args.init, name="fc1")
 
 ###############################################################
 
-layers = [l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14]
+layers = [l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14]
 model = Model(layers=layers)
 predict = tf.nn.softmax(model.predict(X=features))
 weights = model.get_weights()
@@ -239,7 +241,7 @@ for ii in range(args.epochs):
     train_correct = 0.0
     train_top5 = 0.0
     
-    for j in range(0, len(train_filenames), args.batch_size):
+    for jj in range(0, len(train_filenames), args.batch_size):
         [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, dropout_rate: args.dropout, lr: lr_decay})
 
         train_total += args.batch_size
@@ -249,7 +251,7 @@ for ii in range(args.epochs):
         train_acc = train_correct / train_total
         train_acc_top5 = train_top5 / train_total
         
-        if (j % (100 * args.batch_size) == 0):
+        if (jj % (100 * args.batch_size) == 0):
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
             print (p)
             f = open(results_filename, "a")
@@ -267,7 +269,7 @@ for ii in range(args.epochs):
     val_correct = 0.0
     val_top5 = 0.0
     
-    for j in range(0, len(val_filenames), args.batch_size):
+    for jj in range(0, len(val_filenames), args.batch_size):
         [_total_correct, _top5] = sess.run([total_correct, total_top5], feed_dict={handle: val_handle, dropout_rate: 0.0, lr: 0.0})
         
         val_total += args.batch_size
@@ -277,7 +279,7 @@ for ii in range(args.epochs):
         val_acc = val_correct / val_total
         val_acc_top5 = val_top5 / val_total
         
-        if (j % (100 * args.batch_size) == 0):
+        if (jj % (100 * args.batch_size) == 0):
             p = "val accuracy: %f %f" % (val_acc, val_acc_top5)
             print (p)
             f = open(results_filename, "a")
