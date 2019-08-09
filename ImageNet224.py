@@ -59,6 +59,7 @@ from lib.FeedbackConv import FeedbackConv
 from lib.Activation import Relu
 
 from lib.VGG import VGG224
+from lib.MobileNet import MobileNet224
 
 ##############################################
 
@@ -232,72 +233,9 @@ dropout_rate = tf.placeholder(tf.float32, shape=())
 lr = tf.placeholder(tf.float32, shape=())
 
 ###############################################################
-'''
-l1_1 = Convolution(input_shape=[batch_size, 224, 224, 3],  filter_sizes=[3, 3, 3, 64],  init=args.init, padding="SAME", bias=args.bias, name='conv1')
-l1_2 = Relu()
-l1_3 = Convolution(input_shape=[batch_size, 224, 224, 64], filter_sizes=[3, 3, 64, 64], init=args.init, padding="SAME", bias=args.bias, name='conv2')
-l1_4 = Relu()
-l1_5 = MaxPool(size=[batch_size, 224, 224, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-l2_1 = Convolution(input_shape=[batch_size, 112, 112, 64], filter_sizes=[3, 3, 64, 128], init=args.init, padding="SAME", bias=args.bias, name='conv3')
-l2_2 = Relu()
-l2_3 = Convolution(input_shape=[batch_size, 112, 112, 128], filter_sizes=[3, 3, 128, 128], init=args.init, padding="SAME", bias=args.bias, name='conv4')
-l2_4 = Relu()
-l2_5 = MaxPool(size=[batch_size, 112, 112, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
-
-l3_1 = Convolution(input_shape=[batch_size, 56, 56, 128], filter_sizes=[3, 3, 128, 256], init=args.init, padding="SAME", bias=args.bias, name='conv5')
-l3_2 = Relu()
-l3_3 = Convolution(input_shape=[batch_size, 56, 56, 256], filter_sizes=[3, 3, 256, 256], init=args.init, padding="SAME", bias=args.bias, name='conv6')
-l3_4 = Relu()
-l3_5 = Convolution(input_shape=[batch_size, 56, 56, 256], filter_sizes=[3, 3, 256, 256], init=args.init, padding="SAME", bias=args.bias, name='conv7')
-l3_6 = Relu()
-l3_7 = MaxPool(size=[batch_size, 56, 56, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
-
-l4_1 = Convolution(input_shape=[batch_size, 28, 28, 256], filter_sizes=[3, 3, 256, 512], init=args.init, padding="SAME", bias=args.bias, name='conv8')
-l4_2 = Relu()
-l4_3 = Convolution(input_shape=[batch_size, 28, 28, 512], filter_sizes=[3, 3, 512, 512], init=args.init, padding="SAME", bias=args.bias, name='conv9')
-l4_4 = Relu()
-l4_5 = Convolution(input_shape=[batch_size, 28, 28, 512], filter_sizes=[3, 3, 512, 512], init=args.init, padding="SAME", bias=args.bias, name='conv10')
-l4_6 = Relu()
-l4_7 = MaxPool(size=[batch_size, 28, 28, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
-
-l5_1 = Convolution(input_shape=[batch_size, 14, 14, 512], filter_sizes=[3, 3, 512, 512], init=args.init, padding="SAME", bias=args.bias, name='conv11')
-l5_2 = Relu()
-l5_3 = Convolution(input_shape=[batch_size, 14, 14, 512], filter_sizes=[3, 3, 512, 512], init=args.init, padding="SAME", bias=args.bias, name='conv12')
-l5_4 = Relu()
-l5_5 = Convolution(input_shape=[batch_size, 14, 14, 512], filter_sizes=[3, 3, 512, 512], init=args.init, padding="SAME", bias=args.bias, name='conv13')
-l5_6 = Relu()
-l5_7 = MaxPool(size=[batch_size, 14, 14, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
-
-l6 = ConvToFullyConnected(input_shape=[7, 7, 512])
-
-l7_1 = FullyConnected(input_shape=7*7*512, size=4096, init=args.init, bias=args.bias, name='fc1')
-l7_2 = Relu()
-l7_3 = Dropout(rate=dropout_rate)
-l7_4 = FeedbackFC(size=[7*7*512, 4096], num_classes=1000, sparse=args.sparse, rank=args.rank, name='fc1_fb')
-
-l8_1 = FullyConnected(input_shape=4096, size=4096, init=args.init, bias=args.bias, name='fc2')
-l8_2 = Relu()
-l8_3 = Dropout(rate=dropout_rate)
-l8_4 = FeedbackFC(size=[4096, 4096], num_classes=1000, sparse=args.sparse, rank=args.rank, name='fc2_fb')
-
-l9 = FullyConnected(input_shape=4096, size=1000, init=args.init, bias=args.bias, name='fc3')
-
-layers = [
-l1_1, l1_2, l1_3, l1_4, l1_5, 
-l2_1, l2_2, l2_3, l2_4, l2_5, 
-l3_1, l3_2, l3_3, l3_4, l3_5, l3_6, l3_7, 
-l4_1, l4_2, l4_3, l4_4, l4_5, l4_6, l4_7, 
-l5_1, l5_2, l5_3, l5_4, l5_5, l5_6, l5_7, 
-l6,
-l7_1, l7_2, l7_3, l7_4, 
-l8_1, l8_2, l8_3, l8_4, 
-l9
-]
-model = Model(layers=layers)
-'''
-
-model = VGG224(batch_size=batch_size, dropout_rate=dropout_rate)
+# model = VGG224(batch_size=batch_size, dropout_rate=dropout_rate)
+model = MobileNet224(batch_size=batch_size, dropout_rate=dropout_rate)
 
 ###############################################################
 
