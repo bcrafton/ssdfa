@@ -16,7 +16,7 @@ from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
 from lib.Activation import Relu
 
-def VGG224(batch_size, dropout_rate, init='alexnet', sparse=0):
+def VGGNet224(batch_size, dropout_rate, init='alexnet', sparse=0):
     l1_1 = Convolution(input_shape=[batch_size, 224, 224, 3],  filter_sizes=[3, 3, 3, 64],  init=init, padding="SAME", name='conv1')
     l1_2 = Relu()
     l1_3 = Convolution(input_shape=[batch_size, 224, 224, 64], filter_sizes=[3, 3, 64, 64], init=init, padding="SAME", name='conv2')

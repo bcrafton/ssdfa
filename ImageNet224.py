@@ -58,8 +58,9 @@ from lib.FeedbackFC import FeedbackFC
 from lib.FeedbackConv import FeedbackConv
 from lib.Activation import Relu
 
-from lib.VGG import VGG224
+from lib.VGGNet import VGGNet224
 from lib.MobileNet import MobileNet224
+from lib.AlexNet import AlexNet224
 
 ##############################################
 
@@ -234,8 +235,11 @@ lr = tf.placeholder(tf.float32, shape=())
 
 ###############################################################
 
-# model = VGG224(batch_size=batch_size, dropout_rate=dropout_rate)
+# model = VGGNet224(batch_size=batch_size, dropout_rate=dropout_rate)
 model = MobileNet224(batch_size=batch_size, dropout_rate=dropout_rate)
+
+# Does not work becasue 227 vs 224.
+# model = AlexNet224(batch_size=batch_size, dropout_rate=dropout_rate)
 
 ###############################################################
 
