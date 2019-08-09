@@ -45,16 +45,15 @@ class VGGBlock(Layer):
 
     def forward(self, X):
         conv = self.conv.forward(X)
-        lel = self.lel.forward(conv['aout'])
 
-        cache = {'conv':conv, 'lel':lel}
+        cache = {'conv':conv}
         return {'aout':conv['aout'], 'cache':cache}
         
     ###################################################################
         
     def bp(self, AI, AO, DO, cache):    
         conv = cache['conv']
-        dconv, gconv = self.conv.backward(AI, conv['aout'], DO, conv['cache'])
+        dconv, gconv = self.conv.bp(AI, conv['aout'], DO, conv['cache'])
         cache.update({'dconv':dconv})
         grads = []
         grads.extend(gconv)

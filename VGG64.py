@@ -32,8 +32,8 @@ if exxact:
     val_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/val/'
     train_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/train/'
 else:
-    val_path = '/usr/scratch/64x64/tfrecord/val/'
-    train_path = '/usr/scratch/64x64/tfrecord/train/'
+    val_path = '/usr/scratch/bcrafton/64x64/tfrecord/val/'
+    train_path = '/usr/scratch/bcrafton/64x64/tfrecord/train/'
 
 ##############################################
 
@@ -165,7 +165,7 @@ val_iterator = val_dataset.make_initializable_iterator()
 ###############################################################
 
 dropout_rate = tf.placeholder(tf.float32, shape=())
-learning_rate = tf.placeholder(tf.float32, shape=())
+lr = tf.placeholder(tf.float32, shape=())
 
 l0 = BatchNorm(input_size=[args.batch_size, 64, 64, 3], name='bn0')
 
@@ -205,7 +205,7 @@ l6,
 l7
 ]
 model = Model(layers=layers)
-predict = tf.nn.softmax(model.predict(X=X))
+predict = tf.nn.softmax(model.predict(X=features))
 weights = model.get_weights()
 
 if args.dfa:
