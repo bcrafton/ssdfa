@@ -27,8 +27,8 @@ if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
 
-from lib.cifar import cifar_conv
-from lib.cifar import cifar_fc
+from lib.cifar_models import cifar_conv
+from lib.cifar_models import cifar_fc
 
 ##############################################
 

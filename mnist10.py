@@ -11,6 +11,7 @@ parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--lr', type=float, default=1e-4)
 parser.add_argument('--eps', type=float, default=1e-5)
 parser.add_argument('--dropout', type=float, default=0.5)
+parser.add_argument('--act', type=str, default='relu')
 parser.add_argument('--bias', type=float, default=0.)
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--dfa', type=int, default=0)
@@ -18,13 +19,16 @@ parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
 parser.add_argument('--init', type=str, default="glorot_uniform")
 parser.add_argument('--save', type=int, default=0)
-parser.add_argument('--name', type=str, default="cifar10_conv")
+parser.add_argument('--name', type=str, default="mnist_conv")
 parser.add_argument('--load', type=str, default=None)
 args = parser.parse_args()
 
 if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
+
+from lib.mnist_models import mnist_conv
+from lib.mnist_models import mnist_fc
 
 ##############################################
 
@@ -46,25 +50,29 @@ from lib.FeedbackConv import FeedbackConv
 from lib.Activation import Relu
 from lib.Activation import Tanh
 
-from lib.cifar_models import cifar_conv
-from lib.cifar_models import cifar_fc
+##############################################
+
+(x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+
+train_examples = 60000
+test_examples = 10000
+
+assert(np.shape(x_train) == (train_examples, 28, 28))
+x_train = np.reshape(x_train, [train_examples, 28, 28, 1])
+y_train = keras.utils.to_categorical(y_train, 10)
+
+assert(np.shape(x_test) == (test_examples, 28, 28))
+x_test = np.reshape(x_test, [test_examples, 28, 28, 1])
+y_test = keras.utils.to_categorical(y_test, 10)
 
 ##############################################
 
-(x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
-
-train_examples = 50000
-test_examples = 10000
-
-assert(np.shape(x_train) == (train_examples, 32, 32, 3))
-x_train = x_train - np.mean(x_train, axis=0, keepdims=True)
-x_train = x_train / np.std(x_train, axis=0, keepdims=True)
-y_train = keras.utils.to_categorical(y_train, 10)
-
-assert(np.shape(x_test) == (test_examples, 32, 32, 3))
-x_test = x_test - np.mean(x_test, axis=0, keepdims=True)
-x_test = x_test / np.std(x_test, axis=0, keepdims=True)
-y_test = keras.utils.to_categorical(y_test, 10)
+if args.act == 'tanh':
+    act = Tanh()
+elif args.act == 'relu':
+    act = Relu()
+else:
+    assert(False)
 
 ##############################################
 
@@ -75,11 +83,14 @@ batch_size = tf.placeholder(tf.int32, shape=())
 dropout_rate = tf.placeholder(tf.float32, shape=())
 lr = tf.placeholder(tf.float32, shape=())
 
-X = tf.placeholder(tf.float32, [None, 32, 32, 3])
+X = tf.placeholder(tf.float32, [None, 28, 28, 1])
+X = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), X)
 Y = tf.placeholder(tf.float32, [None, 10])
 
-# model = cifar_conv(batch_size=batch_size, dropout_rate=dropout_rate)
-model = cifar_fc(batch_size=batch_size, dropout_rate=dropout_rate)
+##############################################
+
+# model = mnist_conv(batch_size=batch_size, dropout_rate=dropout_rate)
+model = mnist_fc(batch_size=batch_size, dropout_rate=dropout_rate)
 
 ##############################################
 

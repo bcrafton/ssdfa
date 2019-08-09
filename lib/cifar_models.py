@@ -55,15 +55,15 @@ def cifar_fc(batch_size, dropout_rate, init='alexnet', sparse=0, bias=0.1, num_c
     l0 = ConvToFullyConnected(input_shape=[32, 32, 3])
     l1 = Dropout(rate=0.1)
 
-    l2 = FullyConnected(input_shape=3072, size=1000, init=init, activation=act, bias=bias, name='fc1')
+    l2 = FullyConnected(input_shape=3072, size=1000, init=init, bias=bias, name='fc1')
     l3 = Dropout(rate=dropout_rate)
     l4 = FeedbackFC(size=[3072, 1000], num_classes=num_classes, sparse=sparse, name='fc1_fb')
 
-    l5 = FullyConnected(input_shape=1000, size=1000, init=init, activation=act, bias=bias, name='fc2')
+    l5 = FullyConnected(input_shape=1000, size=1000, init=init, bias=bias, name='fc2')
     l6 = Dropout(rate=dropout_rate)
     l7 = FeedbackFC(size=[1000, 1000], num_classes=num_classes, sparse=sparse, name='fc2_fb')
 
-    l8 = FullyConnected(input_shape=1000, size=1000, init=init, activation=act, bias=bias, name='fc3')
+    l8 = FullyConnected(input_shape=1000, size=1000, init=init, bias=bias, name='fc3')
     l9 = Dropout(rate=dropout_rate)
     l10 = FeedbackFC(size=[1000, 1000], num_classes=num_classes, sparse=sparse, name='fc3_fb')
 
