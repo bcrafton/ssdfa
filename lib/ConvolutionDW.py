@@ -21,13 +21,23 @@ class ConvolutionDW(Layer):
         self.padding = padding
         self.use_bias = use_bias
         self.name = name
+        self.load = load        
         self.train_flag = train
         
-        filters = init_filters(size=self.filter_sizes, init=self.init)
-        bias = np.ones(shape=self.fout) * bias
+        if self.load:
+            print ('Loading: %s' % (self.name))
+            weights = np.load(self.load, allow_pickle=True).item()
+            filters = weights[self.name]
+            if self.use_bias:
+                bias = weights[self.name + '_bias']
+        else:
+            filters = init_filters(size=self.filter_sizes, init=self.init)
+            if self.use_bias:
+                bias = np.ones(shape=self.fout) * bias
 
         self.filters = tf.Variable(filters, dtype=tf.float32)
-        self.bias = tf.Variable(bias, dtype=tf.float32)
+        if self.use_bias:
+            self.bias = tf.Variable(bias, dtype=tf.float32)
 
     ###################################################################
 

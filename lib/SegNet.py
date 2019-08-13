@@ -77,30 +77,30 @@ def SegNet(batch_size, init='alexnet'):
     ###########################################################################################
 '''
 
-def SegNet(batch_size, init='alexnet'):
+def SegNet(batch_size, init='alexnet', load=None):
 
     ###########################################################################################
 
     l0 = BatchNorm(input_size=[batch_size, 480, 480, 3], name='bn0')
-    l1 = ConvBlock(input_shape=[batch_size, 480, 480, 3], filter_shape=[3, 3, 3, 32], strides=[1,2,2,1], init=init, name='block1')
+    l1 = ConvBlock(input_shape=[batch_size, 480, 480, 3], filter_shape=[3, 3, 3, 32], strides=[1,2,2,1], init=init, name='block1', load=load, train=False)
 
-    l2  = MobileBlock(input_shape=[batch_size, 240, 240, 32], filter_shape=[32, 64],  strides=[1,1,1,1], init=init, name='block2')
-    l3  = MobileBlock(input_shape=[batch_size, 240, 240, 64], filter_shape=[64, 128], strides=[1,2,2,1], init=init, name='block3')
+    l2  = MobileBlock(input_shape=[batch_size, 240, 240, 32], filter_shape=[32, 64],  strides=[1,1,1,1], init=init, name='block2', load=load, train=False)
+    l3  = MobileBlock(input_shape=[batch_size, 240, 240, 64], filter_shape=[64, 128], strides=[1,2,2,1], init=init, name='block3', load=load, train=False)
 
-    l4  = MobileBlock(input_shape=[batch_size, 120, 120, 128], filter_shape=[128, 128], strides=[1,1,1,1], init=init, name='block4')
-    l5  = MobileBlock(input_shape=[batch_size, 120, 120, 128], filter_shape=[128, 256], strides=[1,2,2,1], init=init, name='block5')
+    l4  = MobileBlock(input_shape=[batch_size, 120, 120, 128], filter_shape=[128, 128], strides=[1,1,1,1], init=init, name='block4', load=load, train=False)
+    l5  = MobileBlock(input_shape=[batch_size, 120, 120, 128], filter_shape=[128, 256], strides=[1,2,2,1], init=init, name='block5', load=load, train=False)
 
-    l6  = MobileBlock(input_shape=[batch_size, 60, 60, 256], filter_shape=[256, 256], strides=[1,1,1,1], init=init, name='block6')
-    l7  = MobileBlock(input_shape=[batch_size, 60, 60, 256], filter_shape=[256, 512], strides=[1,2,2,1], init=init, name='block7')
+    l6  = MobileBlock(input_shape=[batch_size, 60, 60, 256], filter_shape=[256, 256], strides=[1,1,1,1], init=init, name='block6', load=load, train=False)
+    l7  = MobileBlock(input_shape=[batch_size, 60, 60, 256], filter_shape=[256, 512], strides=[1,2,2,1], init=init, name='block7', load=load, train=False)
 
-    l8  = MobileBlock(input_shape=[batch_size, 30, 30, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=init, name='block8')
-    l9  = MobileBlock(input_shape=[batch_size, 30, 30, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=init, name='block9')
-    l10 = MobileBlock(input_shape=[batch_size, 30, 30, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=init, name='block10')
-    l11 = MobileBlock(input_shape=[batch_size, 30, 30, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=init, name='block11')
-    l12 = MobileBlock(input_shape=[batch_size, 30, 30, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=init, name='block12')
+    l8  = MobileBlock(input_shape=[batch_size, 30, 30, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=init, name='block8', load=load, train=False)
+    l9  = MobileBlock(input_shape=[batch_size, 30, 30, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=init, name='block9', load=load, train=False)
+    l10 = MobileBlock(input_shape=[batch_size, 30, 30, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=init, name='block10', load=load, train=False)
+    l11 = MobileBlock(input_shape=[batch_size, 30, 30, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=init, name='block11', load=load, train=False)
+    l12 = MobileBlock(input_shape=[batch_size, 30, 30, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=init, name='block12', load=load, train=False)
 
-    l13 = MobileBlock(input_shape=[batch_size, 30, 30, 512],  filter_shape=[512, 1024], strides=[1,2,2,1], init=init, name='block13')
-    l14 = MobileBlock(input_shape=[batch_size, 15, 15, 1024], filter_shape=[1024, 1024], strides=[1,1,1,1], init=init, name='block14')
+    l13 = MobileBlock(input_shape=[batch_size, 30, 30, 512],  filter_shape=[512, 1024], strides=[1,2,2,1], init=init, name='block13', load=load, train=False)
+    l14 = MobileBlock(input_shape=[batch_size, 15, 15, 1024], filter_shape=[1024, 1024], strides=[1,1,1,1], init=init, name='block14', load=load, train=False)
 
     ###########################################################################################
 
