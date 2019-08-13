@@ -6,20 +6,16 @@ import sys
 ##############################################
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--epochs', type=int, default=100)
-parser.add_argument('--batch_size', type=int, default=32)
-parser.add_argument('--lr', type=float, default=1e-2)
-parser.add_argument('--eps', type=float, default=1.)
-parser.add_argument('--dropout', type=float, default=0.5)
-parser.add_argument('--act', type=str, default='relu')
-parser.add_argument('--bias', type=float, default=0.)
+parser.add_argument('--model', type=str, default="vgg")
 parser.add_argument('--gpu', type=int, default=0)
-parser.add_argument('--dfa', type=int, default=0)
-parser.add_argument('--sparse', type=int, default=0)
-parser.add_argument('--rank', type=int, default=0)
+parser.add_argument('--epochs', type=int, default=100)
+parser.add_argument('--batch_size', type=int, default=64)
+parser.add_argument('--lr', type=float, default=5e-2)
+parser.add_argument('--eps', type=float, default=1.)
+parser.add_argument('--dropout', type=float, default=0.)
 parser.add_argument('--init', type=str, default="alexnet")
 parser.add_argument('--save', type=int, default=0)
-parser.add_argument('--name', type=str, default="imagenet_vgg")
+parser.add_argument('--name', type=str, default="imagenet64")
 parser.add_argument('--load', type=str, default=None)
 args = parser.parse_args()
 
@@ -235,22 +231,19 @@ lr = tf.placeholder(tf.float32, shape=())
 
 ###############################################################
 
-# model = VGGNet224(batch_size=batch_size, dropout_rate=dropout_rate)
-model = MobileNet224(batch_size=batch_size, dropout_rate=dropout_rate)
-
-# Does not work becasue 227 vs 224.
-# model = AlexNet224(batch_size=batch_size, dropout_rate=dropout_rate)
+if args.model == 'vgg':
+    model = VGGNet224(batch_size=batch_size, dropout_rate=dropout_rate)
+elif args.model == 'mobile':
+    model = MobileNet224(batch_size=batch_size, dropout_rate=dropout_rate)
+else:
+    assert (False)
 
 ###############################################################
 
 predict = tf.nn.softmax(model.predict(X=features))
 weights = model.get_weights()
 
-if args.dfa:
-    grads_and_vars = model.dfa_gvs(X=features, Y=labels)
-else:
-    grads_and_vars = model.gvs(X=features, Y=labels)
-        
+grads_and_vars = model.gvs(X=features, Y=labels)
 train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
@@ -294,7 +287,7 @@ for ii in range(args.epochs):
     train_correct = 0.0
     train_top5 = 0.0
     
-    for j in range(0, len(train_imgs), args.batch_size):
+    for jj in range(0, len(train_imgs), args.batch_size):
         [_total_correct, _top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
         
         train_total += args.batch_size
@@ -304,7 +297,7 @@ for ii in range(args.epochs):
         train_acc = train_correct / train_total
         train_acc_top5 = train_top5 / train_total
         
-        if (j % (1000 * args.batch_size) == 0):
+        if (jj % (100 * args.batch_size) == 0):
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
             print (p)
             f = open(results_filename, "a")
@@ -322,7 +315,7 @@ for ii in range(args.epochs):
     val_correct = 0.0
     val_top5 = 0.0
     
-    for j in range(0, len(val_imgs), args.batch_size):
+    for jj in range(0, len(val_imgs), args.batch_size):
         [_total_correct, _top5] = sess.run([total_correct, total_top5], feed_dict={handle: val_handle, batch_size: args.batch_size, dropout_rate: 0.0, lr: 0.0})
         
         val_total += args.batch_size
@@ -332,7 +325,7 @@ for ii in range(args.epochs):
         val_acc = val_correct / val_total
         val_acc_top5 = val_top5 / val_total
         
-        if (j % (1000 * args.batch_size) == 0):
+        if (jj % (100 * args.batch_size) == 0):
             p = "val accuracy: %f %f" % (val_acc, val_acc_top5)
             print (p)
             f = open(results_filename, "a")
@@ -344,22 +337,25 @@ for ii in range(args.epochs):
 
     if phase == 0:
         phase = 1
-        print ('phase 1')
     elif phase == 1:
-        dacc = train_accs[-1] - train_accs[-2]
+        dacc = val_accs[-1] - val_accs[-2]
         if dacc <= 0.01:
             lr_decay = 0.1 * args.lr
             phase = 2
-            print ('phase 2')
     elif phase == 2:
-        dacc = train_accs[-1] - train_accs[-2]
+        dacc = val_accs[-1] - val_accs[-2]
         if dacc <= 0.005:
             lr_decay = 0.05 * args.lr
             phase = 3
-            print ('phase 3')
+
+    p = "phase: %d" % (phase)
+    print (p)
+    f = open(results_filename, "a")
+    f.write(p + "\n")
+    f.close()
 
     if args.save:
-        [w] = sess.run([weights], feed_dict={handle: val_handle, dropout_rate: 0.0, learning_rate: 0.0})
+        [w] = sess.run([weights], feed_dict={})
         w['train_acc'] = train_accs
         w['train_acc_top5'] = train_accs_top5
         w['val_acc'] = val_accs

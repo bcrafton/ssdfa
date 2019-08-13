@@ -6,20 +6,16 @@ import sys
 ##############################################
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--model', type=str, default="vgg")
+parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--lr', type=float, default=5e-2)
 parser.add_argument('--eps', type=float, default=1.)
-parser.add_argument('--dropout', type=float, default=0.5)
-parser.add_argument('--act', type=str, default='relu')
-parser.add_argument('--bias', type=float, default=0.)
-parser.add_argument('--gpu', type=int, default=0)
-parser.add_argument('--dfa', type=int, default=0)
-parser.add_argument('--sparse', type=int, default=0)
-parser.add_argument('--rank', type=int, default=0)
+parser.add_argument('--dropout', type=float, default=0.)
 parser.add_argument('--init', type=str, default="alexnet")
 parser.add_argument('--save', type=int, default=0)
-parser.add_argument('--name', type=str, default="imagenet_mobilenet")
+parser.add_argument('--name', type=str, default="imagenet64")
 parser.add_argument('--load', type=str, default=None)
 args = parser.parse_args()
 
@@ -173,19 +169,19 @@ lr = tf.placeholder(tf.float32, shape=())
 
 ###############################################################
 
-# model = VGGNet64(batch_size=batch_size, dropout_rate=dropout_rate)
-model = MobileNet64(batch_size=batch_size, dropout_rate=dropout_rate)
+if args.model == 'vgg':
+    model = VGGNet64(batch_size=batch_size, dropout_rate=dropout_rate)
+elif args.model == 'mobile':
+    model = MobileNet64(batch_size=batch_size, dropout_rate=dropout_rate)
+else:
+    assert (False)
 
 ###############################################################
 
 predict = tf.nn.softmax(model.predict(X=features))
 weights = model.get_weights()
 
-if args.dfa:
-    grads_and_vars = model.dfa_gvs(X=features, Y=labels)
-else:
-    grads_and_vars = model.gvs(X=features, Y=labels)
-        
+grads_and_vars = model.gvs(X=features, Y=labels)        
 train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
@@ -222,6 +218,9 @@ phase = 0
 lr_decay = args.lr
 
 for ii in range(args.epochs):
+
+    print('epoch %d/%d' % (ii, args.epochs))
+
     sess.run(train_iterator.initializer, feed_dict={filename: train_filenames})
 
     train_total = 0.0
@@ -278,21 +277,31 @@ for ii in range(args.epochs):
 
     if phase == 0:
         phase = 1
-        print ('phase 1')
     elif phase == 1:
         dacc = train_accs[-1] - train_accs[-2]
         if dacc <= 0.01:
             lr_decay = 0.1 * args.lr
             phase = 2
-            print ('phase 2')
     elif phase == 2:
         dacc = train_accs[-1] - train_accs[-2]
         if dacc <= 0.005:
             lr_decay = 0.05 * args.lr
             phase = 3
-            print ('phase 3')
 
-    print('epoch %d/%d' % (ii, args.epochs))
+    p = "phase: %d" % (phase)
+    print (p)
+    f = open(results_filename, "a")
+    f.write(p + "\n")
+    f.close()
+
+    [w] = sess.run([weights], feed_dict={})
+    np.save(args.name, w)
+    
+
+
+
+
+
 
 
 

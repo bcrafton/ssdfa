@@ -31,6 +31,7 @@ class ConvBlock(Layer):
                                 init=self.init, 
                                 strides=self.strides, 
                                 padding="SAME", 
+                                use_bias=False,
                                 name=self.name + '_conv', 
                                 load=self.load, 
                                 train=self.train_flag)

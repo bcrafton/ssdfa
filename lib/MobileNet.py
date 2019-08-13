@@ -24,6 +24,7 @@ from lib.BatchNorm import BatchNorm
 
 def MobileNet224(batch_size, dropout_rate, init='alexnet', sparse=0):
 
+    l0 = BatchNorm(input_size=[batch_size, 224, 224, 3], name='bn0')
     l1 = ConvBlock(input_shape=[batch_size, 224, 224, 3], filter_shape=[3, 3, 3, 32], strides=[1,2,2,1], init=init, name='block1')
     # need to add a LELPool() right here.
 
@@ -50,7 +51,7 @@ def MobileNet224(batch_size, dropout_rate, init='alexnet', sparse=0):
     l16 = ConvToFullyConnected(input_shape=[1, 1, 1024])
     l17 = FullyConnected(input_shape=1024, size=1000, init=init, name="fc1")
 
-    layers = [l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16, l17]
+    layers = [l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16, l17]
     model = Model(layers=layers)
 
     return model

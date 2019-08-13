@@ -32,7 +32,10 @@ class ConvolutionDW(Layer):
     ###################################################################
 
     def get_weights(self):
-        return [(self.name, self.filters), (self.name + "_bias", self.bias)]
+        if self.use_bias:
+            return [(self.name, self.filters), (self.name + "_bias", self.bias)]
+        else:
+            return [(self.name, self.filters)]
 
     def output_shape(self):
         oh = conv_output_length(self.h, self.fh, self.padding.lower(), self.sh)
@@ -43,7 +46,10 @@ class ConvolutionDW(Layer):
     def num_params(self):
         filter_weights_size = self.fh * self.fw * self.fin * self.mult
         bias_weights_size = self.fout
-        return filter_weights_size + bias_weights_size
+        if self.use_bias:
+            return filter_weights_size + bias_weights_size
+        else:
+            return filter_weights_size
                 
     def forward(self, X):
         Z = tf.nn.depthwise_conv2d(X, self.filters, self.strides, self.padding)
@@ -57,7 +63,10 @@ class ConvolutionDW(Layer):
         DI = tf.nn.depthwise_conv2d_native_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
         DF = tf.nn.depthwise_conv2d_native_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
-        return {'dout':DI, 'cache':{}}, [(DF, self.filters), (DB, self.bias)]
+        if self.use_bias:
+            return {'dout':DI, 'cache':{}}, [(DF, self.filters), (DB, self.bias)]
+        else:
+            return {'dout':DI, 'cache':{}}, [(DF, self.filters)]
 
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)

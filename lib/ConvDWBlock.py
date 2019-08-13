@@ -33,6 +33,7 @@ class ConvDWBlock(Layer):
                                   init=self.init, 
                                   strides=self.strides, 
                                   padding="SAME", 
+                                  use_bias=False,
                                   name=self.name + '_conv_dw',
                                   load=self.load, 
                                   train=self.train_flag)

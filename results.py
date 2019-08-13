@@ -73,13 +73,21 @@ imagenet_vgg_sparse3 = {'benchmark':'vgg_fc.py', 'epochs':100, 'batch_size':32, 
 
 ################################################
 
+imagenet64 = {'benchmark':'ImageNet64.py', 'model':['vgg', 'mobile'], 'epochs':25, 'batch_size':32, 'lr':[5e-2], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None}
+imagenet224 = {'benchmark':'ImageNet224.py', 'model':['mobile'], 'epochs':25, 'batch_size':32, 'lr':[5e-2], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None}
+
+################################################
+
 # params = [mnist_fc_bp, mnist_fc_dfa, mnist_fc_sparse]
 # params = [cifar10_fc_bp, cifar10_fc_dfa, cifar10_fc_sparse]
 # params = [cifar100_fc_bp, cifar100_fc_dfa, cifar100_fc_sparse]
 
 # params = [mnist_conv_bp, mnist_conv_dfa, mnist_conv_sparse]
-params = [cifar10_conv_bp, cifar10_conv_dfa, cifar10_conv_sparse]
+# params = [cifar10_conv_bp, cifar10_conv_dfa, cifar10_conv_sparse]
 # params = [cifar100_conv_bp, cifar100_conv_dfa, cifar100_conv_sparse]
+
+# params = [imagenet64]
+params = [imagenet224]
 
 ################################################
 

@@ -26,12 +26,18 @@ class FullyConnected(Layer):
     ###################################################################
         
     def get_weights(self):
-        return [(self.name, self.weights), (self.name + "_bias", self.bias)]
+        if self.use_bias:
+            return [(self.name, self.weights), (self.name + "_bias", self.bias)]
+        else:
+            return [(self.name, self.weights)]
 
     def num_params(self):
         weights_size = self.input_size * self.output_size
         bias_size = self.output_size
-        return weights_size + bias_size
+        if self.use_bias:
+            return weights_size + bias_size
+        else:
+            return weights_size
 
     def forward(self, X):
         Z = tf.matmul(X, self.weights) 
@@ -46,7 +52,10 @@ class FullyConnected(Layer):
         DI = tf.matmul(DO, tf.transpose(self.weights))
         DW = tf.matmul(tf.transpose(AI), DO) 
         DB = tf.reduce_sum(DO, axis=0)
-        return {'dout':DI, 'cache':{}}, [(DW, self.weights), (DB, self.bias)]
+        if self.use_bias:
+            return {'dout':DI, 'cache':{}}, [(DW, self.weights), (DB, self.bias)]
+        else:
+            return {'dout':DI, 'cache':{}}, [(DW, self.weights)]
 
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)
