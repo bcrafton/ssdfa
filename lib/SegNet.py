@@ -21,6 +21,7 @@ from lib.ConvBlock import ConvBlock
 from lib.VGGBlock import VGGBlock
 from lib.MobileBlock import MobileBlock
 from lib.BatchNorm import BatchNorm
+from lib.DecodeBlock import DecodeBlock
 
 '''
 def SegNet(batch_size, init='alexnet'):

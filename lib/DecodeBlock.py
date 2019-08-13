@@ -27,21 +27,21 @@ class DecodeBlock(Layer):
         input_shape_2 = [self.batch, self.h, self.w, self.fout]
         input_shape_3 = input_shape_2
 
-        self.conv_pw = ConvBlock(input_shape=input_shape_1, 
+        self.conv_dw = ConvDWBlock(input_shape=input_shape_1, 
+                                   filter_shape=[3, 3, self.fin, 1], 
+                                   strides=[1,1,1,1], 
+                                   init=self.init, 
+                                   name=self.name + '_conv_block_dw',
+                                   load=self.load, 
+                                   train=self.train_flag)
+
+        self.conv_pw = ConvBlock(input_shape=input_shape_2, 
                                  filter_shape=[1, 1, self.fin, self.fout], 
                                  strides=[1,1,1,1], 
                                  init=self.init, 
                                  name=self.name + '_conv_block_pw',
                                  load=self.load, 
                                  train=self.train_flag)
-
-        self.conv_dw = ConvDWBlock(input_shape=input_shape_2, 
-                                   filter_shape=[3, 3, self.fout, 1], 
-                                   strides=[1,1,1,1], 
-                                   init=self.init, 
-                                   name=self.name + '_conv_block_dw',
-                                   load=self.load, 
-                                   train=self.train_flag)
 
         self.upsample = UpSample(input_shape=input_shape_3, ksize=self.ksize)
 
