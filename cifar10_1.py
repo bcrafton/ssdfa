@@ -168,7 +168,8 @@ for ii in range(args.epochs):
         '''
 
         ######################################################
-        #'''
+
+        '''
         if ii < 10:
             _sum_correct, _ = sess.run([sum_correct, train1], feed_dict={batch_size: b, dropout_rate: 0.0, lr: args.lr, X: xs, Y: ys})
         elif ii < 20:
@@ -177,7 +178,8 @@ for ii in range(args.epochs):
             _sum_correct, _ = sess.run([sum_correct, train3], feed_dict={batch_size: b, dropout_rate: 0.0, lr: args.lr, X: xs, Y: ys})
         else:
             _sum_correct, _ = sess.run([sum_correct, train4], feed_dict={batch_size: b, dropout_rate: 0.0, lr: args.lr, X: xs, Y: ys})
-        #'''
+        '''
+
         '''
         if (ii % 20) < 5:
             _sum_correct, _ = sess.run([sum_correct, train1], feed_dict={batch_size: b, dropout_rate: 0.0, lr: args.lr, X: xs, Y: ys})
@@ -187,7 +189,9 @@ for ii in range(args.epochs):
             _sum_correct, _ = sess.run([sum_correct, train3], feed_dict={batch_size: b, dropout_rate: 0.0, lr: args.lr, X: xs, Y: ys})
         '''
 
-        [ss, bp] = sess.run([c1, c1_bp], feed_dict={batch_size: b, dropout_rate: 0.0, lr: 0.0, X: xs, Y: ys})
+        _sum_correct, _ = sess.run([sum_correct, train4], feed_dict={batch_size: b, dropout_rate: 0.0, lr: args.lr, X: xs, Y: ys})
+
+        [ss, bp] = sess.run([c2, c2_bp], feed_dict={batch_size: b, dropout_rate: 0.0, lr: 0.0, X: xs, Y: ys})
         ss = ss[0]
         bp = bp[0]
         top = np.sum(np.sign(ss) == np.sign(bp))

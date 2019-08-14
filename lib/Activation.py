@@ -36,6 +36,37 @@ class Relu(Layer):
 
 ###################################################################
 
+class SignedRelu(Layer):
+
+    def __init__(self, signs):
+        self.signs = tf.constant(signs, dtype=tf.float32)
+
+    #########
+
+    def get_weights(self):
+        return []
+        
+    def num_params(self):
+        return 0
+
+    def forward(self, x):
+        A = tf.nn.relu(x) * self.signs
+        return {'aout': A, 'cache': {}}
+
+    #########
+
+    def bp(self, AI, AO, DO, cache):    
+        DI = tf.cast(AI > 0.0, dtype=tf.float32) * self.signs * DO
+        return {'dout': DI, 'cache': {}}, []
+
+    def dfa(self, AI, AO, DO, cache):
+        return self.bp(AI, AO, DO, cache)
+        
+    def lel(self, AI, AO, DO, cache): 
+        return self.bp(AI, AO, DO, cache)
+
+###################################################################
+
 class Tanh(Layer):
 
     def __init__(self):

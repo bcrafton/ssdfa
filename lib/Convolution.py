@@ -23,11 +23,7 @@ class Convolution(Layer):
         self.train_flag = train
         
         filters = np.absolute(init_filters(size=self.filter_sizes, init=self.init))
-
-        self.avg = np.average(filters)
-        # ss = np.copy(filters)
-        ss = np.ones_like(filters) * self.avg
-
+        ss = np.ones_like(filters) * np.average(filters)
         bias = np.ones(shape=self.fout) * bias
 
         self.filters = tf.Variable(filters, dtype=tf.float32, constraint=lambda x: tf.clip_by_value(x, 0, np.infty))
@@ -63,19 +59,17 @@ class Convolution(Layer):
     ###################################################################
     
     def bp(self, AI, AO, DO, cache):    
-        # DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+        DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
         
         # DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.ss, out_backprop=DO, strides=self.strides, padding=self.padding)
         
-        # DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=tf.sign(self.filters) * self.avg, out_backprop=DO, strides=self.strides, padding=self.padding)
-
-        # '''
+        '''
         DI_bp = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
         DI_ss = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.ss, out_backprop=DO, strides=self.strides, padding=self.padding)
         DI = DI_ss
         DI = DI - tf.reduce_mean(DI_ss)     + tf.reduce_mean(DI_bp)
         DI = DI / tf.math.reduce_std(DI_ss) * tf.math.reduce_std(DI_bp)
-        # '''
+        '''
 
         '''
         FB = tf.cast(tf.greater(self.filters, np.ones_like(self.filters) * tf.reduce_mean(self.filters)), dtype=tf.float32) * tf.reduce_mean(self.filters)

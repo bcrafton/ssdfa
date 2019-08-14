@@ -158,6 +158,7 @@ for ii in range(args.epochs):
         '''
 
         ######################################################
+
         '''
         if ii < 10:
             _correct, _ = sess.run([total_correct, train1], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
@@ -168,14 +169,18 @@ for ii in range(args.epochs):
         else:
             _correct, _ = sess.run([total_correct, train4], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
         '''
-        #'''
+
+        '''
         if (ii % 20) < 5:
             _correct, _ = sess.run([total_correct, train1], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
         elif (ii % 20) < 10:
             _correct, _ = sess.run([total_correct, train2], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
         else:
             _correct, _ = sess.run([total_correct, train3], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
-        #'''
+        '''
+
+        _correct, _ = sess.run([total_correct, train4], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
+
         ######################################################
 
         _total_correct += _correct
