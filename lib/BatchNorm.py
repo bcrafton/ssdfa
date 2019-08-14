@@ -18,26 +18,14 @@ class BatchNorm(Layer):
         self.size = self.input_size[-1]
 
         self.name = name
-        self._train = train
+        self.train_flag = train
         self.eps = eps
         self.num_parameters = np.prod(self.size) * 2
         
         if load:
-            print ("Loading Weights: " + self.name)
-            weight_dict = np.load(load).item()
-            gamma = weight_dict[self.name + '_gamma']
-            beta = weight_dict[self.name + '_beta']
-            
-            if np.shape(gamma) != (self.size,):
-                print (np.shape(gamma), self.size)
-                assert(np.shape(gamma) == (self.size,))
-
-            if np.shape(beta) != (self.size,):
-                print (np.shape(beta), self.size)
-                assert(np.shape(beta) == (self.size,))
-            
+            assert(False)
         else:
-            gamma = np.ones(shape=self.size)
+            gamma = np.random.choice([1., -1.], size=self.size)
             beta = np.zeros(shape=self.size)
         
         self.gamma = tf.Variable(gamma, dtype=tf.float32)
@@ -80,8 +68,11 @@ class BatchNorm(Layer):
         
         if len(self.input_size) == 2:
             DI = tf.reshape(DI, (self.input_size[0], self.size))
-            
-        return {'dout':DI, 'cache':{}}, [(dgamma, self.gamma), (dbeta, self.beta)]
+        
+        if self.train_flag:
+            return {'dout':DI, 'cache':{}}, [(dgamma, self.gamma), (dbeta, self.beta)]
+        else:
+            return {'dout':DI, 'cache':{}}, []
 
     def dfa(self, AI, AO, DO, cache):    
         return self.bp(AI, AO, DO, cache)

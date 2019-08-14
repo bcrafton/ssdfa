@@ -158,7 +158,7 @@ for ii in range(args.epochs):
         '''
 
         ######################################################
-        '''
+        #'''
         if ii < 10:
             _correct, _ = sess.run([total_correct, train1], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
         elif ii < 20:
@@ -167,15 +167,19 @@ for ii in range(args.epochs):
             _correct, _ = sess.run([total_correct, train3], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
         else:
             _correct, _ = sess.run([total_correct, train4], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
-        '''
         #'''
+        '''
         if (ii % 20) < 5:
             _correct, _ = sess.run([total_correct, train1], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
         elif (ii % 20) < 10:
             _correct, _ = sess.run([total_correct, train2], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
         else:
             _correct, _ = sess.run([total_correct, train3], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
-        #'''
+        '''
+
+        [_c1, _c2, _c3] = sess.run([c1, c2, c3], feed_dict={batch_size: b, dropout_rate: 0.0, lr: 0.0, X: xs, Y: ys})
+        print (np.max(_c1[1]), np.max(_c2[1]), np.max(_c3[1]))
+
         ######################################################
 
         _total_correct += _correct

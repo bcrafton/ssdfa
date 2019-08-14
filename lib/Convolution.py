@@ -9,7 +9,7 @@ from lib.init_tensor import init_filters
 
 class Convolution(Layer):
 
-    def __init__(self, input_shape, filter_sizes, init, strides=[1,1,1,1], padding='SAME', bias=0., use_bias=True, name=None, load=None, train=True):
+    def __init__(self, input_shape, filter_sizes, init, strides=[1,1,1,1], padding='SAME', bias=0., use_bias=False, name=None, load=None, train=True):
         self.input_shape = input_shape
         self.filter_sizes = filter_sizes
         self.batch_size, self.h, self.w, self.fin = self.input_shape
@@ -22,16 +22,26 @@ class Convolution(Layer):
         self.name = name
         self.train_flag = train
         
-        filters = init_filters(size=self.filter_sizes, init=self.init)
+        filters = np.absolute(init_filters(size=self.filter_sizes, init=self.init))
+
+        self.avg = np.average(filters)
+        # ss = np.copy(filters)
+        ss = np.ones_like(filters) * self.avg
+
         bias = np.ones(shape=self.fout) * bias
 
-        self.filters = tf.Variable(filters, dtype=tf.float32)
-        self.bias = tf.Variable(bias, dtype=tf.float32)
+        self.filters = tf.Variable(filters, dtype=tf.float32, constraint=lambda x: tf.clip_by_value(x, 0, np.infty))
+        self.ss = tf.constant(ss, dtype=tf.float32)
+        if self.use_bias:
+            self.bias = tf.Variable(bias, dtype=tf.float32)
 
     ###################################################################
 
     def get_weights(self):
-        return [(self.name, self.filters), (self.name + "_bias", self.bias)]
+        if self.use_bias:
+            return [(self.name, self.filters), (self.name + "_bias", self.bias)]
+        else:
+            return [(self.name, self.filters)]
 
     def output_shape(self):
         oh = conv_output_length(self.h, self.fh, self.padding.lower(), self.sh)
@@ -53,10 +63,34 @@ class Convolution(Layer):
     ###################################################################
     
     def bp(self, AI, AO, DO, cache):    
-        DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+        # DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+        
+        # DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.ss, out_backprop=DO, strides=self.strides, padding=self.padding)
+        
+        # DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=tf.sign(self.filters) * self.avg, out_backprop=DO, strides=self.strides, padding=self.padding)
+
+        # '''
+        DI_bp = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+        DI_ss = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.ss, out_backprop=DO, strides=self.strides, padding=self.padding)
+        DI = DI_ss
+        DI = DI - tf.reduce_mean(DI_ss)     + tf.reduce_mean(DI_bp)
+        DI = DI / tf.math.reduce_std(DI_ss) * tf.math.reduce_std(DI_bp)
+        # '''
+
+        '''
+        FB = tf.cast(tf.greater(self.filters, np.ones_like(self.filters) * tf.reduce_mean(self.filters)), dtype=tf.float32) * tf.reduce_mean(self.filters)
+        DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=FB, out_backprop=DO, strides=self.strides, padding=self.padding)
+        '''
+
         DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
-        return {'dout':DI, 'cache':{}}, [(DF, self.filters), (DB, self.bias)]
+
+        # DF = tf.Print(DF, [tf.count_nonzero(DF), tf.count_nonzero(self.filters), tf.shape(DF)], message='', summarize=1000)
+
+        if self.use_bias:
+            return {'dout':DI, 'cache':{}}, [(DF, self.filters), (DB, self.bias)]
+        else:
+            return {'dout':DI, 'cache':{}}, [(DF, self.filters)]
 
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)
