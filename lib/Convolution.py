@@ -77,9 +77,11 @@ class Convolution(Layer):
         '''
 
         DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
+        # DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding) + 0.1 * 2. * self.filters
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
 
         # DF = tf.Print(DF, [tf.count_nonzero(DF), tf.count_nonzero(self.filters), tf.shape(DF)], message='', summarize=1000)
+        # DF = tf.Print(DF, [tf.shape(DF), tf.math.reduce_std(DF)], message='', summarize=1000)
 
         if self.use_bias:
             return {'dout':DI, 'cache':{}}, [(DF, self.filters), (DB, self.bias)]

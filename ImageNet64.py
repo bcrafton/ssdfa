@@ -8,18 +8,18 @@ import sys
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--batch_size', type=int, default=64)
-parser.add_argument('--lr', type=float, default=5e-2)
+parser.add_argument('--lr', type=float, default=1e-3)
 parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--dropout', type=float, default=0.5)
 parser.add_argument('--act', type=str, default='relu')
 parser.add_argument('--bias', type=float, default=0.)
-parser.add_argument('--gpu', type=int, default=0)
+parser.add_argument('--gpu', type=int, default=4)
 parser.add_argument('--dfa', type=int, default=0)
 parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
 parser.add_argument('--init', type=str, default="alexnet")
 parser.add_argument('--save', type=int, default=0)
-parser.add_argument('--name', type=str, default="imagenet_mobilenet")
+parser.add_argument('--name', type=str, default="imagenet64")
 parser.add_argument('--load', type=str, default=None)
 args = parser.parse_args()
 
@@ -59,6 +59,7 @@ from lib.VGGBlock import VGGBlock
 from lib.MobileBlock import MobileBlock
 from lib.BatchNorm import BatchNorm
 
+from lib.VGGNet import VGGNetTiny
 from lib.VGGNet import VGGNet64
 from lib.MobileNet import MobileNet64
 
@@ -162,6 +163,9 @@ features, labels = iterator.get_next()
 features = tf.reshape(features, (args.batch_size, 64, 64, 3))
 labels = tf.one_hot(labels, depth=1000)
 
+X = tf.concat((features, -1. * features), axis=3) / 255.
+Y = labels
+
 train_iterator = train_dataset.make_initializable_iterator()
 val_iterator = val_dataset.make_initializable_iterator()
 
@@ -173,24 +177,37 @@ lr = tf.placeholder(tf.float32, shape=())
 
 ###############################################################
 
+# actually got 25% with this.
+model = VGGNetTiny(batch_size=batch_size, dropout_rate=dropout_rate)
 # model = VGGNet64(batch_size=batch_size, dropout_rate=dropout_rate)
-model = MobileNet64(batch_size=batch_size, dropout_rate=dropout_rate)
+# model = MobileNet64(batch_size=batch_size, dropout_rate=dropout_rate)
 
 ###############################################################
 
-predict = tf.nn.softmax(model.predict(X=features))
-weights = model.get_weights()
-
 if args.dfa:
-    grads_and_vars = model.dfa_gvs(X=features, Y=labels)
+    grads_and_vars = model.dfa_gvs(X=X, Y=Y)
 else:
-    grads_and_vars = model.gvs(X=features, Y=labels)
-        
+    grads_and_vars = model.gvs(X=X, Y=Y)
+
+###############################################################
+'''
+loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=Y, logits=model.predict(X=X)) / args.batch_size
+params = tf.trainable_variables()
+grads = tf.gradients(loss, params)
+grads_and_vars = zip(grads, params)
+'''
+###############################################################
+
 train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
 
-correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
+###############################################################
+
+predict = tf.nn.softmax(model.predict(X=X))
+weights = model.get_weights()
+
+correct = tf.equal(tf.argmax(predict,1), tf.argmax(Y,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
-top5 = in_top_k(predict, tf.argmax(labels,1), k=5)
+top5 = in_top_k(predict, tf.argmax(Y,1), k=5)
 total_top5 = tf.reduce_sum(tf.cast(top5, tf.float32))
 
 ###############################################################

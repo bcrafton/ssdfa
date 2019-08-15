@@ -87,13 +87,12 @@ def VGGNet224(batch_size, dropout_rate, init='alexnet', sparse=0):
     l9
     ]
     model = Model(layers=layers)
-
     return model
 
 def VGGNet64(batch_size, dropout_rate, init='alexnet', sparse=0):
-    l0 = BatchNorm(input_size=[batch_size, 64, 64, 3], name='bn0')
+    l0 = BatchNorm(input_size=[batch_size, 64, 64, 6], name='bn0')
 
-    l1_1 = VGGBlock(input_shape=[batch_size, 64, 64, 3], filter_shape=[3, 64], init=init, name='block1')
+    l1_1 = VGGBlock(input_shape=[batch_size, 64, 64, 6], filter_shape=[6, 64], init=init, name='block1')
     l1_2 = VGGBlock(input_shape=[batch_size, 64, 64, 64], filter_shape=[64, 64], init=init, name='block2')
     l1_3 = AvgPool(size=[batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
@@ -129,6 +128,39 @@ def VGGNet64(batch_size, dropout_rate, init='alexnet', sparse=0):
     l7
     ]
     model = Model(layers=layers)
+    return model
 
+def VGGNetTiny(batch_size, dropout_rate, init='alexnet', sparse=0):
+
+    l1_1 = VGGBlock(input_shape=[batch_size, 64, 64, 6], filter_shape=[6, 64], init=init, name='block1')
+    l1_2 = AvgPool(size=[batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+
+    l2_1 = VGGBlock(input_shape=[batch_size, 32, 32, 64],  filter_shape=[64, 128], init=init, name='block3')
+    l2_2 = AvgPool(size=[batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+
+    l3_1 = VGGBlock(input_shape=[batch_size, 16, 16, 128], filter_shape=[128, 256], init=init, name='block5')
+    l3_2 = AvgPool(size=[batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+
+    l4_1 = VGGBlock(input_shape=[batch_size, 8, 8, 256],   filter_shape=[256, 512], init=init, name='block7')
+    l4_2 = AvgPool(size=[batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+
+    l5_1 = VGGBlock(input_shape=[batch_size, 4, 4, 512],   filter_shape=[512, 1024],  init=init, name='block9')
+    l5_2 = AvgPool(size=[batch_size, 4, 4, 1024], ksize=[1, 4, 4, 1], strides=[1, 4, 4, 1], padding="SAME")
+
+    l6 = ConvToFullyConnected(input_shape=[1, 1, 1024])
+    l7 = FullyConnected(input_shape=1024, size=1000, init=init, name="fc1")
+
+    ###############################################################
+
+    layers = [
+    l1_1, l1_2, 
+    l2_1, l2_2, 
+    l3_1, l3_2, 
+    l4_1, l4_2, 
+    l5_1, l5_2, 
+    l6, 
+    l7
+    ]
+    model = Model(layers=layers)
     return model
 
