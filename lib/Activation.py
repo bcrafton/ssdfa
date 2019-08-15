@@ -28,10 +28,10 @@ class Relu(Layer):
         DI = tf.cast(AO > 0.0, dtype=tf.float32) * DO
         return {'dout': DI, 'cache': {}}, []
 
-    def dfa(self, AI, AO, DO, cache):
+    def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)
         
-    def lel(self, AI, AO, DO, cache): 
+    def lel(self, AI, AO, DO, Y, cache): 
         return self.bp(AI, AO, DO, cache)
 
 ###################################################################
@@ -59,10 +59,10 @@ class Tanh(Layer):
         DI = (1. - tf.pow(AO, 2)) * DO
         return {'dout': DI, 'cache': {}}, []
 
-    def dfa(self, AI, AO, DO, cache):
+    def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)
         
-    def lel(self, AI, AO, DO, cache): 
+    def lel(self, AI, AO, DO, Y, cache): 
         return self.bp(AI, AO, DO, cache)
 
 ###################################################################

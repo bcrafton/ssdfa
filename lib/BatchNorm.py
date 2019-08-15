@@ -83,10 +83,10 @@ class BatchNorm(Layer):
             
         return {'dout':DI, 'cache':{}}, [(dgamma, self.gamma), (dbeta, self.beta)]
 
-    def dfa(self, AI, AO, DO, cache):    
+    def dfa(self, AI, AO, E, DO, cache):    
         return self.bp(AI, AO, DO, cache)
     
-    def lel(self, AI, AO, DO, cache):
+    def lel(self, AI, AO, DO, Y, cache):
         return self.bp(AI, AO, DO, cache)
 
     ###################################################################  
