@@ -7,7 +7,7 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=1000)
-parser.add_argument('--batch_size', type=int, default=64)
+parser.add_argument('--batch_size', type=int, default=100)
 parser.add_argument('--lr', type=float, default=1e-3)
 parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--dropout', type=float, default=0.5)
@@ -49,6 +49,8 @@ from lib.Activation import Tanh
 from lib.cifar_models import cifar_conv
 from lib.cifar_models import cifar_fc
 
+import matplotlib.pyplot as plt
+
 ##############################################
 
 (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
@@ -78,7 +80,7 @@ lr = tf.placeholder(tf.float32, shape=())
 X = tf.placeholder(tf.float32, [None, 32, 32, 6])
 Y = tf.placeholder(tf.float32, [None, 10])
 
-model = cifar_conv(batch_size=batch_size, dropout_rate=dropout_rate)
+model = cifar_conv(batch_size=batch_size, dropout_rate=dropout_rate, init='glorot_uniform')
 # model = cifar_fc(batch_size=batch_size, dropout_rate=dropout_rate)
 
 ##############################################
@@ -102,10 +104,13 @@ grads_and_vars = zip(grads, params)
 [c1, cg1, cb1, c2, cg2, cb2, c3, cg3, cb3, d1, db1] = grads_and_vars
 '''
 ##############################################
+'''
 train1 = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=[c1, cg1, cb1, d1, db1])
 train2 = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=[c2, cg2, cb2, d1, db1])
 train3 = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=[c3, cg3, cb3, d1, db1])
 train4 = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=[c1, cg1, cb1, c2, cg2, cb2, c3, cg3, cb3, d1, db1])
+'''
+train4 = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(Y,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
@@ -158,7 +163,7 @@ for ii in range(args.epochs):
         '''
 
         ######################################################
-        #'''
+        '''
         if ii < 10:
             _correct, _ = sess.run([total_correct, train1], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
         elif ii < 20:
@@ -167,7 +172,8 @@ for ii in range(args.epochs):
             _correct, _ = sess.run([total_correct, train3], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
         else:
             _correct, _ = sess.run([total_correct, train4], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
-        #'''
+        '''
+
         '''
         if (ii % 20) < 5:
             _correct, _ = sess.run([total_correct, train1], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
@@ -177,8 +183,13 @@ for ii in range(args.epochs):
             _correct, _ = sess.run([total_correct, train3], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
         '''
 
-        [_c1, _c2, _c3] = sess.run([c1, c2, c3], feed_dict={batch_size: b, dropout_rate: 0.0, lr: 0.0, X: xs, Y: ys})
-        print (np.max(_c1[1]), np.max(_c2[1]), np.max(_c3[1]))
+        _correct, _ = sess.run([total_correct, train4], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
+
+        if (jj % 1000 == 0):
+            [_c1, _c2, _c3] = sess.run([c1, c2, c3], feed_dict={batch_size: b, dropout_rate: 0.0, lr: 0.0, X: xs, Y: ys})
+            print (jj, np.count_nonzero(_c1[1]), np.count_nonzero(_c1[1] < 1e-2))
+            plt.hist(x=np.reshape(_c1[1], -1), bins=50)
+            plt.savefig('%d_%d.jpg' % (ii, jj))
 
         ######################################################
 

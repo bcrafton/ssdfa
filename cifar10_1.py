@@ -16,7 +16,7 @@ parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--dfa', type=int, default=0)
 parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
-parser.add_argument('--init', type=str, default="glorot_uniform")
+parser.add_argument('--init', type=str, default="glorot_normal")
 parser.add_argument('--save', type=int, default=0)
 parser.add_argument('--name', type=str, default="cifar10_conv")
 parser.add_argument('--load', type=str, default=None)
@@ -86,7 +86,7 @@ lr = tf.placeholder(tf.float32, shape=())
 X = tf.placeholder(tf.float32, [None, 32, 32, 6])
 Y = tf.placeholder(tf.float32, [None, 10])
 
-model = cifar_conv(batch_size=batch_size, dropout_rate=dropout_rate)
+model = cifar_conv(batch_size=batch_size, dropout_rate=dropout_rate, init='glorot_uniform')
 # model = cifar_fc(batch_size=batch_size, dropout_rate=dropout_rate)
 
 ##############################################
@@ -191,7 +191,7 @@ for ii in range(args.epochs):
 
         _sum_correct, _ = sess.run([sum_correct, train4], feed_dict={batch_size: b, dropout_rate: 0.0, lr: args.lr, X: xs, Y: ys})
 
-        [ss, bp] = sess.run([c2, c2_bp], feed_dict={batch_size: b, dropout_rate: 0.0, lr: 0.0, X: xs, Y: ys})
+        [ss, bp] = sess.run([c1, c1_bp], feed_dict={batch_size: b, dropout_rate: 0.0, lr: 0.0, X: xs, Y: ys})
         ss = ss[0]
         bp = bp[0]
         top = np.sum(np.sign(ss) == np.sign(bp))
@@ -203,11 +203,11 @@ for ii in range(args.epochs):
         ss = np.reshape(ss, [b, -1])
         bp = np.reshape(bp, [b, -1])
 
-        # angles = []
         for kk in range(b):
             angle = angle_between(ss[kk], bp[kk]) * (180. / 3.14)
             angles.append(angle)
-        # print (np.average(angles), match)
+
+        # print (np.average(angles), np.average(matches))
 
         ######################################################
 

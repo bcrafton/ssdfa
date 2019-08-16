@@ -23,6 +23,8 @@ class Convolution(Layer):
         self.train_flag = train
         
         filters = np.absolute(init_filters(size=self.filter_sizes, init=self.init))
+        # filters = init_filters(size=self.filter_sizes, init=self.init)
+        # filters = filters + np.min(filters)
         ss = np.ones_like(filters) * np.average(filters)
         bias = np.ones(shape=self.fout) * bias
 
@@ -63,6 +65,8 @@ class Convolution(Layer):
         
         # DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.ss, out_backprop=DO, strides=self.strides, padding=self.padding)
         
+        # DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=tf.ones_like(self.filters) * tf.reduce_mean(self.filters), out_backprop=DO, strides=self.strides, padding=self.padding)
+
         '''
         DI_bp = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
         DI_ss = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.ss, out_backprop=DO, strides=self.strides, padding=self.padding)
