@@ -63,9 +63,9 @@ class Convolution(Layer):
         DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
         if self.use_bias:
-            return {'dout':DI, 'cache':{}}, [(DF, self.filters), (DB, self.bias)]
+            return DI, [(DF, self.filters), (DB, self.bias)]
         else:
-            return {'dout':DI, 'cache':{}}, [(DF, self.filters)]
+            return DI, [(DF, self.filters)]
 
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)

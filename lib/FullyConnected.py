@@ -53,9 +53,9 @@ class FullyConnected(Layer):
         DW = tf.matmul(tf.transpose(AI), DO) 
         DB = tf.reduce_sum(DO, axis=0)
         if self.use_bias:
-            return {'dout':DI, 'cache':{}}, [(DW, self.weights), (DB, self.bias)]
+            return DI, [(DW, self.weights), (DB, self.bias)]
         else:
-            return {'dout':DI, 'cache':{}}, [(DW, self.weights)]
+            return DI, [(DW, self.weights)]
 
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)

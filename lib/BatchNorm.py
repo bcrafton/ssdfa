@@ -81,7 +81,7 @@ class BatchNorm(Layer):
         if len(self.input_size) == 2:
             DI = tf.reshape(DI, (self.input_size[0], self.size))
             
-        return {'dout':DI, 'cache':{}}, [(dgamma, self.gamma), (dbeta, self.beta)]
+        return DI, [(dgamma, self.gamma), (dbeta, self.beta)]
 
     def dfa(self, AI, AO, E, DO, cache):    
         return self.bp(AI, AO, DO, cache)

@@ -29,7 +29,7 @@ class ConvToFullyConnected(Layer):
         
     def bp(self, AI, AO, DO, cache):
         DI = tf.reshape(DO, [tf.shape(AI)[0]] + self.shape)
-        return {'dout':DI, 'cache':{}}, []
+        return DI, []
 
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)

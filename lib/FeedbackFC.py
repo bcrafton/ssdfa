@@ -35,17 +35,17 @@ class FeedbackFC(Layer):
         
     def bp(self, AI, AO, DO, cache):
         DI = DO
-        return {'dout':DI, 'cache':{}}, []
+        return DI, []
 
     def dfa(self, AI, AO, E, DO, cache):
         DI = tf.matmul(E, self.B)
-        return {'dout':DI, 'cache':{}}, []
+        return DI, []
         
     def lel(self, AI, AO, DO, Y, cache):
         S = tf.matmul(AO, tf.transpose(self.B))
         ES = tf.subtract(tf.nn.softmax(S), Y)
         DI = tf.matmul(ES, self.B)
-        return {'dout':DI, 'cache':{}}, []
+        return DI, []
 
     ###################################################################  
         

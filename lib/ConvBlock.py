@@ -65,13 +65,12 @@ class ConvBlock(Layer):
     def bp(self, AI, AO, DO, cache):    
         conv, bn, relu = cache['conv'], cache['bn'], cache['relu']
         drelu, grelu = self.relu.bp(bn, relu, DO, None)
-        dbn,   gbn   = self.bn.bp(conv, bn, drelu['dout'], None)
-        dconv, gconv = self.conv.bp(AI, conv, dbn['dout'], None)
-        cache.update({'dconv':dconv['dout'], 'dbn':dbn['dout'], 'drelu':drelu['dout']})
+        dbn,   gbn   = self.bn.bp(conv, bn, drelu, None)
+        dconv, gconv = self.conv.bp(AI, conv, dbn, None)
         grads = []
         grads.extend(gconv)
         grads.extend(gbn)
-        return {'dout':dconv['dout'], 'cache':cache}, grads
+        return dconv, grads
         
     def dfa(self, AI, AO, E, DO, cache):    
         return self.bp(AI, AO, DO, cache)

@@ -36,12 +36,12 @@ class FeedbackConv(Layer):
         
     def bp(self, AI, AO, DO, cache):    
         DI = DO
-        return {'dout':DI, 'cache':{}}, []
+        return DI, []
 
     def dfa(self, AI, AO, E, DO, cache):
         DI = tf.matmul(E, self.B)
         DI = tf.reshape(DI, self.size)
-        return {'dout':DI, 'cache':{}}, []
+        return DI, []
 
     def lel(self, AI, AO, DO, Y, cache):
         shape = tf.shape(AO)
@@ -51,7 +51,7 @@ class FeedbackConv(Layer):
         ES = tf.subtract(tf.nn.softmax(S), Y)
         DI = tf.matmul(ES, self.B)
         DI = tf.reshape(DI, self.size)
-        return {'dout':DI, 'cache':{}}, []
+        return DI, []
         
     ###################################################################
         

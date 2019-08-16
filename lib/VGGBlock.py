@@ -54,10 +54,9 @@ class VGGBlock(Layer):
     def bp(self, AI, AO, DO, cache):    
         conv = cache['conv']
         dconv, gconv = self.conv.bp(AI, conv['aout'], DO, conv['cache'])
-        cache.update({'dconv':dconv})
         grads = []
         grads.extend(gconv)
-        return {'dout':dconv['dout'], 'cache':cache}, grads
+        return dconv, grads
         
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)

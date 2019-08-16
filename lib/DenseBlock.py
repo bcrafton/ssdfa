@@ -55,13 +55,12 @@ class DenseBlock(Layer):
     def bp(self, AI, AO, DO, cache):    
         dense, bn, relu = cache['dense'], cache['bn'], cache['relu']
         drelu, grelu   = self.relu.bp(bn, relu, DO, None)
-        dbn,   gbn     = self.bn.bp(dense, bn, drelu['dout'], None)
-        ddense, gdense = self.dense.bp(AI, dense, dbn['dout'], None)
-        cache.update({'ddense':ddense['dout'], 'dbn':dbn['dout'], 'drelu':drelu['dout']})
+        dbn,   gbn     = self.bn.bp(dense, bn, drelu, None)
+        ddense, gdense = self.dense.bp(AI, dense, dbn, None)
         grads = []
         grads.extend(gdense)
         grads.extend(gbn)
-        return {'dout':ddense['dout'], 'cache':cache}, grads
+        return ddense, grads
         
     def dfa(self, AI, AO, E, DO, cache):    
         return self.bp(AI, AO, DO, cache)
