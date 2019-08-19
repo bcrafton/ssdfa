@@ -61,7 +61,7 @@ class Convolution(Layer):
     ###################################################################
     
     def bp(self, AI, AO, DO, cache):    
-        DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+        # DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
         
         # DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.ss, out_backprop=DO, strides=self.strides, padding=self.padding)
         
@@ -79,6 +79,13 @@ class Convolution(Layer):
         FB = tf.cast(tf.greater(self.filters, np.ones_like(self.filters) * tf.reduce_mean(self.filters)), dtype=tf.float32) * tf.reduce_mean(self.filters)
         DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=FB, out_backprop=DO, strides=self.strides, padding=self.padding)
         '''
+
+        DI_bp = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+        DI_ss = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.ss, out_backprop=DO, strides=self.strides, padding=self.padding)
+        mask  = tf.cast(tf.equal(tf.sign(DI_bp), tf.sign(DI_ss)), dtype=tf.float32)
+        DI = DI_ss * mask
+
+        ################################################
 
         DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         # DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding) + 0.1 * 2. * self.filters
