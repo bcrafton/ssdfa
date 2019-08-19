@@ -6,10 +6,10 @@ import sys
 ##############################################
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--epochs', type=int, default=100)
+parser.add_argument('--epochs', type=int, default=1000)
 parser.add_argument('--batch_size', type=int, default=64)
-parser.add_argument('--lr', type=float, default=1e-4)
-parser.add_argument('--eps', type=float, default=1e-5)
+parser.add_argument('--lr', type=float, default=1e-3)
+parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--dropout', type=float, default=0.5)
 parser.add_argument('--bias', type=float, default=0.)
 parser.add_argument('--gpu', type=int, default=0)
@@ -57,13 +57,13 @@ train_examples = 50000
 test_examples = 10000
 
 assert(np.shape(x_train) == (train_examples, 32, 32, 3))
-x_train = x_train - np.mean(x_train, axis=0, keepdims=True)
 x_train = x_train / np.std(x_train, axis=0, keepdims=True)
+x_train = np.concatenate((x_train, -1. * x_train), axis=3)
 y_train = keras.utils.to_categorical(y_train, 10)
 
 assert(np.shape(x_test) == (test_examples, 32, 32, 3))
-x_test = x_test - np.mean(x_test, axis=0, keepdims=True)
 x_test = x_test / np.std(x_test, axis=0, keepdims=True)
+x_test = np.concatenate((x_test, -1. * x_test), axis=3)
 y_test = keras.utils.to_categorical(y_test, 10)
 
 ##############################################
@@ -75,11 +75,11 @@ batch_size = tf.placeholder(tf.int32, shape=())
 dropout_rate = tf.placeholder(tf.float32, shape=())
 lr = tf.placeholder(tf.float32, shape=())
 
-X = tf.placeholder(tf.float32, [None, 32, 32, 3])
+X = tf.placeholder(tf.float32, [None, 32, 32, 6])
 Y = tf.placeholder(tf.float32, [None, 10])
 
-# model = cifar_conv(batch_size=batch_size, dropout_rate=dropout_rate)
-model = cifar_fc(batch_size=batch_size, dropout_rate=dropout_rate)
+model = cifar_conv(batch_size=batch_size, dropout_rate=dropout_rate)
+# model = cifar_fc(batch_size=batch_size, dropout_rate=dropout_rate)
 
 ##############################################
 

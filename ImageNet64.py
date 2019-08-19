@@ -55,6 +55,7 @@ from lib.VGGBlock import VGGBlock
 from lib.MobileBlock import MobileBlock
 from lib.BatchNorm import BatchNorm
 
+from lib.VGGNet import VGGNetTiny
 from lib.VGGNet import VGGNet64
 from lib.MobileNet import MobileNet64
 
@@ -158,6 +159,9 @@ features, labels = iterator.get_next()
 features = tf.reshape(features, (args.batch_size, 64, 64, 3))
 labels = tf.one_hot(labels, depth=1000)
 
+X = tf.concat((features, -1. * features), axis=3) / 255.
+Y = labels
+
 train_iterator = train_dataset.make_initializable_iterator()
 val_iterator = val_dataset.make_initializable_iterator()
 
@@ -171,6 +175,8 @@ lr = tf.placeholder(tf.float32, shape=())
 
 if args.model == 'vgg':
     model = VGGNet64(batch_size=batch_size, dropout_rate=dropout_rate)
+elif args.model == 'tiny':
+    model = VGGNetTiny(batch_size=batch_size, dropout_rate=dropout_rate)
 elif args.model == 'mobile':
     model = MobileNet64(batch_size=batch_size, dropout_rate=dropout_rate)
 else:
@@ -181,7 +187,11 @@ else:
 predict = tf.nn.softmax(model.predict(X=features))
 weights = model.get_weights()
 
-grads_and_vars = model.gvs(X=features, Y=labels)        
+if args.dfa:
+    grads_and_vars = model.dfa_gvs(X=X, Y=Y)
+else:
+    grads_and_vars = model.gvs(X=X, Y=Y)
+
 train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
