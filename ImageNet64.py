@@ -6,12 +6,13 @@ import sys
 ##############################################
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', type=str, default="vgg")
+parser.add_argument('--model', type=str, default="tiny")
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--lr', type=float, default=5e-2)
 parser.add_argument('--eps', type=float, default=1.)
+parser.add_argument('--dfa', type=int, default=0)
 parser.add_argument('--dropout', type=float, default=0.)
 parser.add_argument('--init', type=str, default="alexnet")
 parser.add_argument('--save', type=int, default=0)
@@ -184,7 +185,7 @@ else:
 
 ###############################################################
 
-predict = tf.nn.softmax(model.predict(X=features))
+predict = tf.nn.softmax(model.predict(X=X))
 weights = model.get_weights()
 
 if args.dfa:
