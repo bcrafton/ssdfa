@@ -188,7 +188,7 @@ else:
 predict = tf.nn.softmax(model.predict(X=X))
 weights = model.get_weights()
 
-gvs, derivs = model.dfa_gvs(X=X, Y=Y)
+gvs, derivs = model.gvs(X=X, Y=Y)
 ss_gvs, ss_derivs = model.ss_gvs(X=X, Y=Y)
 
 train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=gvs)
