@@ -188,12 +188,10 @@ else:
 predict = tf.nn.softmax(model.predict(X=X))
 weights = model.get_weights()
 
-if args.dfa:
-    grads_and_vars = model.dfa_gvs(X=X, Y=Y)
-else:
-    grads_and_vars = model.gvs(X=X, Y=Y)
+gvs, derivs = model.dfa_gvs(X=X, Y=Y)
+ss_gvs, ss_derivs = model.ss_gvs(X=X, Y=Y)
 
-train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
+train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=gvs)
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
