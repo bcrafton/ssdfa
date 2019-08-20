@@ -69,7 +69,7 @@ class Convolution(Layer):
             return DI, [(DF, self.filters)]
 
     def ss(self, AI, AO, DO, cache):    
-        DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+        DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=tf.sign(self.filters), out_backprop=DO, strides=self.strides, padding=self.padding)
         DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
         if self.use_bias:

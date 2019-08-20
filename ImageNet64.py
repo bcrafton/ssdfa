@@ -66,6 +66,16 @@ from lib.MobileNet import MobileNet64
 
 ##############################################
 
+def unit_vector(vector):
+    return vector / np.linalg.norm(vector)
+
+def angle_between(v1, v2):
+    v1_u = unit_vector(v1)
+    v2_u = unit_vector(v2)
+    return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+
+##############################################
+
 def in_top_k(x, y, k):
     x = tf.cast(x, dtype=tf.float32)
     y = tf.cast(y, dtype=tf.int32)
@@ -188,10 +198,10 @@ else:
 predict = tf.nn.softmax(model.predict(X=X))
 weights = model.get_weights()
 
-gvs, derivs = model.gvs(X=X, Y=Y)
+bp_gvs, bp_derivs = model.gvs(X=X, Y=Y)
 ss_gvs, ss_derivs = model.ss_gvs(X=X, Y=Y)
 
-train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=gvs)
+train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=ss_gvs)
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
@@ -236,8 +246,19 @@ for ii in range(args.epochs):
     train_correct = 0.0
     train_top5 = 0.0
     
+    angles = [] 
     for jj in range(0, len(train_filenames), args.batch_size):
-        [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
+        [ss_deriv, bp_deriv, _total_correct, _total_top5, _] = sess.run([ss_derivs, bp_derivs, total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
+
+        for l in range(len(ss_deriv)):
+            # if l in [0, 2, 4]: # first 3 convs.
+            if l in [1]: # pool feeding into last conv layer
+                for b in range(args.batch_size):
+                    ss = np.reshape(ss_deriv[l][b], -1)
+                    bp = np.reshape(bp_deriv[l][b], -1)
+                    angle = angle_between(ss, bp) * (180. / 3.14)
+                    # print (l, np.shape(ss_deriv[l][b]), angle)
+                    angles.append(angle)
 
         train_total += args.batch_size
         train_correct += _total_correct
@@ -247,7 +268,7 @@ for ii in range(args.epochs):
         train_acc_top5 = train_top5 / train_total
         
         if (jj % (100 * args.batch_size) == 0):
-            p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
+            p = "train accuracy: %f %f angle: %f" % (train_acc, train_acc_top5, np.average(angles))
             print (p)
             f = open(results_filename, "a")
             f.write(p + "\n")
