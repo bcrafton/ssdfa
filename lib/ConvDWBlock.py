@@ -74,6 +74,16 @@ class ConvDWBlock(Layer):
         grads.extend(gbn)
         return dconv, grads
         
+    def ss(self, AI, AO, DO, cache):    
+        conv, bn, relu = cache['conv'], cache['bn'], cache['relu']
+        drelu, grelu = self.relu.ss(bn, relu, DO, None)
+        dbn,   gbn   = self.bn.ss(conv, bn, drelu, None)
+        dconv, gconv = self.conv.ss(AI, conv, dbn, None)
+        grads = []
+        grads.extend(gconv)
+        grads.extend(gbn)
+        return dconv, grads
+
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)
     

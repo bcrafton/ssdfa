@@ -56,18 +56,27 @@ class MobileBlock(Layer):
     def num_params(self):
         return self.conv_dw.num_params() + self.conv_pw.num_params()
 
-    ###################################################################
-
     def forward(self, X):
         conv_dw = self.conv_dw.forward(X)
         conv_pw = self.conv_pw.forward(conv_dw['aout'])
         cache = {'conv_dw':conv_dw, 'conv_pw':conv_pw}
         return {'aout':conv_pw['aout'], 'cache':cache}
         
+    ###################################################################
+
     def bp(self, AI, AO, DO, cache):    
         conv_dw, conv_pw = cache['conv_dw'], cache['conv_pw']
         dconv_pw, gconv_pw = self.conv_pw.bp(conv_dw['aout'], conv_pw['aout'], DO,       conv_pw['cache'])
         dconv_dw, gconv_dw = self.conv_dw.bp(AI,              conv_dw['aout'], dconv_pw, conv_dw['cache'])
+        grads = []
+        grads.extend(gconv_dw)
+        grads.extend(gconv_pw)
+        return dconv_dw, grads
+
+    def ss(self, AI, AO, DO, cache):    
+        conv_dw, conv_pw = cache['conv_dw'], cache['conv_pw']
+        dconv_pw, gconv_pw = self.conv_pw.ss(conv_dw['aout'], conv_pw['aout'], DO,       conv_pw['cache'])
+        dconv_dw, gconv_dw = self.conv_dw.ss(AI,              conv_dw['aout'], dconv_pw, conv_dw['cache'])
         grads = []
         grads.extend(gconv_dw)
         grads.extend(gconv_pw)
