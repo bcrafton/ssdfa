@@ -55,13 +55,9 @@ train_examples = 50000
 test_examples = 10000
 
 assert(np.shape(x_train) == (train_examples, 32, 32, 3))
-# x_train = x_train - np.mean(x_train, axis=0, keepdims=True)
-# x_train = x_train / np.std(x_train, axis=0, keepdims=True)
 y_train = keras.utils.to_categorical(y_train, 100)
 
 assert(np.shape(x_test) == (test_examples, 32, 32, 3))
-# x_test = x_test - np.mean(x_test, axis=0, keepdims=True)
-# x_test = x_test / np.std(x_test, axis=0, keepdims=True)
 y_test = keras.utils.to_categorical(y_test, 100)
 
 ##############################################
