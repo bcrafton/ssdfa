@@ -7,7 +7,7 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, default="tiny")
-parser.add_argument('--gpu', type=int, default=0)
+parser.add_argument('--gpu', type=int, default=4)
 parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--lr', type=float, default=5e-2)
@@ -61,6 +61,7 @@ from lib.VGGNet import VGGNet64
 from lib.MobileNet import MobileNet64
 
 from collections import deque
+import matplotlib.pyplot as plt
 
 ##############################################
 
@@ -76,11 +77,24 @@ def angle_between(v1, v2):
     v2_u = unit_vector(v2)
     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
-def viz_filter(name, fmaps):
+def factors(x):
+    l = [] 
+    for i in range(1, x + 1):
+        if x % i == 0:
+            l.append(i)
+    
+    mid = int(len(l) / 2)
+    
+    if (len(l) % 2 == 1):
+        return [l[mid], l[mid]]
+    else:
+        return l[mid-1:mid+1]
+
+def viz_fmaps(name, fmaps):
     b, h, w, c = np.shape(fmaps)
-    filters = np.transpose(fmaps, [0,3,1,2])
+    fmaps = np.transpose(fmaps, [0,3,1,2])
     [nrows, ncols] = factors(b * c)
-    filters = np.reshape(filters, (nrows, ncols, h, w))
+    fmaps = np.reshape(fmaps, (nrows, ncols, h, w))
 
     for ii in range(nrows):
         for jj in range(ncols):
@@ -287,7 +301,14 @@ for ii in range(args.epochs):
             for l in range(len(ss_deriv)):
                 # if l in [0, 2, 4]: # first 3 convs.
                 if l in [3]: # pool feeding into last conv layer
-                    viz_filter('%d.jpg' % (jj), ss_deriv[l])
+
+                    b,h,w,c = np.shape(ss_deriv[l])
+                    fmaps = np.reshape(ss_deriv[l][0], [1,h,w,c])
+                    viz_fmaps('%d_ss.jpg' % (jj), fmaps)
+
+                    b,h,w,c = np.shape(bp_deriv[l])
+                    fmaps = np.reshape(bp_deriv[l][0], [1,h,w,c])
+                    viz_fmaps('%d_bp.jpg' % (jj), fmaps)
 
                     for b in range(args.batch_size):
                         ss = np.reshape(ss_deriv[l][b], -1)
