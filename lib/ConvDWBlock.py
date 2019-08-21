@@ -7,6 +7,7 @@ from lib.ConvolutionDW import ConvolutionDW
 from lib.Convolution import Convolution
 from lib.BatchNorm import BatchNorm
 from lib.Activation import Relu
+from lib.Activation import SignedRelu
 
 class ConvDWBlock(Layer):
 
@@ -39,7 +40,8 @@ class ConvDWBlock(Layer):
                                   train=self.train_flag)
                                 
         self.bn = BatchNorm(input_size=self.output_shape, name=self.name + '_bn_dw')
-        self.relu = Relu()
+        signs = np.random.choice([1., -1.], size=self.fout) # np.array([1.] * (self.fout // 2) + [-1.] * (self.fout // 2))
+        self.relu = SignedRelu(signs)
 
     ###################################################################
 

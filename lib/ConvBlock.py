@@ -38,7 +38,7 @@ class ConvBlock(Layer):
                                 train=self.train_flag)
                                 
         self.bn = BatchNorm(input_size=self.output_shape, name=self.name + '_bn')
-        signs = np.array([1.] * (self.fout // 2) + [-1.] * (self.fout // 2))
+        signs = np.random.choice([1., -1.], size=self.fout) # np.array([1.] * (self.fout // 2) + [-1.] * (self.fout // 2))
         self.relu = SignedRelu(signs)
 
     ###################################################################
