@@ -76,6 +76,26 @@ def angle_between(v1, v2):
     v2_u = unit_vector(v2)
     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
+def viz_filter(name, fmaps):
+    b, h, w, c = np.shape(fmaps)
+    filters = np.transpose(fmaps, [0,3,1,2])
+    [nrows, ncols] = factors(b * c)
+    filters = np.reshape(filters, (nrows, ncols, h, w))
+
+    for ii in range(nrows):
+        for jj in range(ncols):
+            if jj == 0:
+                row = fmaps[ii][jj]
+            else:
+                row = np.concatenate((row, fmaps[ii][jj]), axis=1)
+                
+        if ii == 0:
+            img = row
+        else:
+            img = np.concatenate((img, row), axis=0)
+            
+    plt.imsave(name, img, cmap='gray')
+
 ##############################################
 
 def in_top_k(x, y, k):
@@ -267,6 +287,8 @@ for ii in range(args.epochs):
             for l in range(len(ss_deriv)):
                 # if l in [0, 2, 4]: # first 3 convs.
                 if l in [3]: # pool feeding into last conv layer
+                    viz_filter('%d.jpg' % (jj), ss_deriv[l])
+
                     for b in range(args.batch_size):
                         ss = np.reshape(ss_deriv[l][b], -1)
                         bp = np.reshape(bp_deriv[l][b], -1)
