@@ -40,8 +40,8 @@ class BatchNorm(Layer):
             gamma = np.ones(shape=self.size)
             beta = np.zeros(shape=self.size)
         
-        self.gamma = tf.Variable(gamma, dtype=tf.float32)
-        self.beta = tf.Variable(beta, dtype=tf.float32)
+        self.gamma = tf.Variable(gamma, dtype=tf.float32, constraint=lambda x: tf.clip_by_value(x, 0, np.infty))
+        self.beta = tf.Variable(beta, dtype=tf.float32, constraint=lambda x: tf.clip_by_value(x, 0, np.infty))
         
     ###################################################################
 
