@@ -24,7 +24,7 @@ if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
 
-exxact = 1
+exxact = 0
 if exxact:
     val_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/val/'
     train_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/train/'
@@ -60,6 +60,8 @@ from lib.VGGNet import VGGNetTiny
 from lib.VGGNet import VGGNet64
 from lib.MobileNet import MobileNet64
 
+from collections import deque
+
 ##############################################
 
 # MEAN = [122.77093945, 116.74601272, 104.09373519]
@@ -67,7 +69,7 @@ from lib.MobileNet import MobileNet64
 ##############################################
 
 def unit_vector(vector):
-    return vector / np.linalg.norm(vector)
+    return vector / max(np.linalg.norm(vector), 1e-9)
 
 def angle_between(v1, v2):
     v1_u = unit_vector(v1)
@@ -246,19 +248,11 @@ for ii in range(args.epochs):
     train_correct = 0.0
     train_top5 = 0.0
     
-    angles = [] 
     for jj in range(0, len(train_filenames), args.batch_size):
-        [ss_deriv, bp_deriv, _total_correct, _total_top5, _] = sess.run([ss_derivs, bp_derivs, total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
-
-        for l in range(len(ss_deriv)):
-            # if l in [0, 2, 4]: # first 3 convs.
-            if l in [1]: # pool feeding into last conv layer
-                for b in range(args.batch_size):
-                    ss = np.reshape(ss_deriv[l][b], -1)
-                    bp = np.reshape(bp_deriv[l][b], -1)
-                    angle = angle_between(ss, bp) * (180. / 3.14)
-                    # print (l, np.shape(ss_deriv[l][b]), angle)
-                    angles.append(angle)
+        if (jj % (100 * args.batch_size) == 0):
+            [ss_deriv, bp_deriv, _total_correct, _total_top5, _] = sess.run([ss_derivs, bp_derivs, total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
+        else:
+            [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
 
         train_total += args.batch_size
         train_correct += _total_correct
@@ -268,7 +262,20 @@ for ii in range(args.epochs):
         train_acc_top5 = train_top5 / train_total
         
         if (jj % (100 * args.batch_size) == 0):
-            p = "train accuracy: %f %f angle: %f" % (train_acc, train_acc_top5, np.average(angles))
+            angles = deque(maxlen=250)
+            matches = deque(maxlen=250)
+            for l in range(len(ss_deriv)):
+                # if l in [0, 2, 4]: # first 3 convs.
+                if l in [3]: # pool feeding into last conv layer
+                    for b in range(args.batch_size):
+                        ss = np.reshape(ss_deriv[l][b], -1)
+                        bp = np.reshape(bp_deriv[l][b], -1)
+                        angle = angle_between(ss, bp) * (180. / 3.14)
+                        match = np.count_nonzero(np.sign(ss) == np.sign(bp)) / np.prod(np.shape(ss))
+                        angles.append(angle)
+                        matches.append(match)
+
+            p = "train accuracy: %f %f angle: %f match: %f" % (train_acc, train_acc_top5, np.average(angles), np.average(matches))
             print (p)
             f = open(results_filename, "a")
             f.write(p + "\n")
