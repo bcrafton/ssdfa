@@ -57,8 +57,7 @@ def MobileNet224(batch_size, dropout_rate, init='alexnet', sparse=0):
     return model
 
 def MobileNet64(batch_size, dropout_rate, init='alexnet', sparse=0):
-    l0 = BatchNorm(input_size=[batch_size, 64, 64, 3], name='bn0')
-    l1 = ConvBlock(input_shape=[batch_size, 64, 64, 3], filter_shape=[3, 3, 3, 32], strides=[1,1,1,1], init=init, name='block1')
+    l1 = ConvBlock(input_shape=[batch_size, 64, 64, 6], filter_shape=[3, 3, 6, 32], strides=[1,1,1,1], init=init, name='block1')
 
     l2 = MobileBlock(input_shape=[batch_size, 64, 64, 32],  filter_shape=[32, 64],   strides=[1,2,2,1], init=init, name='block2')
     l3 = MobileBlock(input_shape=[batch_size, 32, 32, 64],  filter_shape=[64, 128],  strides=[1,1,1,1], init=init, name='block3')
@@ -79,7 +78,7 @@ def MobileNet64(batch_size, dropout_rate, init='alexnet', sparse=0):
 
     ###############################################################
 
-    layers = [l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14]
+    layers = [l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14]
     model = Model(layers=layers)
 
     return model

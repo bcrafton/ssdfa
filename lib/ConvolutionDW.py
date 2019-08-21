@@ -23,11 +23,12 @@ class ConvolutionDW(Layer):
         self.name = name
         self.train_flag = train
         
-        filters = init_filters(size=self.filter_sizes, init=self.init)
+        filters = np.absolute(init_filters(size=self.filter_sizes, init=self.init))
         bias = np.ones(shape=self.fout) * bias
 
-        self.filters = tf.Variable(filters, dtype=tf.float32)
-        self.bias = tf.Variable(bias, dtype=tf.float32)
+        self.filters = tf.Variable(filters, dtype=tf.float32, constraint=lambda x: tf.clip_by_value(x, 0, np.infty))
+        if self.use_bias:
+            self.bias = tf.Variable(bias, dtype=tf.float32)
 
     ###################################################################
 
@@ -69,9 +70,14 @@ class ConvolutionDW(Layer):
             return DI, [(DF, self.filters)]
 
     def ss(self, AI, AO, DO, cache=None): 
-        DI = tf.nn.depthwise_conv2d_native_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
         DF = tf.nn.depthwise_conv2d_native_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
+
+        if self.h > 4:
+            DI = tf.nn.depthwise_conv2d_native_backprop_input(input_sizes=self.input_shape, filter=tf.sign(self.filters), out_backprop=DO, strides=self.strides, padding=self.padding)
+        else:
+            DI = tf.nn.depthwise_conv2d_native_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+
         if self.use_bias:
             return DI, [(DF, self.filters), (DB, self.bias)]
         else:

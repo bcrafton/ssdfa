@@ -221,11 +221,11 @@ lr = tf.placeholder(tf.float32, shape=())
 ###############################################################
 
 if args.model == 'vgg':
-    model = VGGNet64(batch_size=batch_size, dropout_rate=dropout_rate)
+    model = VGGNet64(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init)
 elif args.model == 'tiny':
-    model = VGGNetTiny(batch_size=batch_size, dropout_rate=dropout_rate)
+    model = VGGNetTiny(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init)
 elif args.model == 'mobile':
-    model = MobileNet64(batch_size=batch_size, dropout_rate=dropout_rate)
+    model = MobileNet64(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init)
 else:
     assert (False)
 
@@ -237,7 +237,7 @@ weights = model.get_weights()
 bp_gvs, bp_derivs = model.gvs(X=X, Y=Y)
 ss_gvs, ss_derivs = model.ss_gvs(X=X, Y=Y)
 
-train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=ss_gvs)
+train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=bp_gvs)
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
