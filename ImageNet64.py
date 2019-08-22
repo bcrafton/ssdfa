@@ -237,7 +237,7 @@ weights = model.get_weights()
 bp_gvs, bp_derivs = model.gvs(X=X, Y=Y)
 ss_gvs, ss_derivs = model.ss_gvs(X=X, Y=Y)
 
-train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=bp_gvs)
+train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=ss_gvs)
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
@@ -300,7 +300,7 @@ for ii in range(args.epochs):
             matches = deque(maxlen=250)
             for l in range(len(ss_deriv)):
                 # if l in [0, 2, 4]: # first 3 convs.
-                if l in [3]: # pool feeding into last conv layer
+                if l in [1]: # pool feeding into last conv layer
 
                     b,h,w,c = np.shape(ss_deriv[l])
                     fmaps = np.reshape(ss_deriv[l][0], [1,h,w,c])
