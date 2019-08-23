@@ -80,7 +80,10 @@ mnist_conv = [mnist_conv_bp, mnist_conv_dfa, mnist_conv_sparse]
 cifar10_conv = [cifar10_conv_bp, cifar10_conv_dfa, cifar10_conv_sparse]
 cifar100_conv = [cifar100_conv_bp, cifar100_conv_dfa, cifar100_conv_sparse]
 
-params = mnist_fc + cifar10_fc + cifar100_fc
+fc = mnist_fc + cifar10_fc + cifar100_fc
+conv = mnist_conv + cifar10_conv + cifar100_conv
+
+params = conv
 
 ################################################
 
