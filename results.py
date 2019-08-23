@@ -72,13 +72,15 @@ imagenet_vgg_sparse3 = {'benchmark':'vgg_fc.py', 'epochs':100, 'batch_size':32, 
 
 ################################################
 
-params = [mnist_fc_bp, mnist_fc_dfa, mnist_fc_sparse]
-# params = [cifar10_fc_bp, cifar10_fc_dfa, cifar10_fc_sparse]
-# params = [cifar100_fc_bp, cifar100_fc_dfa, cifar100_fc_sparse]
+mnist_fc = [mnist_fc_bp, mnist_fc_dfa, mnist_fc_sparse]
+cifar10_fc = [cifar10_fc_bp, cifar10_fc_dfa, cifar10_fc_sparse]
+cifar100_fc = [cifar100_fc_bp, cifar100_fc_dfa, cifar100_fc_sparse]
 
-# params = [mnist_conv_bp, mnist_conv_dfa, mnist_conv_sparse]
-# params = [cifar10_conv_bp, cifar10_conv_dfa, cifar10_conv_sparse]
-# params = [cifar100_conv_bp, cifar100_conv_dfa, cifar100_conv_sparse]
+mnist_conv = [mnist_conv_bp, mnist_conv_dfa, mnist_conv_sparse]
+cifar10_conv = [cifar10_conv_bp, cifar10_conv_dfa, cifar10_conv_sparse]
+cifar100_conv = [cifar100_conv_bp, cifar100_conv_dfa, cifar100_conv_sparse]
+
+params = mnist_fc + cifar10_fc + cifar100_fc
 
 ################################################
 
