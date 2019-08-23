@@ -37,9 +37,9 @@ for ii in range(num_runs):
     
     if key in results.keys():
         if results[key][0] < val:
-            results[key] = (val, param['benchmark'], param['lr'], param['eps'], param['dfa'], param['sparse'], param['init'], name)
+            results[key] = (val, param['benchmark'], param['lr'], param['eps'], param['act'], param['dfa'], param['sparse'], param['init'], name)
     else:
-        results[key] = (val, param['benchmark'], param['lr'], param['eps'], param['dfa'], param['sparse'], param['init'], name)
+        results[key] = (val, param['benchmark'], param['lr'], param['eps'], param['act'], param['dfa'], param['sparse'], param['init'], name)
             
 for key in sorted(results.keys()):   
     print (key, results[key])
