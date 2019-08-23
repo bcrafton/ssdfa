@@ -44,17 +44,17 @@ cifar100_fc_sparse = {'benchmark':'cifar100_fc.py', 'epochs':500, 'batch_size':6
 # CONV
 ################################################
 
-mnist_conv_bp = {'benchmark':'mnist_conv.py', 'epochs':300, 'batch_size':64, 'lr':[0.01, 0.005], 'eps':[1.], 'act':['relu', 'tanh'], 'bias':[0.0], 'dropout':[0.25], 'dfa':0, 'sparse':0, 'rank':0, 'init':'glorot_uniform', 'load':None}
-mnist_conv_dfa = {'benchmark':'mnist_conv.py', 'epochs':300, 'batch_size':64, 'lr':[0.01, 0.005], 'eps':[1.], 'act':['relu', 'tanh'], 'bias':[0.0], 'dropout':[0.25], 'dfa':1, 'sparse':0, 'rank':0, 'init':'zero', 'load':None}
-mnist_conv_sparse = {'benchmark':'mnist_conv.py', 'epochs':300, 'batch_size':64, 'lr':[0.01, 0.005], 'eps':[1.], 'act':['relu', 'tanh'], 'bias':[0.0], 'dropout':[0.25], 'dfa':1, 'sparse':1, 'rank':0, 'init':'zero', 'load':None}
+mnist_conv_bp = {'benchmark':'mnist_conv.py', 'epochs':300, 'batch_size':64, 'lr':[0.005], 'eps':[1.], 'act':['relu'], 'bias':[0.0], 'dropout':[0.25], 'dfa':0, 'sparse':0, 'rank':0, 'init':'glorot_uniform', 'load':None}
+mnist_conv_dfa = {'benchmark':'mnist_conv.py', 'epochs':300, 'batch_size':64, 'lr':[0.01], 'eps':[1.], 'act':['tanh'], 'bias':[0.0], 'dropout':[0.25], 'dfa':1, 'sparse':0, 'rank':0, 'init':'zero', 'load':None}
+mnist_conv_sparse = {'benchmark':'mnist_conv.py', 'epochs':300, 'batch_size':64, 'lr':[0.01], 'eps':[1.], 'act':['tanh'], 'bias':[0.0], 'dropout':[0.25], 'dfa':1, 'sparse':1, 'rank':0, 'init':'zero', 'load':None}
 
-cifar10_conv_bp = {'benchmark':'cifar10_conv.py', 'epochs':100, 'batch_size':64, 'lr':[1e-5, 3e-5, 1e-4], 'eps':[1e-5, 3e-5, 1e-4], 'act':['relu'], 'bias':[0.1], 'dropout':[0.25, 0.50], 'dfa':0, 'sparse':0, 'rank':0, 'init':'glorot_uniform', 'load':None}
-cifar10_conv_dfa = {'benchmark':'cifar10_conv.py', 'epochs':500, 'batch_size':64, 'lr':[1e-5, 3e-5], 'eps':[1e-5, 3e-5], 'act':['relu', 'tanh'], 'bias':[0.1], 'dropout':[0.1, 0.25], 'dfa':1, 'sparse':0, 'rank':0, 'init':'zero', 'load':None}
-cifar10_conv_sparse = {'benchmark':'cifar10_conv.py', 'epochs':500, 'batch_size':64, 'lr':[1e-5, 3e-5], 'eps':[1e-5, 3e-5], 'act':['relu', 'tanh'], 'bias':[0.1], 'dropout':[0.1, 0.25], 'dfa':1, 'sparse':1, 'rank':0, 'init':'zero', 'load':None}
+cifar10_conv_bp = {'benchmark':'cifar10_conv.py', 'epochs':100, 'batch_size':64, 'lr':[1e-4], 'eps':[1e-4], 'act':['relu'], 'bias':[0.1], 'dropout':[0.50], 'dfa':0, 'sparse':0, 'rank':0, 'init':'glorot_uniform', 'load':None}
+cifar10_conv_dfa = {'benchmark':'cifar10_conv.py', 'epochs':500, 'batch_size':64, 'lr':[3e-5], 'eps':[3e-5], 'act':['relu'], 'bias':[0.1], 'dropout':[0.25], 'dfa':1, 'sparse':0, 'rank':0, 'init':'zero', 'load':None}
+cifar10_conv_sparse = {'benchmark':'cifar10_conv.py', 'epochs':500, 'batch_size':64, 'lr':[1e-5], 'eps':[3e-5], 'act':['relu'], 'bias':[0.1], 'dropout':[0.25], 'dfa':1, 'sparse':1, 'rank':0, 'init':'zero', 'load':None}
 
-cifar100_conv_bp = {'benchmark':'cifar100_conv.py', 'epochs':100, 'batch_size':64, 'lr':[1e-5], 'eps':[1e-5], 'act':['relu', 'tanh'], 'bias':[0.0, 0.1], 'dropout':[0.25, 0.50], 'dfa':0, 'sparse':0, 'rank':0, 'init':'glorot_uniform', 'load':None}
-cifar100_conv_dfa = {'benchmark':'cifar100_conv.py', 'epochs':100, 'batch_size':64, 'lr':[1e-5], 'eps':[1e-5], 'act':['relu', 'tanh'], 'bias':[0.0, 0.1], 'dropout':[0.1, 0.25], 'dfa':1, 'sparse':0, 'rank':0, 'init':'zero', 'load':None}
-cifar100_conv_sparse = {'benchmark':'cifar100_conv.py', 'epochs':200, 'batch_size':64, 'lr':[1e-5, 3e-5], 'eps':[1e-5, 3e-5], 'act':['relu', 'tanh'], 'bias':[0.0, 0.1], 'dropout':[0.1, 0.25], 'dfa':1, 'sparse':1, 'rank':0, 'init':'zero', 'load':None}
+cifar100_conv_bp = {'benchmark':'cifar100_conv.py', 'epochs':100, 'batch_size':64, 'lr':[1e-5], 'eps':[1e-5], 'act':['relu'], 'bias':[0.0], 'dropout':[0.50], 'dfa':0, 'sparse':0, 'rank':0, 'init':'glorot_uniform', 'load':None}
+cifar100_conv_dfa = {'benchmark':'cifar100_conv.py', 'epochs':100, 'batch_size':64, 'lr':[1e-5], 'eps':[1e-5], 'act':['tanh'], 'bias':[0.0], 'dropout':[0.25], 'dfa':1, 'sparse':0, 'rank':0, 'init':'zero', 'load':None}
+cifar100_conv_sparse = {'benchmark':'cifar100_conv.py', 'epochs':200, 'batch_size':64, 'lr':[1e-5], 'eps':[1e-5], 'act':['tanh'], 'bias':[0.1], 'dropout':[0.1], 'dfa':1, 'sparse':1, 'rank':0, 'init':'zero', 'load':None}
 
 ################################################
 # vgg
