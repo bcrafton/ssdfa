@@ -61,9 +61,11 @@ class ConvolutionDW(Layer):
     ###################################################################
 
     def bp(self, AI, AO, DO, cache=None): 
-        DI = tf.nn.depthwise_conv2d_native_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
         DF = tf.nn.depthwise_conv2d_native_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
+
+        DI = tf.nn.depthwise_conv2d_native_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+
         if self.use_bias:
             return DI, [(DF, self.filters), (DB, self.bias)]
         else:
@@ -73,10 +75,8 @@ class ConvolutionDW(Layer):
         DF = tf.nn.depthwise_conv2d_native_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
 
-        if self.h > 4:
-            DI = tf.nn.depthwise_conv2d_native_backprop_input(input_sizes=self.input_shape, filter=tf.sign(self.filters), out_backprop=DO, strides=self.strides, padding=self.padding)
-        else:
-            DI = tf.nn.depthwise_conv2d_native_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+        ss = tf.sign(self.filters) * tf.reduce_mean(self.filters)
+        DI = tf.nn.depthwise_conv2d_native_backprop_input(input_sizes=self.input_shape, filter=ss, out_backprop=DO, strides=self.strides, padding=self.padding)
 
         if self.use_bias:
             return DI, [(DF, self.filters), (DB, self.bias)]
