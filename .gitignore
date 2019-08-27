@@ -3,3 +3,4 @@
 *.npy
 nohup.out
 *.pyc
+*.jpg
