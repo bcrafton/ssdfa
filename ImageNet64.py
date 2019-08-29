@@ -299,45 +299,47 @@ for ii in range(args.epochs):
         train_acc_top5 = train_top5 / train_total
         
         if (jj % (100 * args.batch_size) == 0):
-            angles = deque(maxlen=250)
-            matches = deque(maxlen=250)
+            # gradients
+            num_gvs = len(ss_gv)
+            angles_gv = [None] * num_gvs
+            matches_gv = [None] * num_gvs
+            for kk in range(num_gvs):
+                angles_gv[kk] = deque(maxlen=250)
+                matches_gv[kk] = deque(maxlen=250)
 
-            for l in range(len(ss_gv)):
-                if l in [56]:
-                    ss = np.reshape(ss_gv[l], -1)
-                    bp = np.reshape(bp_gv[l], -1)
+            for kk in range(num_gvs):
+                ss = np.reshape(ss_gv[kk], -1)
+                bp = np.reshape(bp_gv[kk], -1)
+                angle = angle_between(ss, bp) * (180. / 3.14)
+                match = np.count_nonzero(np.sign(ss) == np.sign(bp)) / np.prod(np.shape(ss))
+                angles_gv[kk].append(angle)
+                matches_gv[kk].append(match)
+
+            # derivatives
+            num_deriv = len(ss_deriv)
+            angles_deriv = [None] * num_deriv
+            matches_deriv = [None] * num_deriv
+            for kk in range(num_gvs):
+                angles_deriv[kk] = deque(maxlen=250)
+                matches_deriv[kk] = deque(maxlen=250)
+
+            for l in range(num_deriv):
+                for b in range(args.batch_size):
+                    ss = np.reshape(ss_deriv[l][b], -1)
+                    bp = np.reshape(bp_deriv[l][b], -1)
                     angle = angle_between(ss, bp) * (180. / 3.14)
                     match = np.count_nonzero(np.sign(ss) == np.sign(bp)) / np.prod(np.shape(ss))
-                    angles.append(angle)
-                    matches.append(match)
+                    angles_deriv.append(angle)
+                    matches_deriv.append(match)
 
-            '''
-            for l in range(len(ss_deriv)):
-                # if l in [0, 2, 4]: # first 3 convs.
-                if l in [1]: # pool feeding into last conv layer
-
-                    b,h,w,c = np.shape(ss_deriv[l])
-                    fmaps = np.reshape(ss_deriv[l][0], [1,h,w,c])
-                    viz_fmaps('%d_ss.jpg' % (jj), fmaps)
-
-                    b,h,w,c = np.shape(bp_deriv[l])
-                    fmaps = np.reshape(bp_deriv[l][0], [1,h,w,c])
-                    viz_fmaps('%d_bp.jpg' % (jj), fmaps)
-
-                    for b in range(args.batch_size):
-                        ss = np.reshape(ss_deriv[l][b], -1)
-                        bp = np.reshape(bp_deriv[l][b], -1)
-                        angle = angle_between(ss, bp) * (180. / 3.14)
-                        match = np.count_nonzero(np.sign(ss) == np.sign(bp)) / np.prod(np.shape(ss))
-                        angles.append(angle)
-                        matches.append(match)
-            '''
-
-            p = "train accuracy: %f %f angle: %f match: %f" % (train_acc, train_acc_top5, np.average(angles), np.average(matches))
+            p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
             print (p)
             f = open(results_filename, "a")
             f.write(p + "\n")
             f.close()
+
+            print (np.average(angles_gv, axis=0))
+            print (np.average(matches_gv, axis=0))
 
     train_accs.append(train_acc)
     train_accs_top5.append(train_acc_top5)
