@@ -12,12 +12,15 @@ parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--lr', type=float, default=5e-2)
 parser.add_argument('--eps', type=float, default=1.)
-parser.add_argument('--dfa', type=int, default=0)
 parser.add_argument('--dropout', type=float, default=0.)
 parser.add_argument('--init', type=str, default="alexnet")
 parser.add_argument('--save', type=int, default=0)
 parser.add_argument('--name', type=str, default="imagenet64")
 parser.add_argument('--load', type=str, default=None)
+
+parser.add_argument('--fb', type=str, default="f")
+parser.add_argument('--fwd', type=str, default="f")
+
 args = parser.parse_args()
 
 if args.gpu >= 0:
@@ -284,7 +287,7 @@ for ii in range(args.epochs):
     
     for jj in range(0, len(train_filenames), args.batch_size):
         if (jj % (100 * args.batch_size) == 0):
-            [ss_deriv, bp_deriv, _total_correct, _total_top5, _] = sess.run([ss_derivs, bp_derivs, total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
+            [bp_gv, ss_gv, ss_deriv, bp_deriv, _total_correct, _total_top5, _] = sess.run([bp_gvs, ss_gvs, ss_derivs, bp_derivs, total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
         else:
             [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
 
@@ -298,6 +301,17 @@ for ii in range(args.epochs):
         if (jj % (100 * args.batch_size) == 0):
             angles = deque(maxlen=250)
             matches = deque(maxlen=250)
+
+            for l in range(len(ss_gv)):
+                if l in [56]:
+                    ss = np.reshape(ss_gv[l], -1)
+                    bp = np.reshape(bp_gv[l], -1)
+                    angle = angle_between(ss, bp) * (180. / 3.14)
+                    match = np.count_nonzero(np.sign(ss) == np.sign(bp)) / np.prod(np.shape(ss))
+                    angles.append(angle)
+                    matches.append(match)
+
+            '''
             for l in range(len(ss_deriv)):
                 # if l in [0, 2, 4]: # first 3 convs.
                 if l in [1]: # pool feeding into last conv layer
@@ -317,6 +331,7 @@ for ii in range(args.epochs):
                         match = np.count_nonzero(np.sign(ss) == np.sign(bp)) / np.prod(np.shape(ss))
                         angles.append(angle)
                         matches.append(match)
+            '''
 
             p = "train accuracy: %f %f angle: %f match: %f" % (train_acc, train_acc_top5, np.average(angles), np.average(matches))
             print (p)

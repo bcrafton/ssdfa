@@ -74,9 +74,12 @@ class Convolution(Layer):
         DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
 
-        mask = tf.cast(tf.greater(self.filters, tf.ones_like(self.filters) * (tf.reduce_mean(self.filters) + tf.math.reduce_std(self.filters))), dtype=tf.float32)
-        ss = mask * tf.reduce_mean(self.filters)
+        mask = tf.cast(tf.greater(self.filters, tf.ones_like(self.filters) * tf.reduce_mean(self.filters)), dtype=tf.float32)
+        ss = mask * 2. * tf.reduce_mean(self.filters)
         DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=ss, out_backprop=DO, strides=self.strides, padding=self.padding)
+
+        # DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+        # DI = tf.sign(DI) * tf.math.reduce_std(DI)
 
         if self.use_bias:
             return DI, [(DF, self.filters), (DB, self.bias)]
