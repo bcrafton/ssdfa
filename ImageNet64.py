@@ -6,8 +6,8 @@ import sys
 ##############################################
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', type=str, default="tiny")
-parser.add_argument('--gpu', type=int, default=4)
+parser.add_argument('--model', type=str, default="mobile")
+parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--lr', type=float, default=5e-2)

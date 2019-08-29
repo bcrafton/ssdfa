@@ -60,15 +60,10 @@ class Convolution(Layer):
     ###################################################################
     
     def bp(self, AI, AO, DO, cache):    
-        patches  = tf.image.extract_image_patches(images=DO, ksizes=[1,3,3,1], strides=[1,1,1,1], padding='SAME', rates=[1,1,1,1]) 
-        sign_sum = tf.reduce_sum(tf.sign(patches), axis=3, keep_dims=True)
-        mean     = tf.reduce_mean(sign_sum)
-        std      = tf.math.reduce_std(sign_sum)
-        mask     = tf.cast(tf.greater(tf.abs(sign_sum - mean) - 1. * std, tf.zeros_like(sign_sum)), tf.float32)
-
-        DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
         DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
+
+        DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
 
         if self.use_bias:
             return DI, [(DF, self.filters), (DB, self.bias)]
@@ -76,12 +71,6 @@ class Convolution(Layer):
             return DI, [(DF, self.filters)]
 
     def ss(self, AI, AO, DO, cache):    
-        patches  = tf.image.extract_image_patches(images=DO, ksizes=[1,3,3,1], strides=[1,1,1,1], padding='SAME', rates=[1,1,1,1]) 
-        sign_sum = tf.reduce_sum(tf.sign(patches), axis=3, keep_dims=True)
-        mean     = tf.reduce_mean(sign_sum)
-        std      = tf.math.reduce_std(sign_sum)
-        mask     = tf.cast(tf.greater(tf.abs(sign_sum - mean) - 1. * std, tf.zeros_like(sign_sum)), tf.float32)
-
         DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
 
