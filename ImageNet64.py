@@ -300,14 +300,14 @@ for ii in range(args.epochs):
         
         if (jj % (100 * args.batch_size) == 0):
             # gradients
-            num_gvs = len(ss_gv)
-            angles_gv = [None] * num_gvs
-            matches_gv = [None] * num_gvs
-            for kk in range(num_gvs):
+            num_gv = len(ss_gv)
+            angles_gv = [None] * num_gv
+            matches_gv = [None] * num_gv
+            for kk in range(num_gv):
                 angles_gv[kk] = deque(maxlen=250)
                 matches_gv[kk] = deque(maxlen=250)
 
-            for kk in range(num_gvs):
+            for kk in range(num_gv):
                 ss = np.reshape(ss_gv[kk], -1)
                 bp = np.reshape(bp_gv[kk], -1)
                 angle = angle_between(ss, bp) * (180. / 3.14)
@@ -319,7 +319,7 @@ for ii in range(args.epochs):
             num_deriv = len(ss_deriv)
             angles_deriv = [None] * num_deriv
             matches_deriv = [None] * num_deriv
-            for kk in range(num_gvs):
+            for kk in range(num_deriv):
                 angles_deriv[kk] = deque(maxlen=250)
                 matches_deriv[kk] = deque(maxlen=250)
 
