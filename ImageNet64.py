@@ -338,10 +338,15 @@ for ii in range(args.epochs):
             f.write(p + "\n")
             f.close()
 
-            print (np.shape(angles_gv), 'gv angles', np.average(angles_gv, axis=1))
-            print (np.shape(matches_gv), 'gv matches', np.average(matches_gv, axis=1))
-            print (np.shape(angles_deriv), 'deriv angles', np.average(angles_deriv, axis=1))
-            print (np.shape(matches_deriv), 'deriv matches', np.average(matches_deriv, axis=1))
+            angles_gv = np.average(angles_gv, axis=1)               
+            matches_gv = np.average(matches_gv, axis=1) * 100.      
+            angles_deriv = np.average(angles_deriv, axis=1)         
+            matches_deriv = np.average(matches_deriv, axis=1) * 100.
+
+            print ('gv angles',     int(np.max(angles_gv)),     int(np.average(angles_gv)),     int(np.min(angles_gv)))
+            print ('gv matches',    int(np.max(matches_gv)),    int(np.average(matches_gv)),    int(np.min(matches_gv)))
+            print ('deriv angles',  int(np.max(angles_deriv)),  int(np.average(angles_deriv)),  int(np.min(angles_deriv)))
+            print ('deriv matches', int(np.max(matches_deriv)), int(np.average(matches_deriv)), int(np.min(matches_deriv)))
 
     train_accs.append(train_acc)
     train_accs_top5.append(train_acc_top5)
