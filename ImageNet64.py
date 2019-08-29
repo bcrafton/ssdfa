@@ -73,7 +73,7 @@ import matplotlib.pyplot as plt
 ##############################################
 
 def unit_vector(vector):
-    return vector / max(np.linalg.norm(vector), 1e-9)
+    return vector / np.linalg.norm(vector)
 
 def angle_between(v1, v2):
     v1_u = unit_vector(v1)
@@ -323,14 +323,14 @@ for ii in range(args.epochs):
                 angles_deriv[kk] = deque(maxlen=250)
                 matches_deriv[kk] = deque(maxlen=250)
 
-            for l in range(num_deriv):
-                for b in range(args.batch_size):
-                    ss = np.reshape(ss_deriv[l][b], -1)
-                    bp = np.reshape(bp_deriv[l][b], -1)
+            for kk in range(num_deriv):
+                for ll in range(args.batch_size):
+                    ss = np.reshape(ss_deriv[kk][ll], -1)
+                    bp = np.reshape(bp_deriv[kk][ll], -1)
                     angle = angle_between(ss, bp) * (180. / 3.14)
                     match = np.count_nonzero(np.sign(ss) == np.sign(bp)) / np.prod(np.shape(ss))
-                    angles_deriv.append(angle)
-                    matches_deriv.append(match)
+                    angles_deriv[kk].append(angle)
+                    matches_deriv[kk].append(match)
 
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
             print (p)
@@ -338,8 +338,10 @@ for ii in range(args.epochs):
             f.write(p + "\n")
             f.close()
 
-            print (np.average(angles_gv, axis=0))
-            print (np.average(matches_gv, axis=0))
+            print (np.shape(angles_gv), 'gv angles', np.average(angles_gv, axis=1))
+            print (np.shape(matches_gv), 'gv matches', np.average(matches_gv, axis=1))
+            print (np.shape(angles_deriv), 'deriv angles', np.average(angles_deriv, axis=1))
+            print (np.shape(matches_deriv), 'deriv matches', np.average(matches_deriv, axis=1))
 
     train_accs.append(train_acc)
     train_accs_top5.append(train_acc_top5)
