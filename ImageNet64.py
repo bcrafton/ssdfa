@@ -398,6 +398,8 @@ for ii in range(args.epochs):
     write (p)
 
     [w] = sess.run([weights], feed_dict={})
+    w['train_acc'] = train_accs
+    w['val_acc'] = val_accs
     np.save(args.name, w)
     
 

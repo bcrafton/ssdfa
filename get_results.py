@@ -18,17 +18,20 @@ num_runs = len(runs)
 for ii in range(num_runs):
     param = runs[ii]
 
-    name = '%s_%s_%f_%f_%f_%s.npy' % (
-            param['benchmark'], 
-            param['model'], 
-            param['lr'], 
+    name = '%s_%s_%f_%f_%f_%s_%s_%s_%s.npy' % (
+            param['benchmark'],
+            param['model'],
+            param['lr'],
             param['eps'],
-            param['dropout'], 
-            param['init']
+            param['dropout'],
+            param['init'],
+            param['fb_conv'],
+            param['fb_dw'],
+            param['fb_pw']
             )
 
     res = np.load(name, allow_pickle=True).item()
-    key = (param['benchmark'], param['model'], param['lr'])
+    key = (param['benchmark'], param['model'], param['lr'], param['fb_conv'], param['fb_dw'], param['fb_pw'])
     val = max(res['val_acc'])
 
     print (name, val)
