@@ -27,16 +27,19 @@ def run_command(param):
         gpu = counter % num_gpus
         counter = counter + 1
     
-    name = '%s_%s_%f_%f_%f_%s' % (
+    name = '%s_%s_%f_%f_%f_%s_%s_%s_%s' % (
             param['benchmark'], 
             param['model'], 
             param['lr'], 
             param['eps'],
             param['dropout'], 
-            param['init']
+            param['init'],
+            param['fb_conv'],
+            param['fb_dw'], 
+            param['fb_pw']
             )
              
-    cmd = "python36 %s --model %s --gpu %d --epochs %d --batch_size %d --lr %f --eps %f --dropout %f --init %s --save %d --name %s" % (
+    cmd = "python36 %s --model %s --gpu %d --epochs %d --batch_size %d --lr %f --eps %f --dropout %f --init %s --save %d --name %s --fb_conv %s --fb_dw %s --fb_pw %s" % (
            param['benchmark'], 
            param['model'], 
            gpu, 
@@ -47,7 +50,10 @@ def run_command(param):
            param['dropout'], 
            param['init'], 
            1, 
-           name
+           name,
+           param['fb_conv'],
+           param['fb_dw'], 
+           param['fb_pw']
            )
 
     if cmd_args.print:

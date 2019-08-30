@@ -7,7 +7,7 @@ from lib.ConvBlock import ConvBlock
 
 class VGGBlock(Layer):
 
-    def __init__(self, input_shape, filter_shape, init, name, load=None, train=True):
+    def __init__(self, input_shape, filter_shape, init, name, load=None, train=True, fb='f'):
         self.input_shape = input_shape
         self.batch, self.h, self.w, self.fin = self.input_shape
         
@@ -21,6 +21,7 @@ class VGGBlock(Layer):
         self.name = name
         self.load = load
         self.train_flag = train
+        self.fb = fb
         
         self.conv = ConvBlock(input_shape=self.input_shape, 
                               filter_shape=[3, 3, self.fin, self.fout], 
@@ -28,7 +29,8 @@ class VGGBlock(Layer):
                               init=self.init, 
                               name=self.name + '_conv_block', 
                               load=self.load, 
-                              train=self.train_flag)
+                              train=self.train_flag,
+                              fb=self.fb)
 
     ###################################################################
 

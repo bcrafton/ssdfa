@@ -8,7 +8,7 @@ from lib.ConvDWBlock import ConvDWBlock
 
 class MobileBlock(Layer):
 
-    def __init__(self, input_shape, filter_shape, strides, init, name, load=None, train=True):
+    def __init__(self, input_shape, filter_shape, strides, init, name, load=None, train=True, fb_dw='f', fb_pw='f'):
         self.input_shape = input_shape
         self.batch, self.h, self.w, self.fin = self.input_shape
         
@@ -22,6 +22,8 @@ class MobileBlock(Layer):
         self.name = name
         self.load = load
         self.train_flag = train
+        self.fb_pw = fb_pw
+        self.fb_dw = fb_dw
 
         input_shape_1 = [self.batch, self.h,            self.w,            self.fin]
         input_shape_2 = [self.batch, self.h // self.sh, self.w // self.sw, self.fin]
@@ -32,7 +34,8 @@ class MobileBlock(Layer):
                                    init=self.init, 
                                    name=self.name + '_conv_block_dw',
                                    load=self.load, 
-                                   train=self.train_flag)
+                                   train=self.train_flag,
+                                   fb=self.fb_dw)
 
         self.conv_pw = ConvBlock(input_shape=input_shape_2, 
                                  filter_shape=[1, 1, self.fin, self.fout], 
@@ -40,7 +43,8 @@ class MobileBlock(Layer):
                                  init=self.init, 
                                  name=self.name + '_conv_block_pw',
                                  load=self.load, 
-                                 train=self.train_flag)
+                                 train=self.train_flag,
+                                 fb=self.fb_pw)
 
     ###################################################################
 

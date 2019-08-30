@@ -9,7 +9,7 @@ from lib.init_tensor import init_filters
 
 class ConvolutionDW(Layer):
 
-    def __init__(self, input_shape, filter_sizes, init, strides=[1,1,1,1], padding='SAME', bias=0., use_bias=True, name=None, load=None, train=True):
+    def __init__(self, input_shape, filter_sizes, init, strides=[1,1,1,1], padding='SAME', bias=0., use_bias=True, name=None, load=None, train=True, fb='f'):
         self.input_shape = input_shape
         self.filter_sizes = filter_sizes
         self.batch_size, self.h, self.w, self.fin = self.input_shape
@@ -22,6 +22,7 @@ class ConvolutionDW(Layer):
         self.use_bias = use_bias
         self.name = name
         self.train_flag = train
+        self.fb = fb
         
         filters = np.absolute(init_filters(size=self.filter_sizes, init=self.init))
         bias = np.ones(shape=self.fout) * bias
@@ -75,12 +76,18 @@ class ConvolutionDW(Layer):
         DF = tf.nn.depthwise_conv2d_native_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
 
-        mask = tf.ones_like(self.filters)
-        ss = mask * 2. * tf.reduce_mean(self.filters, axis=[0, 1], keep_dims=True)
-        DI = tf.nn.depthwise_conv2d_native_backprop_input(input_sizes=self.input_shape, filter=ss, out_backprop=DO, strides=self.strides, padding=self.padding)
+        if   self.fb == 'f':
+            ss = self.filters
+        elif self.fb == 'u01':
+            ss = tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0, 1], keep_dims=True)
+        elif self.fb == 'u012':
+            ss = tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0, 1, 2], keep_dims=True)
+        elif self.fb == 'u0123':
+            ss = tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0, 1, 2, 3], keep_dims=True)
+        else:
+            assert(False)
 
-        # DI = tf.nn.depthwise_conv2d_native_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
-        # DI = tf.sign(DI) * tf.math.reduce_std(DI)
+        DI = tf.nn.depthwise_conv2d_native_backprop_input(input_sizes=self.input_shape, filter=ss, out_backprop=DO, strides=self.strides, padding=self.padding)
 
         if self.use_bias:
             return DI, [(DF, self.filters), (DB, self.bias)]

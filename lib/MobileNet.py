@@ -56,21 +56,21 @@ def MobileNet224(batch_size, dropout_rate, init='alexnet', sparse=0):
 
     return model
 
-def MobileNet64(batch_size, dropout_rate, init='alexnet', sparse=0):
-    l1 = ConvBlock(input_shape=[batch_size, 64, 64, 6], filter_shape=[3, 3, 6, 32], strides=[1,1,1,1], init=init, name='block1')
+def MobileNet64(batch_size, dropout_rate, init='alexnet', sparse=0, fb_conv, fb_dw, fb_pw):
+    l1 = ConvBlock(input_shape=[batch_size, 64, 64, 6], filter_shape=[3, 3, 6, 32], strides=[1,1,1,1], init=init, name='block1', fb=fb_conv)
 
-    l2 = MobileBlock(input_shape=[batch_size, 64, 64, 32],  filter_shape=[32, 64],   strides=[1,2,2,1], init=init, name='block2')
-    l3 = MobileBlock(input_shape=[batch_size, 32, 32, 64],  filter_shape=[64, 128],  strides=[1,1,1,1], init=init, name='block3')
-    l4 = MobileBlock(input_shape=[batch_size, 32, 32, 128], filter_shape=[128, 256], strides=[1,2,2,1], init=init, name='block4')
-    l5 = MobileBlock(input_shape=[batch_size, 16, 16, 256], filter_shape=[256, 512], strides=[1,1,1,1], init=init, name='block5')
-    l6 = MobileBlock(input_shape=[batch_size, 16, 16, 512], filter_shape=[512, 512], strides=[1,2,2,1], init=init, name='block6')
+    l2 = MobileBlock(input_shape=[batch_size, 64, 64, 32],  filter_shape=[32, 64],   strides=[1,2,2,1], init=init, name='block2', fb_dw=fb_dw, fb_pw=fb_pw)
+    l3 = MobileBlock(input_shape=[batch_size, 32, 32, 64],  filter_shape=[64, 128],  strides=[1,1,1,1], init=init, name='block3', fb_dw=fb_dw, fb_pw=fb_pw)
+    l4 = MobileBlock(input_shape=[batch_size, 32, 32, 128], filter_shape=[128, 256], strides=[1,2,2,1], init=init, name='block4', fb_dw=fb_dw, fb_pw=fb_pw)
+    l5 = MobileBlock(input_shape=[batch_size, 16, 16, 256], filter_shape=[256, 512], strides=[1,1,1,1], init=init, name='block5', fb_dw=fb_dw, fb_pw=fb_pw)
+    l6 = MobileBlock(input_shape=[batch_size, 16, 16, 512], filter_shape=[512, 512], strides=[1,2,2,1], init=init, name='block6', fb_dw=fb_dw, fb_pw=fb_pw)
 
-    l7 = MobileBlock(input_shape=[batch_size, 8, 8, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=init, name='block7')
-    l8 = MobileBlock(input_shape=[batch_size, 8, 8, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=init, name='block8')
-    l9 = MobileBlock(input_shape=[batch_size, 8, 8, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=init, name='block9')
+    l7 = MobileBlock(input_shape=[batch_size, 8, 8, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=init, name='block7', fb_dw=fb_dw, fb_pw=fb_pw)
+    l8 = MobileBlock(input_shape=[batch_size, 8, 8, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=init, name='block8', fb_dw=fb_dw, fb_pw=fb_pw)
+    l9 = MobileBlock(input_shape=[batch_size, 8, 8, 512], filter_shape=[512, 512], strides=[1,1,1,1], init=init, name='block9', fb_dw=fb_dw, fb_pw=fb_pw)
 
-    l10 = MobileBlock(input_shape=[batch_size, 8, 8, 512],  filter_shape=[512, 1024],  strides=[1,2,2,1], init=init, name='block10')
-    l11 = MobileBlock(input_shape=[batch_size, 4, 4, 1024], filter_shape=[1024, 1024], strides=[1,1,1,1], init=init, name='block11')
+    l10 = MobileBlock(input_shape=[batch_size, 8, 8, 512],  filter_shape=[512, 1024],  strides=[1,2,2,1], init=init, name='block10', fb_dw=fb_dw, fb_pw=fb_pw)
+    l11 = MobileBlock(input_shape=[batch_size, 4, 4, 1024], filter_shape=[1024, 1024], strides=[1,1,1,1], init=init, name='block11', fb_dw=fb_dw, fb_pw=fb_pw)
 
     l12 = AvgPool(size=[batch_size, 4, 4, 1024], ksize=[1, 4, 4, 1], strides=[1, 4, 4, 1], padding="SAME")
     l13 = ConvToFullyConnected(input_shape=[1, 1, 1024])

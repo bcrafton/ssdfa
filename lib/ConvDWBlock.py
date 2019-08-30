@@ -11,7 +11,7 @@ from lib.Activation import SignedRelu
 
 class ConvDWBlock(Layer):
 
-    def __init__(self, input_shape, filter_shape, strides, init, name, load=None, train=True):
+    def __init__(self, input_shape, filter_shape, strides, init, name, load=None, train=True, fb='f'):
         self.input_shape = input_shape
         self.batch, self.h, self.w, self.fin = self.input_shape
         
@@ -28,6 +28,7 @@ class ConvDWBlock(Layer):
         self.name = name
         self.load = load
         self.train_flag = train
+        self.fb = fb
         
         self.conv = ConvolutionDW(input_shape=self.input_shape, 
                                   filter_sizes=self.filter_shape, 
@@ -37,7 +38,8 @@ class ConvDWBlock(Layer):
                                   use_bias=False,
                                   name=self.name + '_conv_dw',
                                   load=self.load, 
-                                  train=self.train_flag)
+                                  train=self.train_flag,
+                                  fb=self.fb)
                                 
         self.bn = BatchNorm(input_size=self.output_shape, name=self.name + '_bn_dw')
         signs = np.random.choice([1., -1.], size=self.fout) # np.array([1.] * (self.fout // 2) + [-1.] * (self.fout // 2))

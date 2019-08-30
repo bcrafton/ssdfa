@@ -18,8 +18,9 @@ parser.add_argument('--save', type=int, default=0)
 parser.add_argument('--name', type=str, default="imagenet64")
 parser.add_argument('--load', type=str, default=None)
 
-parser.add_argument('--fb', type=str, default="f")
-parser.add_argument('--fwd', type=str, default="f")
+parser.add_argument('--fb_conv', type=str, default="f")
+parser.add_argument('--fb_dw', type=str, default="f")
+parser.add_argument('--fb_pw', type=str, default="f")
 
 args = parser.parse_args()
 
@@ -224,11 +225,11 @@ lr = tf.placeholder(tf.float32, shape=())
 ###############################################################
 
 if args.model == 'vgg':
-    model = VGGNet64(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init)
+    assert(False)
 elif args.model == 'tiny':
-    model = VGGNetTiny(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init)
+    model = VGGNetTiny(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init, fb_conv=args.fb_conv, fb_dw=args.fb_dw, fb_pw=args.fb_pw)
 elif args.model == 'mobile':
-    model = MobileNet64(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init)
+    model = MobileNet64(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init, fb_conv=args.fb_conv, fb_dw=args.fb_dw, fb_pw=args.fb_pw)
 else:
     assert (False)
 
