@@ -130,7 +130,7 @@ def VGGNet64(batch_size, dropout_rate, init='alexnet', sparse=0):
     return model
 
 
-def VGGNetTiny(batch_size, dropout_rate, init='alexnet', sparse=0, fb_conv, fb_dw, fb_pw):
+def VGGNetTiny(batch_size, dropout_rate, init='alexnet', sparse=0, fb_conv='f', fb_dw='f', fb_pw='f'):
 
     l1_1 = VGGBlock(input_shape=[batch_size, 64, 64, 6], filter_shape=[6, 64], init=init, name='block1', fb=fb_conv)
     l1_2 = AvgPool(size=[batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")

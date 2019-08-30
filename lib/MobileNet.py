@@ -56,7 +56,7 @@ def MobileNet224(batch_size, dropout_rate, init='alexnet', sparse=0):
 
     return model
 
-def MobileNet64(batch_size, dropout_rate, init='alexnet', sparse=0, fb_conv, fb_dw, fb_pw):
+def MobileNet64(batch_size, dropout_rate, init='alexnet', sparse=0, fb_conv='f', fb_dw='f', fb_pw='f'):
     l1 = ConvBlock(input_shape=[batch_size, 64, 64, 6], filter_shape=[3, 3, 6, 32], strides=[1,1,1,1], init=init, name='block1', fb=fb_conv)
 
     l2 = MobileBlock(input_shape=[batch_size, 64, 64, 32],  filter_shape=[32, 64],   strides=[1,2,2,1], init=init, name='block2', fb_dw=fb_dw, fb_pw=fb_pw)

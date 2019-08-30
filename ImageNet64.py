@@ -114,6 +114,12 @@ def viz_fmaps(name, fmaps):
             
     plt.imsave(name, img, cmap='gray')
 
+def write(text):
+    print (text)
+    f = open(args.name + '.results', "a")
+    f.write(text + "\n")
+    f.close()
+
 ##############################################
 
 def in_top_k(x, y, k):
@@ -278,7 +284,7 @@ lr_decay = args.lr
 
 for ii in range(args.epochs):
 
-    print('epoch %d/%d' % (ii, args.epochs))
+    write('epoch %d/%d' % (ii, args.epochs))
 
     sess.run(train_iterator.initializer, feed_dict={filename: train_filenames})
 
@@ -334,20 +340,18 @@ for ii in range(args.epochs):
                     matches_deriv[kk].append(match)
 
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
-            print (p)
-            f = open(results_filename, "a")
-            f.write(p + "\n")
-            f.close()
+            write (p)
 
             angles_gv = np.average(angles_gv, axis=1)               
             matches_gv = np.average(matches_gv, axis=1) * 100.      
             angles_deriv = np.average(angles_deriv, axis=1)         
             matches_deriv = np.average(matches_deriv, axis=1) * 100.
 
-            print ('gv angles',     int(np.max(angles_gv)),     int(np.average(angles_gv)),     int(np.min(angles_gv)))
-            print ('gv matches',    int(np.max(matches_gv)),    int(np.average(matches_gv)),    int(np.min(matches_gv)))
-            print ('deriv angles',  int(np.max(angles_deriv)),  int(np.average(angles_deriv)),  int(np.min(angles_deriv)))
-            print ('deriv matches', int(np.max(matches_deriv)), int(np.average(matches_deriv)), int(np.min(matches_deriv)))
+            if not (np.any(np.isnan(angles_gv)) or np.any(np.isnan(matches_gv)) or np.any(np.isnan(angles_deriv)) or np.any(np.isnan(matches_deriv))):
+                write ('gv angles: %d %d %d'     % (int(np.max(angles_gv)),     int(np.average(angles_gv)),     int(np.min(angles_gv))))
+                write ('gv matches: %d %d %d'    % (int(np.max(matches_gv)),    int(np.average(matches_gv)),    int(np.min(matches_gv))))
+                write ('deriv angles: %d %d %d'  % (int(np.max(angles_deriv)),  int(np.average(angles_deriv)),  int(np.min(angles_deriv))))
+                write ('deriv matches: %d %d %d' % (int(np.max(matches_deriv)), int(np.average(matches_deriv)), int(np.min(matches_deriv))))
 
     train_accs.append(train_acc)
     train_accs_top5.append(train_acc_top5)
@@ -372,10 +376,7 @@ for ii in range(args.epochs):
         
         if (jj % (100 * args.batch_size) == 0):
             p = "val accuracy: %f %f" % (val_acc, val_acc_top5)
-            print (p)
-            f = open(results_filename, "a")
-            f.write(p + "\n")
-            f.close()
+            write (p)
 
     val_accs.append(val_acc)
     val_accs_top5.append(val_acc_top5)
@@ -394,10 +395,7 @@ for ii in range(args.epochs):
             phase = 3
 
     p = "phase: %d" % (phase)
-    print (p)
-    f = open(results_filename, "a")
-    f.write(p + "\n")
-    f.close()
+    write (p)
 
     [w] = sess.run([weights], feed_dict={})
     np.save(args.name, w)
