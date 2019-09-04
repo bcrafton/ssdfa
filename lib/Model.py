@@ -92,13 +92,13 @@ class Model:
             l = self.layers[ii]
             
             if (ii == self.num_layers-1):
-                D[ii], gvs = l.bp(A[ii-1]['aout'], A[ii]['aout'], E,       A[ii]['cache'])
+                D[ii], gvs = l.ss(A[ii-1]['aout'], A[ii]['aout'], E,       A[ii]['cache'])
                 grads_and_vars.extend(gvs)
             elif (ii == 0):
-                D[ii], gvs = l.bp(X,               A[ii]['aout'], D[ii+1], A[ii]['cache'])
+                D[ii], gvs = l.ss(X,               A[ii]['aout'], D[ii+1], A[ii]['cache'])
                 grads_and_vars.extend(gvs)
             else:
-                D[ii], gvs = l.bp(A[ii-1]['aout'], A[ii]['aout'], D[ii+1], A[ii]['cache'])
+                D[ii], gvs = l.ss(A[ii-1]['aout'], A[ii]['aout'], D[ii+1], A[ii]['cache'])
                 grads_and_vars.extend(gvs)
 
         return grads_and_vars, D
