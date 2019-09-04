@@ -26,6 +26,9 @@ class Layer:
     def ss(self, AI, AO, DO, cache):    
         return self.bp(AI, AO, DO, cache)
 
+    def fa(self, AI, AO, DO, cache):    
+        return self.bp(AI, AO, DO, cache)
+
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)
         
