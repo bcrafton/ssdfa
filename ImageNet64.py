@@ -321,10 +321,18 @@ for ii in range(args.epochs):
         
         if (jj % (100 * args.batch_size) == 0):
 
+            '''
+            for kk in range(len(gv)):
+                print (kk, np.shape(gv[kk][0]))
+            for kk in range(len(deriv)):
+                print (kk, np.shape(deriv[kk]))
+            assert(False)
+            '''
+
             num_gv = len(gv)
             for kk in range(num_gv):
-                ss = np.reshape(gv[kk], -1)
-                bp = np.reshape(bp_gv[kk], -1)
+                ss = np.reshape(gv[kk][0], -1)
+                bp = np.reshape(bp_gv[kk][0], -1)
                 angle = angle_between(ss, bp) * (180. / 3.14)
                 match = np.count_nonzero(np.sign(ss) == np.sign(bp)) / np.prod(np.shape(ss))
                 add_to_dict(angles_gv, kk, angle)
