@@ -13,6 +13,7 @@ parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--lr', type=float, default=5e-2)
 parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--dropout', type=float, default=0.)
+parser.add_argument('--alg', type=str, default="ss")
 parser.add_argument('--init', type=str, default="alexnet")
 parser.add_argument('--save', type=int, default=0)
 parser.add_argument('--name', type=str, default="imagenet64")
@@ -55,12 +56,65 @@ from lib.VGGBlock import VGGBlock
 from lib.MobileBlock import MobileBlock
 from lib.BatchNorm import BatchNorm
 
+from lib.VGGNet import VGGNetTiny
 from lib.VGGNet import VGGNet64
 from lib.MobileNet import MobileNet64
+
+from collections import deque
+import matplotlib.pyplot as plt
 
 ##############################################
 
 # MEAN = [122.77093945, 116.74601272, 104.09373519]
+
+##############################################
+
+def unit_vector(vector):
+    return vector / np.linalg.norm(vector)
+
+def angle_between(v1, v2):
+    v1_u = unit_vector(v1)
+    v2_u = unit_vector(v2)
+    return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+
+def factors(x):
+    l = [] 
+    for i in range(1, x + 1):
+        if x % i == 0:
+            l.append(i)
+    
+    mid = int(len(l) / 2)
+    
+    if (len(l) % 2 == 1):
+        return [l[mid], l[mid]]
+    else:
+        return l[mid-1:mid+1]
+
+def viz_fmaps(name, fmaps):
+    b, h, w, c = np.shape(fmaps)
+    fmaps = np.transpose(fmaps, [0,3,1,2])
+    [nrows, ncols] = factors(b * c)
+    fmaps = np.reshape(fmaps, (nrows, ncols, h, w))
+
+    for ii in range(nrows):
+        for jj in range(ncols):
+            if jj == 0:
+                row = fmaps[ii][jj]
+            else:
+                row = np.concatenate((row, fmaps[ii][jj]), axis=1)
+                
+        if ii == 0:
+            img = row
+        else:
+            img = np.concatenate((img, row), axis=0)
+            
+    plt.imsave(name, img, cmap='gray')
+
+def write(text):
+    print (text)
+    f = open(args.name + '.results', "a")
+    f.write(text + "\n")
+    f.close()
 
 ##############################################
 
@@ -170,9 +224,11 @@ lr = tf.placeholder(tf.float32, shape=())
 ###############################################################
 
 if args.model == 'vgg':
-    model = VGGNet64(batch_size=batch_size, dropout_rate=dropout_rate)
+    model = VGGNet64(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init)
+elif args.model == 'tiny':
+    model = VGGNetTiny(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init)
 elif args.model == 'mobile':
-    model = MobileNet64(batch_size=batch_size, dropout_rate=dropout_rate)
+    model = MobileNet64(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init)
 else:
     assert (False)
 
@@ -181,8 +237,13 @@ else:
 predict = tf.nn.softmax(model.predict(X=features))
 weights = model.get_weights()
 
-grads_and_vars = model.gvs(X=features, Y=labels)        
-train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
+bp_gvs, bp_derivs = model.gvs(X=features, Y=labels)
+if   args.alg == 'ss':
+    gvs, derivs = model.ss_gvs(X=features, Y=labels)
+elif args.alg == 'fa':
+    gvs, derivs = model.fa_gvs(X=features, Y=labels)
+
+train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=gvs)
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
@@ -219,7 +280,7 @@ lr_decay = args.lr
 
 for ii in range(args.epochs):
 
-    print('epoch %d/%d' % (ii, args.epochs))
+    write('epoch %d/%d' % (ii, args.epochs))
 
     sess.run(train_iterator.initializer, feed_dict={filename: train_filenames})
 
@@ -228,7 +289,10 @@ for ii in range(args.epochs):
     train_top5 = 0.0
     
     for jj in range(0, len(train_filenames), args.batch_size):
-        [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
+        if (jj % (100 * args.batch_size) == 0):
+            [gv, bp_gv, deriv, bp_deriv, _total_correct, _total_top5, _] = sess.run([gvs, bp_gvs, derivs, bp_derivs, total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
+        else:
+            [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
 
         train_total += args.batch_size
         train_correct += _total_correct
@@ -238,11 +302,52 @@ for ii in range(args.epochs):
         train_acc_top5 = train_top5 / train_total
         
         if (jj % (100 * args.batch_size) == 0):
+            # gradients
+            num_gv = len(gv)
+            angles_gv = [None] * num_gv
+            matches_gv = [None] * num_gv
+            for kk in range(num_gv):
+                angles_gv[kk] = deque(maxlen=250)
+                matches_gv[kk] = deque(maxlen=250)
+
+            for kk in range(num_gv):
+                ss = np.reshape(gv[kk], -1)
+                bp = np.reshape(bp_gv[kk], -1)
+                angle = angle_between(ss, bp) * (180. / 3.14)
+                match = np.count_nonzero(np.sign(ss) == np.sign(bp)) / np.prod(np.shape(ss))
+                angles_gv[kk].append(angle)
+                matches_gv[kk].append(match)
+
+            # derivatives
+            num_deriv = len(deriv)
+            angles_deriv = [None] * num_deriv
+            matches_deriv = [None] * num_deriv
+            for kk in range(num_deriv):
+                angles_deriv[kk] = deque(maxlen=250)
+                matches_deriv[kk] = deque(maxlen=250)
+
+            for kk in range(num_deriv):
+                for ll in range(args.batch_size):
+                    ss = np.reshape(deriv[kk][ll], -1)
+                    bp = np.reshape(bp_deriv[kk][ll], -1)
+                    angle = angle_between(ss, bp) * (180. / 3.14)
+                    match = np.count_nonzero(np.sign(ss) == np.sign(bp)) / np.prod(np.shape(ss))
+                    angles_deriv[kk].append(angle)
+                    matches_deriv[kk].append(match)
+
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
-            print (p)
-            f = open(results_filename, "a")
-            f.write(p + "\n")
-            f.close()
+            write (p)
+
+            angles_gv = np.average(angles_gv, axis=1)               
+            matches_gv = np.average(matches_gv, axis=1) * 100.      
+            angles_deriv = np.average(angles_deriv, axis=1)         
+            matches_deriv = np.average(matches_deriv, axis=1) * 100.
+
+            if not (np.any(np.isnan(angles_gv)) or np.any(np.isnan(matches_gv)) or np.any(np.isnan(angles_deriv)) or np.any(np.isnan(matches_deriv))):
+                write ('gv angles: %d %d %d'     % (int(np.max(angles_gv)),     int(np.average(angles_gv)),     int(np.min(angles_gv))))
+                write ('gv matches: %d %d %d'    % (int(np.max(matches_gv)),    int(np.average(matches_gv)),    int(np.min(matches_gv))))
+                write ('deriv angles: %d %d %d'  % (int(np.max(angles_deriv)),  int(np.average(angles_deriv)),  int(np.min(angles_deriv))))
+                write ('deriv matches: %d %d %d' % (int(np.max(matches_deriv)), int(np.average(matches_deriv)), int(np.min(matches_deriv))))
 
     train_accs.append(train_acc)
     train_accs_top5.append(train_acc_top5)
@@ -267,10 +372,7 @@ for ii in range(args.epochs):
         
         if (jj % (100 * args.batch_size) == 0):
             p = "val accuracy: %f %f" % (val_acc, val_acc_top5)
-            print (p)
-            f = open(results_filename, "a")
-            f.write(p + "\n")
-            f.close()
+            write (p)
 
     val_accs.append(val_acc)
     val_accs_top5.append(val_acc_top5)
@@ -278,23 +380,22 @@ for ii in range(args.epochs):
     if phase == 0:
         phase = 1
     elif phase == 1:
-        dacc = train_accs[-1] - train_accs[-2]
+        dacc = val_accs[-1] - val_accs[-2]
         if dacc <= 0.01:
             lr_decay = 0.1 * args.lr
             phase = 2
     elif phase == 2:
-        dacc = train_accs[-1] - train_accs[-2]
+        dacc = val_accs[-1] - val_accs[-2]
         if dacc <= 0.005:
             lr_decay = 0.05 * args.lr
             phase = 3
 
     p = "phase: %d" % (phase)
-    print (p)
-    f = open(results_filename, "a")
-    f.write(p + "\n")
-    f.close()
+    write (p)
 
     [w] = sess.run([weights], feed_dict={})
+    w['train_acc'] = train_accs
+    w['val_acc'] = val_accs
     np.save(args.name, w)
     
 
