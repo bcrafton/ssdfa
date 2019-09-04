@@ -231,7 +231,7 @@ lr = tf.placeholder(tf.float32, shape=())
 ###############################################################
 
 if args.model == 'vgg':
-    assert(False)
+    model = VGGNet64(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init, fb_conv=args.fb_conv, fb_dw=args.fb_dw, fb_pw=args.fb_pw)
 elif args.model == 'tiny':
     model = VGGNetTiny(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init, fb_conv=args.fb_conv, fb_dw=args.fb_dw, fb_pw=args.fb_pw)
 elif args.model == 'mobile':

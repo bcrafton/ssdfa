@@ -53,9 +53,19 @@ class Convolution(Layer):
             return filter_weights_size
 
     def forward(self, X):
-        Z = tf.nn.conv2d(X, self.filters, self.strides, self.padding)
+        if self.fb   == 'ud01f':
+            mask = tf.cast(tf.greater(self.filters, tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0,1], keep_dims=True)), dtype=tf.float32)
+        elif self.fb == 'ud012f':
+            mask = tf.cast(tf.greater(self.filters, tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0,1,2], keep_dims=True)), dtype=tf.float32)
+        elif self.fb == 'ud0123f':
+            mask = tf.cast(tf.greater(self.filters, tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0,1,2,3], keep_dims=True)), dtype=tf.float32)
+        else:
+            mask = tf.ones_like(self.filters)
+
+        Z = tf.nn.conv2d(X, self.filters * mask, self.strides, self.padding)
         if self.use_bias:
             Z = Z + self.bias
+
         return {'aout':Z, 'cache':{}}
 
     ###################################################################
@@ -83,13 +93,13 @@ class Convolution(Layer):
             ss = tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0, 1, 2], keep_dims=True)
         elif self.fb == 'u0123':
             ss = tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0, 1, 2, 3], keep_dims=True)
-        elif self.fb == 'ud01':
+        elif self.fb == 'ud01' or self.fb == 'ud01f':
             mask = tf.cast(tf.greater(self.filters, tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0, 1], keep_dims=True)), dtype=tf.float32)
             ss = mask * 2. * tf.reduce_mean(self.filters, axis=[0, 1], keep_dims=True)
-        elif self.fb == 'ud012':
+        elif self.fb == 'ud012' or self.fb == 'ud012f':
             mask = tf.cast(tf.greater(self.filters, tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0, 1, 2], keep_dims=True)), dtype=tf.float32)
             ss = mask * 2. * tf.reduce_mean(self.filters, axis=[0, 1, 2], keep_dims=True)
-        elif self.fb == 'ud0123':
+        elif self.fb == 'ud0123' or self.fb == 'ud0123f':
             mask = tf.cast(tf.greater(self.filters, tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0, 1, 2, 3], keep_dims=True)), dtype=tf.float32)
             ss = mask * 2. * tf.reduce_mean(self.filters, axis=[0, 1, 2, 3], keep_dims=True)
 
