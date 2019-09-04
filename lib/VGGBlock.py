@@ -57,6 +57,20 @@ class VGGBlock(Layer):
         grads = []
         grads.extend(gconv)
         return dconv, grads
+
+    def ss(self, AI, AO, DO, cache):    
+        conv = cache['conv']
+        dconv, gconv = self.conv.ss(AI, conv['aout'], DO, conv['cache'])
+        grads = []
+        grads.extend(gconv)
+        return dconv, grads
+
+    def fa(self, AI, AO, DO, cache):    
+        conv = cache['conv']
+        dconv, gconv = self.conv.fa(AI, conv['aout'], DO, conv['cache'])
+        grads = []
+        grads.extend(gconv)
+        return dconv, grads
         
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)

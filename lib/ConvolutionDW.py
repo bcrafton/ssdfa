@@ -25,9 +25,11 @@ class ConvolutionDW(Layer):
         
         filters = init_filters(size=self.filter_sizes, init=self.init)
         bias = np.ones(shape=self.fout) * bias
+        fb = np.copy(filters)
 
         self.filters = tf.Variable(filters, dtype=tf.float32)
         self.bias = tf.Variable(bias, dtype=tf.float32)
+        self.fb = tf.Variable(fb, dtype=tf.float32)
 
     ###################################################################
 
@@ -61,6 +63,25 @@ class ConvolutionDW(Layer):
 
     def bp(self, AI, AO, DO, cache=None): 
         DI = tf.nn.depthwise_conv2d_native_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+        DF = tf.nn.depthwise_conv2d_native_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
+        DB = tf.reduce_sum(DO, axis=[0, 1, 2])
+        if self.use_bias:
+            return DI, [(DF, self.filters), (DB, self.bias)]
+        else:
+            return DI, [(DF, self.filters)]
+
+    def ss(self, AI, AO, DO, cache=None): 
+        ss_filters = tf.sign(self.filters) * tf.math.reduce_std(self.filters)
+        DI = tf.nn.depthwise_conv2d_native_backprop_input(input_sizes=self.input_shape, filter=ss_filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+        DF = tf.nn.depthwise_conv2d_native_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
+        DB = tf.reduce_sum(DO, axis=[0, 1, 2])
+        if self.use_bias:
+            return DI, [(DF, self.filters), (DB, self.bias)]
+        else:
+            return DI, [(DF, self.filters)]
+
+    def fa(self, AI, AO, DO, cache=None): 
+        DI = tf.nn.depthwise_conv2d_native_backprop_input(input_sizes=self.input_shape, filter=self.fb, out_backprop=DO, strides=self.strides, padding=self.padding)
         DF = tf.nn.depthwise_conv2d_native_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
         if self.use_bias:
