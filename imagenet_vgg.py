@@ -7,7 +7,7 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=100)
-parser.add_argument('--batch_size', type=int, default=128)
+parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--lr', type=float, default=1e-2)
 parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--dropout', type=float, default=0.5)
@@ -19,13 +19,26 @@ parser.add_argument('--sparse', type=int, default=0)
 parser.add_argument('--rank', type=int, default=0)
 parser.add_argument('--init', type=str, default="glorot_uniform")
 parser.add_argument('--save', type=int, default=0)
-parser.add_argument('--name', type=str, default="imagenet_alexnet")
+parser.add_argument('--name', type=str, default="imagenet_vgg")
 parser.add_argument('--load', type=str, default=None)
 args = parser.parse_args()
 
 if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
+
+exxact = 0
+if exxact:
+    val_path = '/home/bcrafton3/Data_SSD/ILSVRC2012/val/'
+    train_path = '/home/bcrafton3/Data_SSD/ILSVRC2012/train/'
+else:
+    val_path = '/usr/scratch/bcrafton/ILSVRC2012/val/'
+    train_path = '/usr/scratch/bcrafton/ILSVRC2012/train/'
+
+val_labels = './imagenet_labels/validation_labels.txt'
+train_labels = './imagenet_labels/train_labels.txt'
+
+IMAGENET_MEAN = [123.68, 116.78, 103.94]
 
 ##############################################
 
@@ -60,11 +73,6 @@ def in_top_k(x, y, k):
     correct = tf.cast(correct, dtype=tf.int32)
     correct = tf.reduce_sum(correct, axis=0)
     return correct
-    
-##############################################
-
-num_classes = 1000
-IMAGENET_MEAN = [123.68, 116.78, 103.94]
 
 ##############################################
 
@@ -91,12 +99,12 @@ def parse_function(filename, label):
     return resized_image, label
 
 # Preprocessing (for training)
-# (3) Take a random 227x227 crop to the scaled image
+# (3) Take a random 224x224 crop to the scaled image
 # (4) Horizontally flip the image with probability 1/2
 # (5) Substract the per color mean `IMAGENET_MEAN`
 # Note: we don't normalize the data here, as VGG was trained without normalization
 def train_preprocess(image, label):
-    crop_image = tf.random_crop(image, [227, 227, 3])                       # (3)
+    crop_image = tf.random_crop(image, [224, 224, 3])                       # (3)
     flip_image = tf.image.random_flip_left_right(crop_image)                # (4)
 
     means = tf.reshape(tf.constant(IMAGENET_MEAN), [1, 1, 3])
@@ -106,11 +114,11 @@ def train_preprocess(image, label):
     
 
 # Preprocessing (for validation)
-# (3) Take a central 227x227 crop to the scaled image
+# (3) Take a central 224x224 crop to the scaled image
 # (4) Substract the per color mean `IMAGENET_MEAN`
 # Note: we don't normalize the data here, as VGG was trained without normalization
 def val_preprocess(image, label):
-    crop_image = tf.image.resize_image_with_crop_or_pad(image, 227, 227)    # (3)
+    crop_image = tf.image.resize_image_with_crop_or_pad(image, 224, 224)    # (3)
 
     means = tf.reshape(tf.constant(IMAGENET_MEAN), [1, 1, 3])
     centered_image = crop_image - means                                     # (4)
@@ -126,12 +134,12 @@ def get_validation_dataset():
 
     print ("building validation dataset")
 
-    for subdir, dirs, files in os.walk('/home/bcrafton3/Data_SSD/ILSVRC2012/val/'):
+    for subdir, dirs, files in os.walk(val_path):
         for file in files:
-            validation_images.append(os.path.join('/home/bcrafton3/Data_SSD/ILSVRC2012/val/', file))
+            validation_images.append(os.path.join(val_path, file))
     validation_images = sorted(validation_images)
 
-    validation_labels_file = open('/home/bcrafton3/dfa/imagenet_labels/validation_labels.txt')
+    validation_labels_file = open(val_labels)
     lines = validation_labels_file.readlines()
     for ii in range(len(lines)):
         validation_labels.append(int(lines[ii]))
@@ -148,7 +156,7 @@ def get_train_dataset():
     training_images = []
     training_labels = []
 
-    f = open('/home/bcrafton3/dfa/imagenet_labels/train_labels.txt', 'r')
+    f = open(train_labels, 'r')
     lines = f.readlines()
 
     labels = {}
@@ -161,7 +169,7 @@ def get_train_dataset():
 
     print ("building train dataset")
 
-    for subdir, dirs, files in os.walk('/home/bcrafton3/Data_SSD/ILSVRC2012/train/'):
+    for subdir, dirs, files in os.walk(train_path):
         for folder in dirs:
             for folder_subdir, folder_dirs, folder_files in os.walk(os.path.join(subdir, folder)):
                 for file in folder_files:
@@ -208,21 +216,18 @@ train_dataset = train_dataset.prefetch(8)
 handle = tf.placeholder(tf.string, shape=[])
 iterator = tf.data.Iterator.from_string_handle(handle, train_dataset.output_types, train_dataset.output_shapes)
 features, labels = iterator.get_next()
-features = tf.reshape(features, (-1, 227, 227, 3))
-labels = tf.one_hot(labels, depth=num_classes)
+features = tf.reshape(features, (-1, 224, 224, 3))
+labels = tf.one_hot(labels, depth=1000)
 
 train_iterator = train_dataset.make_initializable_iterator()
 val_iterator = val_dataset.make_initializable_iterator()
 
 ###############################################################
 
-bias = 0.0
 if args.act == 'tanh':
     act = Tanh()
 elif args.act == 'relu':
     act = Relu()
-    if args.dfa:
-        bias = 0.1
 else:
     assert(False)
 
@@ -269,7 +274,7 @@ l25 = FullyConnected(input_shape=4096, size=1000, init=args.init, bias=args.bias
 
 ###############################################################
 
-model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16, l17, l18, l19, l20])
+model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16, l17, l18, l19, l20, l21, l22, l23, l24, l25])
 predict = tf.nn.softmax(model.predict(X=features))
 weights = model.get_weights()
 
@@ -373,13 +378,13 @@ for ii in range(args.epochs):
         phase = 1
         print ('phase 1')
     elif phase == 1:
-        dacc = train_accs[-1] - train_accs[-2]
+        dacc = val_accs[-1] - val_accs[-2]
         if dacc <= 0.01:
             lr_decay = 0.1 * args.lr
             phase = 2
             print ('phase 2')
     elif phase == 2:
-        dacc = train_accs[-1] - train_accs[-2]
+        dacc = val_accs[-1] - val_accs[-2]
         if dacc <= 0.005:
             lr_decay = 0.05 * args.lr
             phase = 3
