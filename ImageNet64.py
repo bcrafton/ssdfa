@@ -6,7 +6,7 @@ import sys
 ##############################################
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', type=str, default="mobile")
+parser.add_argument('--model', type=str, default="vgg")
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--batch_size', type=int, default=64)
@@ -274,6 +274,9 @@ f.close()
 
 ###############################################################
 
+idx_grad = [29, 26, 23, 20, 17, 14, 11, 8, 5, 2]
+idx_deriv = [1, 2, 4, 5, 7, 8, 10, 11, 13, 14]
+
 train_accs = []
 train_accs_top5 = []
 val_accs = []
@@ -347,11 +350,21 @@ for ii in range(args.epochs):
             angles_deriv = np.average(angles_deriv, axis=1)         
             matches_deriv = np.average(matches_deriv, axis=1) * 100.
 
+            angles_gv = angles_gv[idx_grad]
+            matches_gv = matches_gv[idx_grad]
+            angles_deriv = angles_deriv[idx_deriv]
+            matches_deriv = matches_deriv[idx_deriv]
+
             if not (np.any(np.isnan(angles_gv)) or np.any(np.isnan(matches_gv)) or np.any(np.isnan(angles_deriv)) or np.any(np.isnan(matches_deriv))):
                 write ('gv angles: %d %d %d'     % (int(np.max(angles_gv)),     int(np.average(angles_gv)),     int(np.min(angles_gv))))
                 write ('gv matches: %d %d %d'    % (int(np.max(matches_gv)),    int(np.average(matches_gv)),    int(np.min(matches_gv))))
                 write ('deriv angles: %d %d %d'  % (int(np.max(angles_deriv)),  int(np.average(angles_deriv)),  int(np.min(angles_deriv))))
                 write ('deriv matches: %d %d %d' % (int(np.max(matches_deriv)), int(np.average(matches_deriv)), int(np.min(matches_deriv))))
+
+            print ('gv angles', np.array(angles_gv, dtype=int))
+            print ('gv matches', np.array(matches_gv, dtype=int))
+            print ('deriv angles', np.array(angles_deriv, dtype=int))
+            print ('deriv matches', np.array(matches_deriv, dtype=int))
 
     train_accs.append(train_acc)
     train_accs_top5.append(train_acc_top5)

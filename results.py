@@ -48,7 +48,13 @@ imagenet64_mobile = {'benchmark':'ImageNet64.py', 'model':['mobile'], 'epochs':5
 params = [imagenet64_tiny, imagenet64_mobile]
 '''
 
+'''
 imagenet64_vgg = {'benchmark':'ImageNet64.py', 'model':['vgg'], 'epochs':50, 'batch_size':64, 'lr':[5e-2, 1e-2], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None, 'fb_conv':['u01', 'ud01f'], 'fb_dw':['f'], 'fb_pw':['f']}
+
+params = [imagenet64_vgg]
+'''
+
+imagenet64_vgg = {'benchmark':'ImageNet64.py', 'model':['vgg'], 'epochs':50, 'batch_size':64, 'lr':[5e-2, 1e-2], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None, 'fb_conv':['udc01f'], 'fb_dw':['f'], 'fb_pw':['f']}
 
 params = [imagenet64_vgg]
 

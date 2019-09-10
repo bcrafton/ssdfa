@@ -25,10 +25,12 @@ class Convolution(Layer):
         
         filters = np.absolute(init_filters(size=self.filter_sizes, init=self.init))
         bias = np.ones(shape=self.fout) * bias
+        mask = np.random.choice([0., 1.], size=[self.fin, self.fout], replace=True)
 
         self.filters = tf.Variable(filters, dtype=tf.float32, constraint=lambda x: tf.clip_by_value(x, 0, np.infty))
         if self.use_bias:
             self.bias = tf.Variable(bias, dtype=tf.float32)
+        self.mask = tf.Variable(mask, dtype=tf.float32)
 
     ###################################################################
 
@@ -59,6 +61,8 @@ class Convolution(Layer):
             mask = tf.cast(tf.greater(self.filters, tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0,1,2], keep_dims=True)), dtype=tf.float32)
         elif self.fb == 'ud0123f':
             mask = tf.cast(tf.greater(self.filters, tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0,1,2,3], keep_dims=True)), dtype=tf.float32)
+        elif self.fb == 'udc01f':
+            mask = self.mask
         else:
             mask = tf.ones_like(self.filters)
 
@@ -74,7 +78,10 @@ class Convolution(Layer):
         DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
 
-        DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+        if self.fb == 'udc01f':
+            DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters * self.mask, out_backprop=DO, strides=self.strides, padding=self.padding)
+        else:
+            DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
 
         if self.use_bias:
             return DI, [(DF, self.filters), (DB, self.bias)]
@@ -102,7 +109,12 @@ class Convolution(Layer):
         elif self.fb == 'ud0123' or self.fb == 'ud0123f':
             mask = tf.cast(tf.greater(self.filters, tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0, 1, 2, 3], keep_dims=True)), dtype=tf.float32)
             ss = mask * 2. * tf.reduce_mean(self.filters, axis=[0, 1, 2, 3], keep_dims=True)
-
+        elif self.fb == 'udc01f':
+            mask = self.mask * tf.ones_like(self.filters)
+            ss = mask * 2. * tf.reduce_mean(self.filters, axis=[0, 1], keep_dims=True)
+        else:
+            assert(False)
+            
         DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=ss, out_backprop=DO, strides=self.strides, padding=self.padding)
 
         if self.use_bias:
