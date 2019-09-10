@@ -10,45 +10,23 @@ class Layer:
     ###################################################################
 
     def get_weights(self):
-        pass
+        assert(False)
         
     def num_params(self):
-        pass
+        assert(False)
 
     def forward(self, X):
-        pass
-
-    ###################################################################           
-        
-    def backward(self, AI, AO, DO):    
-        pass
-
-    def gv(self, AI, AO, DO):    
-        pass
-        
-    def train(self, AI, AO, DO): 
-        pass
-        
-    ###################################################################
-
-    def dfa_backward(self, AI, AO, E, DO):
-        pass
-        
-    def dfa_gv(self, AI, AO, E, DO):
-        pass
-        
-    def dfa(self, AI, AO, E, DO): 
-        pass
-        
-    ###################################################################   
-    
-    def lel_backward(self, AI, AO, E, DO, Y):
         assert(False)
+
+    ###################################################################    
         
-    def lel_gv(self, AI, AO, E, DO, Y):
+    def bp(self, AI, AO, DO, cache):    
         assert(False)
-        
-    def lel(self, AI, AO, E, DO, Y): 
+
+    def dfa(self, AI, AO, E, DO, cache):
+        assert(False)
+
+    def lel(self, AI, AO, DO, Y, cache):
         assert(False)
         
     ###################################################################   
