@@ -27,9 +27,15 @@ class Convolution(Layer):
         self.use_bias = use_bias
         self.name = name
         self.train_flag = train
-        
-        filters = init_filters(size=self.filter_sizes, init=self.init)
-        bias = np.ones(shape=self.fout) * bias
+
+        if load:
+            print ("Loading Weights: " + self.name)
+            weight_dict = np.load(load, encoding='latin1', allow_pickle=True).item()
+            filters = weight_dict[self.name]
+            bias = weight_dict[self.name + '_bias']
+        else:
+            filters = init_filters(size=self.filter_sizes, init=self.init)
+            bias = np.ones(shape=self.fout) * bias
 
         self.filters = tf.Variable(filters, dtype=tf.float32)
         self.bias = tf.Variable(bias, dtype=tf.float32)
@@ -67,7 +73,10 @@ class Convolution(Layer):
         DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
         
-        return {'dout':DI, 'cache':{}}, [(DF, self.filters), (DB, self.bias)]
+        if self.train_flag:
+            return {'dout':DI, 'cache':{}}, [(DF, self.filters), (DB, self.bias)]
+        else:
+            return {'dout':DI, 'cache':{}}, []
 
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)

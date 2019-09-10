@@ -233,41 +233,49 @@ else:
 
 ###############################################################
 
+weights_conv = './transfer/alexnet_weights.npy'
+weights_fc = None
+
+train_conv = weights_conv == None
+train_fc = weights_fc == None
+
+###############################################################
+
 batch_size = tf.placeholder(tf.int32, shape=())
 dropout_rate = tf.placeholder(tf.float32, shape=())
 lr = tf.placeholder(tf.float32, shape=())
 
 ###############################################################
 
-l0 = Convolution(input_shape=[batch_size, 227, 227, 3], filter_sizes=[11, 11, 3, 96], init=args.init, strides=[1,4,4,1], padding="VALID", activation=act, bias=args.bias, name='conv1')
+l0 = Convolution(input_shape=[batch_size, 227, 227, 3], filter_sizes=[11, 11, 3, 96], init=args.init, strides=[1,4,4,1], padding="VALID", activation=act, bias=args.bias, load=weights_conv, name='conv1', train=train_conv)
 l1 = MaxPool(size=[batch_size, 55, 55, 96], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="VALID")
 l2 = FeedbackConv(size=[batch_size, 27, 27, 96], num_classes=1000, sparse=args.sparse, rank=args.rank, name='conv1_fb')
 
-l3 = Convolution(input_shape=[batch_size, 27, 27, 96], filter_sizes=[5, 5, 96, 256], init=args.init, activation=act, bias=args.bias, name='conv2')
+l3 = Convolution(input_shape=[batch_size, 27, 27, 96], filter_sizes=[5, 5, 96, 256], init=args.init, activation=act, bias=args.bias, load=weights_conv, name='conv2', train=train_conv)
 l4 = MaxPool(size=[batch_size, 27, 27, 256], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="VALID")
 l5 = FeedbackConv(size=[batch_size, 13, 13, 256], num_classes=1000, sparse=args.sparse, rank=args.rank, name='conv2_fb')
 
-l6 = Convolution(input_shape=[batch_size, 13, 13, 256], filter_sizes=[3, 3, 256, 384], init=args.init, activation=act, bias=args.bias, name='conv3')
+l6 = Convolution(input_shape=[batch_size, 13, 13, 256], filter_sizes=[3, 3, 256, 384], init=args.init, activation=act, bias=args.bias, load=weights_conv, name='conv3', train=train_conv)
 l7 = FeedbackConv(size=[batch_size, 13, 13, 384], num_classes=1000, sparse=args.sparse, rank=args.rank, name='conv3_fb')
 
-l8 = Convolution(input_shape=[batch_size, 13, 13, 384], filter_sizes=[3, 3, 384, 384], init=args.init, activation=act, bias=args.bias, name='conv4')
+l8 = Convolution(input_shape=[batch_size, 13, 13, 384], filter_sizes=[3, 3, 384, 384], init=args.init, activation=act, bias=args.bias, load=weights_conv, name='conv4', train=train_conv)
 l9 = FeedbackConv(size=[batch_size, 13, 13, 384], num_classes=1000, sparse=args.sparse, rank=args.rank, name='conv4_fb')
 
-l10 = Convolution(input_shape=[batch_size, 13, 13, 384], filter_sizes=[3, 3, 384, 256], init=args.init, activation=act, bias=args.bias, name='conv5')
+l10 = Convolution(input_shape=[batch_size, 13, 13, 384], filter_sizes=[3, 3, 384, 256], init=args.init, activation=act, bias=args.bias, load=weights_conv, name='conv5', train=train_conv)
 l11 = MaxPool(size=[batch_size, 13, 13, 256], ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="VALID")
 l12 = FeedbackConv(size=[batch_size, 6, 6, 256], num_classes=1000, sparse=args.sparse, rank=args.rank, name='conv5_fb')
 
 l13 = ConvToFullyConnected(input_shape=[6, 6, 256])
 
-l14 = FullyConnected(input_shape=6*6*256, size=4096, init=args.init, activation=act, bias=args.bias, name='fc1')
+l14 = FullyConnected(input_shape=6*6*256, size=4096, init=args.init, activation=act, bias=args.bias, load=weights_fc, name='fc1', train=train_fc)
 l15 = Dropout(rate=dropout_rate)
 l16 = FeedbackFC(size=[6*6*256, 4096], num_classes=1000, sparse=args.sparse, rank=args.rank, name='fc1_fb')
 
-l17 = FullyConnected(input_shape=4096, size=4096, init=args.init, activation=act, bias=args.bias, name='fc2')
+l17 = FullyConnected(input_shape=4096, size=4096, init=args.init, activation=act, bias=args.bias, load=weights_fc, name='fc2', train=train_fc)
 l18 = Dropout(rate=dropout_rate)
 l19 = FeedbackFC(size=[4096, 4096], num_classes=1000, sparse=args.sparse, rank=args.rank, name='fc2_fb')
 
-l20 = FullyConnected(input_shape=4096, size=1000, init=args.init, bias=args.bias, name='fc3')
+l20 = FullyConnected(input_shape=4096, size=1000, init=args.init, bias=args.bias, load=weights_fc, name='fc3', train=train_fc)
 
 ###############################################################
 
