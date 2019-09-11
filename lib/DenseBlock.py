@@ -18,7 +18,7 @@ class DenseBlock(Layer):
 
         self.layers = []
         for l in range(self.L):
-            dense = DenseConv(input_shape=self.input_shape, init=self.init, name=self.name + ('_dense_block_%d' % l), k=self.k)
+            dense = DenseConv(input_shape=[self.batch, self.h, self.w, self.fin + l * k], init=self.init, name=self.name + ('_dense_block_%d' % l), k=self.k)
             self.layers.append(dense)
         
         self.pool = AvgPool(size=[self.batch, self.h, self.w, self.fin + L * k], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
@@ -49,7 +49,7 @@ class DenseBlock(Layer):
                 accum = tf.concat((accum, A[ii-1]['aout']), axis=3)
                 A[ii] = l.forward(accum)
 
-        return A[self.num_layers-1]['aout'], A
+        return {'aout':A[self.num_layers-1]['aout'], 'cache':{'A', A}}
         
     ###################################################################
         
