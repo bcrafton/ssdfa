@@ -9,7 +9,7 @@ from lib.init_tensor import init_filters
 
 class Convolution(Layer):
 
-    def __init__(self, input_shape, filter_sizes, init, strides=[1,1,1,1], padding='SAME', bias=0., use_bias=True, name=None, load=None, train=True, fb='f'):
+    def __init__(self, input_shape, filter_sizes, init, strides=[1,1,1,1], padding='SAME', bias=0., use_bias=True, name=None, load=None, train=True, fb='f', rate=0.5):
         self.input_shape = input_shape
         self.filter_sizes = filter_sizes
         self.batch_size, self.h, self.w, self.fin = self.input_shape
@@ -22,10 +22,11 @@ class Convolution(Layer):
         self.name = name
         self.train_flag = train
         self.fb = fb
-        
+        self.rate = rate
+
         filters = np.absolute(init_filters(size=self.filter_sizes, init=self.init))
         bias = np.ones(shape=self.fout) * bias
-        mask = np.random.choice([0., 1.], size=[self.fin, self.fout], replace=True)
+        mask = np.random.choice([0., 1.], size=[self.fin, self.fout], replace=True, p=[1. - self.rate, self.rate])
 
         self.filters = tf.Variable(filters, dtype=tf.float32, constraint=lambda x: tf.clip_by_value(x, 0, np.infty))
         if self.use_bias:
@@ -75,7 +76,11 @@ class Convolution(Layer):
     ###################################################################
     
     def bp(self, AI, AO, DO, cache):    
-        DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
+        if self.fb == 'udc01f':
+            DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding) * self.mask
+        else:
+            DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
+
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
 
         if self.fb == 'udc01f':
@@ -88,8 +93,12 @@ class Convolution(Layer):
         else:
             return DI, [(DF, self.filters)]
 
-    def ss(self, AI, AO, DO, cache):    
-        DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
+    def ss(self, AI, AO, DO, cache):
+        if self.fb == 'udc01f':
+            DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding) * self.mask
+        else:
+            DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
+
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
 
         if   self.fb == 'f':

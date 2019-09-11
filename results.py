@@ -54,7 +54,7 @@ imagenet64_vgg = {'benchmark':'ImageNet64.py', 'model':['vgg'], 'epochs':50, 'ba
 params = [imagenet64_vgg]
 '''
 
-imagenet64_vgg = {'benchmark':'ImageNet64.py', 'model':['vgg'], 'epochs':50, 'batch_size':64, 'lr':[5e-2, 1e-2], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None, 'fb_conv':['udc01f'], 'fb_dw':['f'], 'fb_pw':['f']}
+imagenet64_vgg = {'benchmark':'ImageNet64.py', 'model':['vgg'], 'epochs':50, 'batch_size':64, 'lr':[5e-2, 1e-2], 'eps':[1.], 'dropout':0.2, 'init':['glorot_uniform'], 'load':None, 'fb_conv':['udc01f'], 'fb_dw':['f'], 'fb_pw':['f']}
 
 params = [imagenet64_vgg]
 

@@ -297,7 +297,7 @@ for ii in range(args.epochs):
     
     for jj in range(0, len(train_filenames), args.batch_size):
         if (jj % (100 * args.batch_size) == 0):
-            [bp_gv, ss_gv, ss_deriv, bp_deriv, _total_correct, _total_top5, _] = sess.run([bp_gvs, ss_gvs, ss_derivs, bp_derivs, total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
+            [ss_gv, bp_gv, ss_deriv, bp_deriv, _total_correct, _total_top5, _] = sess.run([ss_gvs, bp_gvs, ss_derivs, bp_derivs, total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
         else:
             [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
 
@@ -307,8 +307,16 @@ for ii in range(args.epochs):
         
         train_acc = train_correct / train_total
         train_acc_top5 = train_top5 / train_total
-        
+    
         if (jj % (100 * args.batch_size) == 0):
+            '''
+            for kk in range(len(ss_gv)):
+                print (kk, np.shape(ss_gv[kk][0]))
+            for kk in range(len(ss_deriv)):
+                print (kk, np.shape(ss_deriv[kk]))
+            assert(False)
+            '''
+
             # gradients
             num_gv = len(ss_gv)
             angles_gv = [None] * num_gv
@@ -318,8 +326,8 @@ for ii in range(args.epochs):
                 matches_gv[kk] = deque(maxlen=250)
 
             for kk in range(num_gv):
-                ss = np.reshape(ss_gv[kk], -1)
-                bp = np.reshape(bp_gv[kk], -1)
+                ss = np.reshape(ss_gv[kk][0], -1)
+                bp = np.reshape(bp_gv[kk][0], -1)
                 angle = angle_between(ss, bp) * (180. / 3.14)
                 match = np.count_nonzero(np.sign(ss) == np.sign(bp)) / np.prod(np.shape(ss))
                 angles_gv[kk].append(angle)
