@@ -21,7 +21,7 @@ class Dropout(Layer):
     def forward(self, X):
         self.dropout_mask = tf.cast(tf.random_uniform(shape=tf.shape(X)) > self.rate, tf.float32) # np.random.binomial(size=X.shape, n=1, p=1 - self.rate)
         A = X * self.dropout_mask
-        return {'aout':A, 'cache':{}}
+        return A, None
 
     ###################################################################
 

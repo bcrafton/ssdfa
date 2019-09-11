@@ -44,7 +44,7 @@ class FullyConnected(Layer):
         if self.use_bias:
             Z = Z + self.bias
             
-        return {'aout':Z, 'cache':{}}
+        return Z, None
 
     ###################################################################
         

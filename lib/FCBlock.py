@@ -7,7 +7,7 @@ from lib.FullyConnected import FullyConnected
 from lib.BatchNorm import BatchNorm
 from lib.Activation import Relu
 
-class DenseBlock(Layer):
+class FCBlock(Layer):
 
     def __init__(self, input_shape, size, init, name, load=None, train=True):
         self.batch, self.input_size = input_shape
@@ -44,16 +44,17 @@ class DenseBlock(Layer):
         return self.dense.num_params() + self.bn.num_params()
 
     def forward(self, X):
-        dense = self.dense.forward(X)
-        bn = self.bn.forward(dense['aout'])
-        relu = self.relu.forward(bn['aout'])
-        cache = {'dense':dense['aout'], 'bn':bn['aout'], 'relu':relu['aout']}
-        return {'aout':relu['aout'], 'cache':cache}
+        dense, _ = self.dense.forward(X)
+        bn, _    = self.bn.forward(dense)
+        relu, _  = self.relu.forward(bn)
+
+        cache = (dense, bn, relu)
+        return relu, cache
 
     ###################################################################
 
     def bp(self, AI, AO, DO, cache):    
-        dense, bn, relu = cache['dense'], cache['bn'], cache['relu']
+        dense, bn, relu = cache
         drelu, grelu   = self.relu.bp(bn, relu, DO, None)
         dbn,   gbn     = self.bn.bp(dense, bn, drelu, None)
         ddense, gdense = self.dense.bp(AI, dense, dbn, None)

@@ -23,7 +23,7 @@ class ConvToFullyConnected(Layer):
 
     def forward(self, X):
         A = tf.reshape(X, [tf.shape(X)[0], -1])
-        return {'aout':A, 'cache':{}}
+        return A, None
     
     ###################################################################
         
