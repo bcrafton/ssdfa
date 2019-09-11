@@ -17,7 +17,7 @@ class DenseModel(Layer):
 
         self.blocks = []
         for ii in range(len(self.L)):
-            c = self.fin if ii == 0 else c + L[ii] * k
+            c = self.fin if ii == 0 else c + L[ii-1] * k
             dense = DenseBlock(input_shape=[self.batch, self.h, self.w, c], init=self.init, name=self.name + ('_block_%d' % ii), k=self.k, L=self.L[ii])
             self.blocks.append(dense)
 
@@ -47,7 +47,7 @@ class DenseModel(Layer):
                 accum = tf.concat((accum, A[ii-1]), axis=3)
                 A[ii], cache[ii] = block.forward(accum)
 
-        return A[self.num_layers-1], (A, cache)
+        return A[self.num_blocks-1], (A, cache)
         
     ###################################################################
         

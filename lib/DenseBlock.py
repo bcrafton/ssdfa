@@ -38,7 +38,7 @@ class DenseBlock(Layer):
         assert(False)
 
     def forward(self, X):
-        A = [None] * self.num_layers
+        A =     [None] * self.num_layers
         cache = [None] * self.num_layers
 
         for ii in range(self.num_layers):
@@ -50,7 +50,8 @@ class DenseBlock(Layer):
                 accum = tf.concat((accum, A[ii-1]), axis=3)
                 A[ii], cache[ii] = l.forward(accum)
 
-        return A[self.num_layers-1], (A, cache)
+        concat = tf.concat(A, axis=3)
+        return concat, (A, cache)
         
     ###################################################################
         
