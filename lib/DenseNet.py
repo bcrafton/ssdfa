@@ -8,15 +8,15 @@ from lib.Model import Model
 from lib.FullyConnected import FullyConnected
 from lib.AvgPool import AvgPool
 from lib.ConvBlock import ConvBlock
-from lib.VGGBlock import VGGBlock
-from lib.MobileBlock import MobileBlock
 from lib.BatchNorm import BatchNorm
+from lib.DenseModel import DenseModel
+from lib.ConvToFullyConnected import ConvToFullyConnected
 
 def DenseNet64(batch_size, dropout_rate, init='alexnet'):
 
     l0 = BatchNorm(input_size=[batch_size, 64, 64, 3], name='bn0')
     l1 = ConvBlock(input_shape=[batch_size, 64, 64, 3], filter_shape=[3, 3, 3, 64], strides=[1,1,1,1], init=init, name='conv1')
-    l2 = DenseModel(input_shape=[batch_size, 64, 64, 64], init=init, name='dense_model', k=12, Ls=[6, 12, 24, 24])
+    l2 = DenseModel(input_shape=[batch_size, 64, 64, 64], init=init, name='dense_model', k=12, L=[6, 12, 24, 24])
     l3 = ConvToFullyConnected(input_shape=[1, 1, 1024])
     l4 = FullyConnected(input_shape=1024, size=1000, init=init, name="fc1")
 

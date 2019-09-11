@@ -19,14 +19,14 @@ class DenseConv(Layer):
                        filter_shape=[3, 3, self.fin, self.k * 4], 
                        strides=[1,1,1,1], 
                        init=self.init, 
-                       name=self.name + ('_conv1x1_block_%d' % l))
+                       name=self.name + '_conv1x1_block')
 
         self.conv3x3 = ConvBlock(
                        input_shape=self.input_shape, 
                        filter_shape=[3, 3, self.k * 4, self.k], 
                        strides=[1,1,1,1], 
                        init=self.init, 
-                       name=self.name + ('_conv3x3_block_%d' % l))
+                       name=self.name + '_conv3x3_block')
 
     ###################################################################
 

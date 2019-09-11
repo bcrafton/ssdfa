@@ -4,14 +4,13 @@ import numpy as np
 
 from lib.Layer import Layer 
 from lib.DenseConv import DenseConv
+from lib.AvgPool import AvgPool
 
 class DenseBlock(Layer):
 
-    def __init__(self, input_shape, filter_shape, init, name, k, L):
+    def __init__(self, input_shape, init, name, k, L):
         self.input_shape = input_shape
         self.batch, self.h, self.w, self.fin = self.input_shape
-        self.filter_shape = filter_shape
-        self.fin, self.fout = self.filter_shape
         self.init = init
         self.name = name
         self.k = k
@@ -22,7 +21,9 @@ class DenseBlock(Layer):
             dense = DenseConv(input_shape=self.input_shape, init=self.init, name=self.name + ('_dense_block_%d' % l), k=self.k)
             self.layers.append(dense)
         
-        self.pool = AvgPool(size=[batch_size, self.h, self.w, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+        self.pool = AvgPool(size=[self.batch, self.h, self.w, self.fin + L * k], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+
+        self.num_layers = len(self.layers)
 
     ###################################################################
 
