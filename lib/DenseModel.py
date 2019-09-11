@@ -35,17 +35,18 @@ class DenseModel(Layer):
 
     def forward(self, X):
         A = [None] * self.num_blocks
+        cache = [None] * self.num_blocks
 
         for ii in range(self.num_blocks):
             block = self.blocks[ii]
             if ii == 0:
                 accum = X
-                A[ii] = block.forward(accum)
+                A[ii], cache[ii] = block.forward(accum)
             else:
-                accum = tf.concat((accum, A[ii-1]['aout']), axis=3)
-                A[ii] = block.forward(accum)
+                accum = tf.concat((accum, A[ii-1]), axis=3)
+                A[ii], cache[ii] = block.forward(accum)
 
-        return A[self.num_layers-1]['aout'], A
+        return A[self.num_layers-1], (A, cache)
         
     ###################################################################
         

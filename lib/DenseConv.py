@@ -43,30 +43,24 @@ class DenseConv(Layer):
         return self.conv1x1.num_params() + self.conv3x3.num_params()
 
     def forward(self, X):
-        conv1x1 = self.conv1x1.forward(X)
-        conv3x3 = self.conv3x3.forward(conv1x1['aout'])
-        cache = {'conv1x1':conv1x1, 'conv3x3':conv3x3}
-        return {'aout':conv3x3['aout'], 'cache':cache}
+        conv1x1, conv1x1_cache = self.conv1x1.forward(X)
+        conv3x3, conv3x3_cache = self.conv3x3.forward(conv1x1)
+        cache = (conv1x1, conv1x1_cache, conv3x3, conv3x3_cache)
+        return conv3x3, cache
         
     ###################################################################
 
     def bp(self, AI, AO, DO, cache):    
-        conv1x1, conv3x3 = cache['conv1x1'], cache['conv3x3']
-        dconv3x3, gconv3x3 = self.conv3x3.bp(conv1x1['aout'], conv3x3['aout'], DO,       conv3x3['cache'])
-        dconv1x1, gconv1x1 = self.conv1x1.bp(AI,              conv1x1['aout'], dconv3x3, conv1x1['cache'])
+        conv1x1, conv1x1_cache, conv3x3, conv3x3_cache = cache
+        dconv3x3, gconv3x3 = self.conv3x3.bp(conv1x1, conv3x3, DO,       conv3x3_cache)
+        dconv1x1, gconv1x1 = self.conv1x1.bp(AI,      conv1x1, dconv3x3, conv1x1_cache)
         grads = []
         grads.extend(gconv1x1)
         grads.extend(gconv3x3)
         return dconv1x1, grads
 
     def ss(self, AI, AO, DO, cache):    
-        conv1x1, conv3x3 = cache['conv1x1'], cache['conv3x3']
-        dconv3x3, gconv3x3 = self.conv3x3.ss(conv1x1['aout'], conv3x3['aout'], DO,       conv3x3['cache'])
-        dconv1x1, gconv1x1 = self.conv1x1.ss(AI,              conv1x1['aout'], dconv3x3, conv1x1['cache'])
-        grads = []
-        grads.extend(gconv1x1)
-        grads.extend(gconv3x3)
-        return dconv1x1, grads
+        return self.bp(AI, AO, DO, cache)
 
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)

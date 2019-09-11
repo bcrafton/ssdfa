@@ -38,18 +38,18 @@ class DenseBlock(Layer):
 
     def forward(self, X):
         A = [None] * self.num_layers
-        cache = {}
+        cache = [None] * self.num_layers
 
         for ii in range(self.num_layers):
             l = self.layers[ii]
             if ii == 0:
                 accum = X
-                A[ii] = l.forward(accum)
+                A[ii], cache[ii] = l.forward(accum)
             else:
-                accum = tf.concat((accum, A[ii-1]['aout']), axis=3)
-                A[ii] = l.forward(accum)
+                accum = tf.concat((accum, A[ii-1]), axis=3)
+                A[ii], cache[ii] = l.forward(accum)
 
-        return {'aout':A[self.num_layers-1]['aout'], 'cache':{'A', A}}
+        return A[self.num_layers-1], (A, cache)
         
     ###################################################################
         
