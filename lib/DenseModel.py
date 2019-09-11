@@ -4,6 +4,7 @@ import numpy as np
 
 from lib.Layer import Layer 
 from lib.DenseBlock import DenseBlock
+from lib.DenseTransition import DenseTransition
 
 class DenseModel(Layer):
 
@@ -17,9 +18,13 @@ class DenseModel(Layer):
 
         self.blocks = []
         for ii in range(len(self.L)):
-            c = self.fin if ii == 0 else c + L[ii-1] * k
-            dense = DenseBlock(input_shape=[self.batch, self.h, self.w, c], init=self.init, name=self.name + ('_block_%d' % ii), k=self.k, L=self.L[ii])
+            dense_fmaps = self.fin + sum(L[0:ii]) * k
+            dense = DenseBlock(input_shape=[self.batch, self.h, self.w, dense_fmaps], init=self.init, name=self.name + ('_block_%d' % ii), k=self.k, L=self.L[ii])
             self.blocks.append(dense)
+
+            trans_fmaps = self.fin + sum(L[0:ii+1]) * k
+            trans = DenseTransition(input_shape=[self.batch, self.h, self.w, trans_fmaps], init=self.init, name=self.name + ('_block_%d' % ii))
+            self.blocks.append(trans)
 
         self.num_blocks = len(self.blocks)
 
@@ -35,16 +40,14 @@ class DenseModel(Layer):
         assert(False)
 
     def forward(self, X):
-        A = [None] * self.num_blocks
+        A     = [None] * self.num_blocks
         cache = [None] * self.num_blocks
 
         for ii in range(self.num_blocks):
             block = self.blocks[ii]
             if ii == 0:
-                accum = X
                 A[ii], cache[ii] = block.forward(accum)
             else:
-                accum = tf.concat((accum, A[ii-1]), axis=3)
                 A[ii], cache[ii] = block.forward(accum)
 
         return A[self.num_blocks-1], (A, cache)
