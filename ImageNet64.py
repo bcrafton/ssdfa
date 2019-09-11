@@ -6,7 +6,7 @@ import sys
 ##############################################
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', type=str, default="vgg")
+parser.add_argument('--model', type=str, default="dense")
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--batch_size', type=int, default=64)
@@ -57,6 +57,7 @@ from lib.BatchNorm import BatchNorm
 
 from lib.VGGNet import VGGNet64
 from lib.MobileNet import MobileNet64
+from lib.DenseNet import DenseNet64
 
 ##############################################
 
@@ -173,6 +174,8 @@ if args.model == 'vgg':
     model = VGGNet64(batch_size=batch_size, dropout_rate=dropout_rate)
 elif args.model == 'mobile':
     model = MobileNet64(batch_size=batch_size, dropout_rate=dropout_rate)
+elif args.model == 'dense':
+    model = DenseNet64(batch_size=batch_size, dropout_rate=dropout_rate)
 else:
     assert (False)
 

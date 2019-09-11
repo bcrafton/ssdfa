@@ -12,7 +12,7 @@ from lib.VGGBlock import VGGBlock
 from lib.MobileBlock import MobileBlock
 from lib.BatchNorm import BatchNorm
 
-def DenseNet64(batch_size, dropout_rate, init='alexnet', sparse=0):
+def DenseNet64(batch_size, dropout_rate, init='alexnet'):
 
     l0 = BatchNorm(input_size=[batch_size, 64, 64, 3], name='bn0')
     l1 = ConvBlock(input_shape=[batch_size, 64, 64, 3], filter_shape=[3, 3, 3, 64], strides=[1,1,1,1], init=init, name='conv1')
