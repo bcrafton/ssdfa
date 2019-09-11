@@ -15,7 +15,7 @@ class DenseTransition(Layer):
         self.name = name
 
         self.conv1x1 = ConvBlock(input_shape=self.input_shape, filter_shape=[1, 1, self.fin, self.fin], strides=[1,1,1,1], init=self.init, name=self.name + '_conv1x1_block')
-        self.pool    = AvgPool(size=[batch_size, self.h, self.w, self.fin], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+        self.pool    = AvgPool(size=[self.batch, self.h, self.w, self.fin], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
     ###################################################################
 

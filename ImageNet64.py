@@ -182,15 +182,20 @@ else:
 ###############################################################
 
 predict = tf.nn.softmax(model.predict(X=features))
+'''
 weights = model.get_weights()
 
 grads_and_vars = model.gvs(X=features, Y=labels)        
 train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
+'''
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
 top5 = in_top_k(predict, tf.argmax(labels,1), k=5)
 total_top5 = tf.reduce_sum(tf.cast(top5, tf.float32))
+
+loss = tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=features)
+train = tf.train.AdamOptimizer(learning_rate=args.lr, epsilon=args.eps).minimize(loss)
 
 ###############################################################
 
@@ -203,13 +208,13 @@ train_handle = sess.run(train_iterator.string_handle())
 val_handle = sess.run(val_iterator.string_handle())
 
 ###############################################################
-
+'''
 results_filename = args.name + '.results'
 f = open(results_filename, "w")
 f.write(results_filename + "\n")
 f.write("total params: " + str(model.num_params()) + "\n")
 f.close()
-
+'''
 ###############################################################
 
 train_accs = []
@@ -219,6 +224,8 @@ val_accs_top5 = []
 
 phase = 0
 lr_decay = args.lr
+
+assert(False)
 
 for ii in range(args.epochs):
 
@@ -296,10 +303,11 @@ for ii in range(args.epochs):
     f = open(results_filename, "a")
     f.write(p + "\n")
     f.close()
-
+    
+    '''
     [w] = sess.run([weights], feed_dict={})
     np.save(args.name, w)
-    
+    '''
 
 
 
