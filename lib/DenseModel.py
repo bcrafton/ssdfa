@@ -17,7 +17,8 @@ class DenseModel(Layer):
 
         self.blocks = []
         for ii in range(len(self.L)):
-            dense = DenseBlock(input_shape=self.input_shape, init=self.init, name=self.name + ('_block_%d' % ii), k=self.k, L=self.L[ii])
+            c = self.fin if ii == 0 else c + L[ii] * k
+            dense = DenseBlock(input_shape=[self.batch, self.h, self.w, c], init=self.init, name=self.name + ('_block_%d' % ii), k=self.k, L=self.L[ii])
             self.blocks.append(dense)
 
         self.num_blocks = len(self.blocks)

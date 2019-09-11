@@ -17,8 +17,9 @@ class DenseBlock(Layer):
         self.L = L
 
         self.layers = []
-        for l in range(self.L):
-            dense = DenseConv(input_shape=[self.batch, self.h, self.w, self.fin + l * k], init=self.init, name=self.name + ('_dense_block_%d' % l), k=self.k)
+        for ii in range(self.L):
+            c = self.fin if ii == 0 else self.fin + ii * k
+            dense = DenseConv(input_shape=[self.batch, self.h, self.w, c], init=self.init, name=self.name + ('_dense_block_%d' % ii), k=self.k)
             self.layers.append(dense)
         
         self.pool = AvgPool(size=[self.batch, self.h, self.w, self.fin + L * k], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
