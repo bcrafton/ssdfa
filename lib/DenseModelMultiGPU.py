@@ -18,7 +18,7 @@ class DenseModel(Layer):
 
         self.blocks = []
         for ii in range(len(self.L)):
-            with tf.device('/device:GPU:%d' % (ii)):
+            with tf.device('/device:GPU:%d' % (ii + 1)):
                 dense_fmaps = self.fin + sum(L[0:ii]) * k
                 dense = DenseBlock(input_shape=[self.batch, self.h // 2 ** ii, self.w // 2 ** ii, dense_fmaps], init=self.init, name=self.name + ('_block_%d' % ii), k=self.k, L=self.L[ii])
                 self.blocks.append(dense)
@@ -44,19 +44,19 @@ class DenseModel(Layer):
         A     = [None] * self.num_blocks
         cache = [None] * self.num_blocks
 
-        with tf.device('/device:GPU:0'):
+        with tf.device('/device:GPU:1'):
             A[0], cache[0] = self.blocks[0].forward(X)
             A[1], cache[1] = self.blocks[1].forward(A[0])
 
-        with tf.device('/device:GPU:1'):
+        with tf.device('/device:GPU:2'):
             A[2], cache[2] = self.blocks[2].forward(A[1])
             A[3], cache[3] = self.blocks[3].forward(A[2])
 
-        with tf.device('/device:GPU:2'):
+        with tf.device('/device:GPU:3'):
             A[4], cache[4] = self.blocks[4].forward(A[3])
             A[5], cache[5] = self.blocks[5].forward(A[4])
 
-        with tf.device('/device:GPU:3'):
+        with tf.device('/device:GPU:4'):
             A[6], cache[6] = self.blocks[6].forward(A[5])
             A[7], cache[7] = self.blocks[7].forward(A[6])
 
@@ -73,19 +73,19 @@ class DenseModel(Layer):
         D = [None] * self.num_blocks
         GV = []
 
-        with tf.device('/device:GPU:0'):
+        with tf.device('/device:GPU:1'):
             D[7], gv7 = self.blocks[7].bp(A[6], A[7], DO,      C[7])
             D[6], gv6 = self.blocks[6].bp(A[5], A[6], D[7],    C[6])
 
-        with tf.device('/device:GPU:1'):
+        with tf.device('/device:GPU:2'):
             D[5], gv5 = self.blocks[5].bp(A[4], A[5], D[6],    C[5])
             D[4], gv4 = self.blocks[4].bp(A[3], A[4], D[5],    C[4])
 
-        with tf.device('/device:GPU:2'):
+        with tf.device('/device:GPU:3'):
             D[3], gv3 = self.blocks[3].bp(A[2], A[3], D[4],    C[3])
             D[2], gv2 = self.blocks[2].bp(A[1], A[2], D[3],    C[2])
 
-        with tf.device('/device:GPU:3'):
+        with tf.device('/device:GPU:4'):
             D[1], gv1 = self.blocks[1].bp(A[0], A[1], D[2],    C[1])
             D[0], gv0 = self.blocks[0].bp(AI,   A[0], D[1],    C[0])
 
