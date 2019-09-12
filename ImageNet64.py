@@ -184,13 +184,14 @@ else:
 predict = tf.nn.softmax(model.predict(X=features))
 # weights = model.get_weights()
 
-grads_and_vars = model.gvs(X=features, Y=labels)        
-train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
+# grads_and_vars = model.gvs(X=features, Y=labels)        
+# train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
 
 '''
 loss = tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=features)
 train = tf.train.AdamOptimizer(learning_rate=args.lr, epsilon=args.eps).minimize(loss)
 '''
+train = predict
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
@@ -225,8 +226,6 @@ val_accs_top5 = []
 phase = 0
 lr_decay = args.lr
 
-assert(False)
-
 for ii in range(args.epochs):
 
     print('epoch %d/%d' % (ii, args.epochs))
@@ -250,10 +249,11 @@ for ii in range(args.epochs):
         if (jj % (100 * args.batch_size) == 0):
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
             print (p)
+            '''
             f = open(results_filename, "a")
             f.write(p + "\n")
             f.close()
-
+            '''
     train_accs.append(train_acc)
     train_accs_top5.append(train_acc_top5)
     
@@ -278,9 +278,11 @@ for ii in range(args.epochs):
         if (jj % (100 * args.batch_size) == 0):
             p = "val accuracy: %f %f" % (val_acc, val_acc_top5)
             print (p)
+            '''
             f = open(results_filename, "a")
             f.write(p + "\n")
             f.close()
+            '''
 
     val_accs.append(val_acc)
     val_accs_top5.append(val_acc_top5)

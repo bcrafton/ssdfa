@@ -33,6 +33,7 @@ class DenseTransition(Layer):
     def forward(self, X):
         conv1x1, conv1x1_cache = self.conv1x1.forward(X)
         pool, pool_cache = self.pool.forward(conv1x1)
+        pool = tf.Print(pool, [tf.shape(pool)], message="", summarize=1000)
         cache = (conv1x1, conv1x1_cache, pool, pool_cache)
         return pool, cache
         
