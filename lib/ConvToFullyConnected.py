@@ -22,13 +22,13 @@ class ConvToFullyConnected(Layer):
         return 0
 
     def forward(self, X):
-        A = tf.reshape(X, [tf.shape(X)[0], -1])
+        A = tf.reshape(X, [64, -1])
         return A, None
     
     ###################################################################
         
     def bp(self, AI, AO, DO, cache):
-        DI = tf.reshape(DO, [tf.shape(AI)[0]] + self.shape)
+        DI = tf.reshape(DO, [64] + self.shape)
         return DI, []
 
     def dfa(self, AI, AO, E, DO, cache):

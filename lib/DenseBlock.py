@@ -70,15 +70,15 @@ class DenseBlock(Layer):
                     e = self.fin + jj       * self.k
 
                 if (ii == self.num_layers-1):
-                    DI[jj] = DO[s:e]
+                    DI[jj] = DO[:, :, :, s:e]
                 else:
-                    DI[jj] = DI[jj] + DO[s:e]
+                    DI[jj] = DI[jj] + DO[:, :, :, s:e]
 
             l = self.layers[ii]
-            DO, gvs = l.bp(AI[ii], AO[ii], DI[ii], C[ii])
-            grads_and_vars.extend(gvs)
+            DO, gv = l.bp(AI[ii], AO[ii], AO[ii], C[ii])
+            GV.extend(gv)
 
-        return D[0], GV
+        return DO[0], GV
 
     def ss(self, AI, AO, DO, cache):    
         return self.bp(AI, AO, DO, cache)

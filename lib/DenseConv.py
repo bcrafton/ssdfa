@@ -15,14 +15,14 @@ class DenseConv(Layer):
         self.k = k
 
         self.conv1x1 = ConvBlock(
-                       input_shape=self.input_shape, 
+                       input_shape=[self.batch, self.h, self.w, self.fin], 
                        filter_shape=[3, 3, self.fin, self.k * 4], 
                        strides=[1,1,1,1], 
                        init=self.init, 
                        name=self.name + '_conv1x1_block')
 
         self.conv3x3 = ConvBlock(
-                       input_shape=self.input_shape, 
+                       input_shape=[self.batch, self.h, self.w, self.k * 4], 
                        filter_shape=[3, 3, self.k * 4, self.k], 
                        strides=[1,1,1,1], 
                        init=self.init, 
@@ -52,7 +52,7 @@ class DenseConv(Layer):
 
     def bp(self, AI, AO, DO, cache):    
         conv1x1, conv1x1_cache, conv3x3, conv3x3_cache = cache
-        dconv3x3, gconv3x3 = self.conv3x3.bp(conv1x1, conv3x3, DO,       conv3x3_cache)
+        dconv3x3, gconv3x3 = self.conv3x3.bp(conv1x1, AO,      DO,       conv3x3_cache)
         dconv1x1, gconv1x1 = self.conv1x1.bp(AI,      conv1x1, dconv3x3, conv1x1_cache)
         grads = []
         grads.extend(gconv1x1)
