@@ -182,20 +182,20 @@ else:
 ###############################################################
 
 predict = tf.nn.softmax(model.predict(X=features))
-'''
-weights = model.get_weights()
+# weights = model.get_weights()
 
 grads_and_vars = model.gvs(X=features, Y=labels)        
 train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
+
+'''
+loss = tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=features)
+train = tf.train.AdamOptimizer(learning_rate=args.lr, epsilon=args.eps).minimize(loss)
 '''
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
 top5 = in_top_k(predict, tf.argmax(labels,1), k=5)
 total_top5 = tf.reduce_sum(tf.cast(top5, tf.float32))
-
-loss = tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=features)
-train = tf.train.AdamOptimizer(learning_rate=args.lr, epsilon=args.eps).minimize(loss)
 
 ###############################################################
 

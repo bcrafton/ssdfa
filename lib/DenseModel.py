@@ -26,8 +26,6 @@ class DenseModel(Layer):
             trans = DenseTransition(input_shape=[self.batch, self.h, self.w, trans_fmaps], init=self.init, name=self.name + ('_block_%d' % ii))
             self.blocks.append(trans)
 
-            print (trans_fmaps)
-
         self.num_blocks = len(self.blocks)
 
     ###################################################################
@@ -56,8 +54,25 @@ class DenseModel(Layer):
         
     ###################################################################
         
-    def bp(self, AI, AO, DO, cache):    
-        return DO, []
+    def bp(self, AI, AO, DO, cache):
+        A, C = cache
+        D = [None] * self.num_blocks
+        GV = []
+
+        for ii in range(self.num_blocks-1, -1, -1):
+            block = self.blocks[ii]
+
+            if (ii == self.num_blocks-1):
+                D[ii], gv = block.bp(A[ii-1], A[ii], DO,      C[ii])
+                GV.extend(gv)
+            elif (ii == 0):
+                D[ii], gv = block.bp(AI,      A[ii], D[ii+1], C[ii])
+                GV.extend(gv)
+            else:
+                D[ii], gv = block.bp(A[ii-1], A[ii], D[ii+1], C[ii])
+                GV.extend(gv)
+
+        return D[0], GV
 
     def ss(self, AI, AO, DO, cache):    
         return self.bp(AI, AO, DO, cache)

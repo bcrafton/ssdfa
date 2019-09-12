@@ -50,7 +50,7 @@ class DenseBlock(Layer):
 
             AI[ii] = accum
 
-        accum = tf.concat((accum, A0[-1]), axis=3)
+        accum = tf.concat((accum, AO[-1]), axis=3)
         return accum, (AI, AO, cache)
         
     ###################################################################
