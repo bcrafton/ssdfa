@@ -57,28 +57,23 @@ class DenseBlock(Layer):
         
     def bp(self, AI, AO, DO, cache):
         AI, AO, C = cache
-        DI = [None] * self.num_layers
+        D = [None] * self.num_layers
+        DI = None
         GV = []
 
         for ii in range(self.num_layers-1, -1, -1):
-            for jj in range(ii + 1):
-                if (jj == 0):
-                    s = 0
-                    e = self.fin
-                else:
-                    s = self.fin + (jj - 1) * self.k
-                    e = self.fin + jj       * self.k
+            DI = DO[:, :, :, 0:self.fin] if DI == None else (DI + DO[:, :, :, 0:self.fin])
 
-                if (ii == self.num_layers-1):
-                    DI[jj] = DO[:, :, :, s:e]
-                else:
-                    DI[jj] = DI[jj] + DO[:, :, :, s:e]
+            for jj in range(ii + 1):
+                s = self.fin + (jj-1) * self.k
+                e = self.fin +  jj    * self.k
+                D[jj] = DO[:, :, :, s:e] if D[jj] == None else (D[jj] + DO[:, :, :, s:e])
 
             l = self.layers[ii]
-            DO, gv = l.bp(AI[ii], AO[ii], AO[ii], C[ii])
+            DO, gv = l.bp(AI[ii], AO[ii], D[ii], C[ii])
             GV.extend(gv)
 
-        return DO[0], GV
+        return DI, GV
 
     def ss(self, AI, AO, DO, cache):    
         return self.bp(AI, AO, DO, cache)
