@@ -61,7 +61,7 @@ class DenseBlock(Layer):
         GV = []
 
         for ii in range(self.num_layers-1, -1, -1):
-            for jj in range(ii):
+            for jj in range(ii + 1):
                 if (jj == 0):
                     s = 0
                     e = self.fin
@@ -69,7 +69,7 @@ class DenseBlock(Layer):
                     s = self.fin + (jj - 1) * self.k
                     e = self.fin + jj       * self.k
 
-                if (ii == 0):
+                if (ii == self.num_layers-1):
                     DI[jj] = DO[s:e]
                 else:
                     DI[jj] = DI[jj] + DO[s:e]

@@ -19,11 +19,11 @@ class DenseModel(Layer):
         self.blocks = []
         for ii in range(len(self.L)):
             dense_fmaps = self.fin + sum(L[0:ii]) * k
-            dense = DenseBlock(input_shape=[self.batch, self.h, self.w, dense_fmaps], init=self.init, name=self.name + ('_block_%d' % ii), k=self.k, L=self.L[ii])
+            dense = DenseBlock(input_shape=[self.batch, self.h // 2 ** ii, self.w // 2 ** ii, dense_fmaps], init=self.init, name=self.name + ('_block_%d' % ii), k=self.k, L=self.L[ii])
             self.blocks.append(dense)
 
             trans_fmaps = self.fin + sum(L[0:ii+1]) * k
-            trans = DenseTransition(input_shape=[self.batch, self.h, self.w, trans_fmaps], init=self.init, name=self.name + ('_block_%d' % ii))
+            trans = DenseTransition(input_shape=[self.batch, self.h // 2 ** ii, self.w // 2 ** ii, trans_fmaps], init=self.init, name=self.name + ('_block_%d' % ii))
             self.blocks.append(trans)
 
         self.num_blocks = len(self.blocks)
@@ -55,6 +55,10 @@ class DenseModel(Layer):
     ###################################################################
         
     def bp(self, AI, AO, DO, cache):
+        # DI = tf.ones_like(AI)
+        # DI = tf.Print(DI, [tf.shape(DO)], message="", summarize=1000)
+        # return DI, []
+
         A, C = cache
         D = [None] * self.num_blocks
         GV = []
