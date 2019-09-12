@@ -35,25 +35,50 @@ class DenseBlock(Layer):
         assert(False)
 
     def forward(self, X):
-        A =     [None] * self.num_layers
+        AI    = [None] * self.num_layers
+        AO    = [None] * self.num_layers
         cache = [None] * self.num_layers
 
         for ii in range(self.num_layers):
             l = self.layers[ii]
             if ii == 0:
                 accum = X
-                A[ii], cache[ii] = l.forward(accum)
+                AO[ii], cache[ii] = l.forward(accum)
             else:
-                accum = tf.concat((accum, A[ii-1]), axis=3)
-                A[ii], cache[ii] = l.forward(accum)
+                accum = tf.concat((accum, AO[ii-1]), axis=3)
+                AO[ii], cache[ii] = l.forward(accum)
 
-        accum = tf.concat((accum, A[-1]), axis=3)
-        return accum, (A, cache)
+            AI[ii] = accum
+
+        accum = tf.concat((accum, A0[-1]), axis=3)
+        return accum, (AI, AO, cache)
         
     ###################################################################
         
-    def bp(self, AI, AO, DO, cache):    
-        return DO, []
+    def bp(self, AI, AO, DO, cache):
+        AI, AO, C = cache
+        DI = [None] * self.num_layers
+        GV = []
+
+        for ii in range(self.num_layers-1, -1, -1):
+            for jj in range(ii):
+                if (jj == 0):
+                    s = 0
+                    e = self.fin
+                else:
+                    s = self.fin + (jj - 1) * self.k
+                    e = self.fin + jj       * self.k
+
+                if (ii == 0):
+                    DI[jj] = DO[s:e]
+                else:
+                    DI[jj] = DI[jj] + DO[s:e]
+
+            l = self.layers[ii]
+            DO, gvs = l.bp(AI[ii], AO[ii], DI[ii], C[ii])
+            grads_and_vars.extend(gvs)
+
+        return D[0], GV
 
     def ss(self, AI, AO, DO, cache):    
         return self.bp(AI, AO, DO, cache)

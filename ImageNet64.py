@@ -288,12 +288,12 @@ for ii in range(args.epochs):
     if phase == 0:
         phase = 1
     elif phase == 1:
-        dacc = train_accs[-1] - train_accs[-2]
+        dacc = val_accs[-1] - val_accs[-2]
         if dacc <= 0.01:
             lr_decay = 0.1 * args.lr
             phase = 2
     elif phase == 2:
-        dacc = train_accs[-1] - train_accs[-2]
+        dacc = val_accs[-1] - val_accs[-2]
         if dacc <= 0.005:
             lr_decay = 0.05 * args.lr
             phase = 3
