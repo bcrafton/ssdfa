@@ -210,13 +210,13 @@ train_handle = sess.run(train_iterator.string_handle())
 val_handle = sess.run(val_iterator.string_handle())
 
 ###############################################################
-'''
+
 results_filename = args.name + '.results'
 f = open(results_filename, "w")
 f.write(results_filename + "\n")
-f.write("total params: " + str(model.num_params()) + "\n")
+# f.write("total params: " + str(model.num_params()) + "\n")
 f.close()
-'''
+
 ###############################################################
 
 train_accs = []
@@ -250,11 +250,10 @@ for ii in range(args.epochs):
         if (jj % (100 * args.batch_size) == 0):
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
             print (p)
-            '''
             f = open(results_filename, "a")
             f.write(p + "\n")
             f.close()
-            '''
+
     train_accs.append(train_acc)
     train_accs_top5.append(train_acc_top5)
     
@@ -279,11 +278,9 @@ for ii in range(args.epochs):
         if (jj % (100 * args.batch_size) == 0):
             p = "val accuracy: %f %f" % (val_acc, val_acc_top5)
             print (p)
-            '''
             f = open(results_filename, "a")
             f.write(p + "\n")
             f.close()
-            '''
 
     val_accs.append(val_acc)
     val_accs_top5.append(val_acc_top5)
