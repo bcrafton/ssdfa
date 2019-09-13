@@ -361,10 +361,12 @@ for ii in range(args.epochs):
             angles_deriv = np.average(angles_deriv, axis=1)         
             matches_deriv = np.average(matches_deriv, axis=1) * 100.
 
+            '''
             angles_gv = angles_gv[idx_grad]
             matches_gv = matches_gv[idx_grad]
             angles_deriv = angles_deriv[idx_deriv]
             matches_deriv = matches_deriv[idx_deriv]
+            '''
 
             if not (np.any(np.isnan(angles_gv)) or np.any(np.isnan(matches_gv)) or np.any(np.isnan(angles_deriv)) or np.any(np.isnan(matches_deriv))):
                 write ('gv angles: %d %d %d'     % (int(np.max(angles_gv)),     int(np.average(angles_gv)),     int(np.min(angles_gv))))

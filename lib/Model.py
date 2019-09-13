@@ -73,7 +73,7 @@ class Model:
                 D[ii], gvs = l.bp(A[ii-1], A[ii], D[ii+1], cache[ii])
                 grads_and_vars.extend(gvs)
 
-        return grads_and_vars
+        return grads_and_vars, D
 
     def ss_gvs(self, X, Y):
         A = [None] * self.num_layers
@@ -107,7 +107,7 @@ class Model:
                 D[ii], gvs = l.ss(A[ii-1], A[ii], D[ii+1], cache[ii])
                 grads_and_vars.extend(gvs)
 
-        return grads_and_vars
+        return grads_and_vars, D
 
     def dfa_gvs(self, X, Y):
         A = [None] * self.num_layers
@@ -141,7 +141,7 @@ class Model:
                 D[ii], gvs = l.dfa(A[ii-1], A[ii], D[ii+1], cache[ii])
                 grads_and_vars.extend(gvs)
 
-        return grads_and_vars
+        return grads_and_vars, D
 
     def lel_gvs(self, X, Y):
         assert(False)
