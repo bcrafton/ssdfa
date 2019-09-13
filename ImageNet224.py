@@ -15,7 +15,7 @@ parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--dropout', type=float, default=0.)
 parser.add_argument('--init', type=str, default="alexnet")
 parser.add_argument('--save', type=int, default=0)
-parser.add_argument('--name', type=str, default="imagenet64")
+parser.add_argument('--name', type=str, default="imagenet224")
 parser.add_argument('--load', type=str, default=None)
 args = parser.parse_args()
 
