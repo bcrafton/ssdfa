@@ -19,11 +19,9 @@ parser.add_argument('--name', type=str, default="imagenet224")
 parser.add_argument('--load', type=str, default=None)
 args = parser.parse_args()
 
-'''
 if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
-'''
 
 exxact = 1
 if exxact:
