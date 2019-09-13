@@ -57,7 +57,7 @@ class ConvolutionDW(Layer):
         Z = tf.nn.depthwise_conv2d(X, self.filters, self.strides, self.padding)
         if self.use_bias:
             Z = Z + self.bias
-        return {'aout':Z, 'cache':{}}
+        return Z, None
 
     ###################################################################
 

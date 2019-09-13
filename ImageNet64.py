@@ -6,7 +6,7 @@ import sys
 ##############################################
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', type=str, default="vgg")
+parser.add_argument('--model', type=str, default="dense")
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--batch_size', type=int, default=64)
@@ -63,6 +63,7 @@ from lib.BatchNorm import BatchNorm
 from lib.VGGNet import VGGNetTiny
 from lib.VGGNet import VGGNet64
 from lib.MobileNet import MobileNet64
+from lib.DenseNet import DenseNet64
 
 from collections import deque
 import matplotlib.pyplot as plt
@@ -236,13 +237,15 @@ elif args.model == 'tiny':
     model = VGGNetTiny(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init, fb_conv=args.fb_conv, fb_dw=args.fb_dw, fb_pw=args.fb_pw)
 elif args.model == 'mobile':
     model = MobileNet64(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init, fb_conv=args.fb_conv, fb_dw=args.fb_dw, fb_pw=args.fb_pw)
+elif args.model == 'dense':
+    model = DenseNet64(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init, fb_conv=args.fb_conv, fb_dw=args.fb_dw, fb_pw=args.fb_pw)
 else:
     assert (False)
 
 ###############################################################
 
 predict = tf.nn.softmax(model.predict(X=X))
-weights = model.get_weights()
+# weights = model.get_weights()
 
 bp_gvs, bp_derivs = model.gvs(X=X, Y=Y)
 ss_gvs, ss_derivs = model.ss_gvs(X=X, Y=Y)
@@ -269,7 +272,7 @@ val_handle = sess.run(val_iterator.string_handle())
 results_filename = args.name + '.results'
 f = open(results_filename, "w")
 f.write(results_filename + "\n")
-f.write("total params: " + str(model.num_params()) + "\n")
+# f.write("total params: " + str(model.num_params()) + "\n")
 f.close()
 
 ###############################################################
@@ -417,12 +420,12 @@ for ii in range(args.epochs):
 
     p = "phase: %d" % (phase)
     write (p)
-
+    '''
     [w] = sess.run([weights], feed_dict={})
     w['train_acc'] = train_accs
     w['val_acc'] = val_accs
     np.save(args.name, w)
-    
+    '''
 
 
 

@@ -20,7 +20,7 @@ class Relu(Layer):
 
     def forward(self, x):
         A = tf.nn.relu(x)
-        return {'aout': A, 'cache': {}}
+        return A, None
 
     #########
 
@@ -51,7 +51,7 @@ class SignedRelu(Layer):
 
     def forward(self, x):
         A = tf.nn.relu(x) * self.signs
-        return {'aout': A, 'cache': {}}
+        return A, None
 
     #########
 
@@ -82,7 +82,7 @@ class Tanh(Layer):
 
     def forward(self, x):
         A = tf.tanh(x)
-        return {'aout': A, 'cache': {}}
+        return A, None
 
     #########
 

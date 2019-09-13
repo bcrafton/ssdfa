@@ -60,16 +60,17 @@ class ConvBlock(Layer):
         return self.conv.num_params() + self.bn.num_params()
 
     def forward(self, X):
-        conv = self.conv.forward(X)
-        bn = self.bn.forward(conv['aout'])
-        relu = self.relu.forward(bn['aout'])
-        cache = {'conv':conv['aout'], 'bn':bn['aout'], 'relu':relu['aout']}
-        return {'aout':relu['aout'], 'cache':cache}
+        conv, _ = self.conv.forward(X)
+        bn, _   = self.bn.forward(conv)
+        relu, _ = self.relu.forward(bn)
+
+        cache = (conv, bn, relu)
+        return relu, cache
 
     ###################################################################
 
     def bp(self, AI, AO, DO, cache):    
-        conv, bn, relu = cache['conv'], cache['bn'], cache['relu']
+        conv, bn, relu = cache
         drelu, grelu = self.relu.bp(bn, relu, DO, None)
         dbn,   gbn   = self.bn.bp(conv, bn, drelu, None)
         dconv, gconv = self.conv.bp(AI, conv, dbn, None)
@@ -79,7 +80,7 @@ class ConvBlock(Layer):
         return dconv, grads
 
     def ss(self, AI, AO, DO, cache):    
-        conv, bn, relu = cache['conv'], cache['bn'], cache['relu']
+        conv, bn, relu = cache
         drelu, grelu = self.relu.ss(bn, relu, DO, None)
         dbn,   gbn   = self.bn.ss(conv, bn, drelu, None)
         dconv, gconv = self.conv.ss(AI, conv, dbn, None)

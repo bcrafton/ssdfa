@@ -30,7 +30,7 @@ class FeedbackConv(Layer):
         
     def forward(self, X):
         A = X
-        return {'aout':A, 'cache':{}}
+        return A, None
                 
     ###################################################################           
         

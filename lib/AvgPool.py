@@ -41,7 +41,8 @@ class AvgPool(Layer):
 
     def forward(self, X):
         A = tf.nn.avg_pool(X, ksize=self.ksize, strides=self.strides, padding=self.padding)
-        return {'aout':A, 'cache':{}}
+        # A = tf.Print(A, [tf.shape(A)], message="", summarize=1000)
+        return A, None
             
     ###################################################################           
         

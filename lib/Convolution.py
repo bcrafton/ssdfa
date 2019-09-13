@@ -70,8 +70,7 @@ class Convolution(Layer):
         Z = tf.nn.conv2d(X, self.filters * mask, self.strides, self.padding)
         if self.use_bias:
             Z = Z + self.bias
-
-        return {'aout':Z, 'cache':{}}
+        return Z, None
 
     ###################################################################
     

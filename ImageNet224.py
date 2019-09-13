@@ -6,7 +6,7 @@ import sys
 ##############################################
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', type=str, default="vgg")
+parser.add_argument('--model', type=str, default="dense")
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--batch_size', type=int, default=64)
@@ -15,7 +15,7 @@ parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--dropout', type=float, default=0.)
 parser.add_argument('--init', type=str, default="alexnet")
 parser.add_argument('--save', type=int, default=0)
-parser.add_argument('--name', type=str, default="imagenet64")
+parser.add_argument('--name', type=str, default="imagenet224")
 parser.add_argument('--load', type=str, default=None)
 args = parser.parse_args()
 
@@ -23,11 +23,10 @@ if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
 
-exxact = 0
+exxact = 1
 if exxact:
-    assert (False)
-    val_path = ''
-    train_path = ''
+    val_path = '/home/bcrafton3/Data_SSD/ILSVRC2012/val/'
+    train_path = '/home/bcrafton3/Data_SSD/ILSVRC2012/train/'
 else:
     val_path = '/usr/scratch/bcrafton/ILSVRC2012/val/'
     train_path = '/usr/scratch/bcrafton/ILSVRC2012/train/'
@@ -57,6 +56,7 @@ from lib.Activation import Relu
 from lib.VGGNet import VGGNet224
 from lib.MobileNet import MobileNet224
 from lib.AlexNet import AlexNet224
+from lib.DenseNet import DenseNet224
 
 ##############################################
 
@@ -235,13 +235,15 @@ if args.model == 'vgg':
     model = VGGNet224(batch_size=batch_size, dropout_rate=dropout_rate)
 elif args.model == 'mobile':
     model = MobileNet224(batch_size=batch_size, dropout_rate=dropout_rate)
+elif args.model == 'dense':
+    model = DenseNet224(batch_size=batch_size, dropout_rate=dropout_rate)
 else:
     assert (False)
 
 ###############################################################
 
 predict = tf.nn.softmax(model.predict(X=features))
-weights = model.get_weights()
+# weights = model.get_weights()
 
 grads_and_vars = model.gvs(X=features, Y=labels)
 train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
@@ -266,7 +268,7 @@ val_handle = sess.run(val_iterator.string_handle())
 results_filename = args.name + '.results'
 f = open(results_filename, "w")
 f.write(results_filename + "\n")
-f.write("total params: " + str(model.num_params()) + "\n")
+# f.write("total params: " + str(model.num_params()) + "\n")
 f.close()
 
 ###############################################################
@@ -354,6 +356,7 @@ for ii in range(args.epochs):
     f.write(p + "\n")
     f.close()
 
+    '''
     if args.save:
         [w] = sess.run([weights], feed_dict={})
         w['train_acc'] = train_accs
@@ -361,6 +364,7 @@ for ii in range(args.epochs):
         w['val_acc'] = val_accs
         w['val_acc_top5'] = val_accs_top5
         np.save(args.name, w)
+    '''
 
     print('epoch %d/%d' % (ii, args.epochs))
     

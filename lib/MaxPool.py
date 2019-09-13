@@ -38,7 +38,7 @@ class MaxPool(Layer):
 
     def forward(self, X):
         A = tf.nn.max_pool(X, ksize=self.ksize, strides=self.strides, padding=self.padding)
-        return {'aout':A, 'cache':{}}
+        return A, None
             
     ###################################################################           
         

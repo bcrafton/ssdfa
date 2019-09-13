@@ -48,23 +48,23 @@ class VGGBlock(Layer):
         return self.conv.num_params()
 
     def forward(self, X):
-        conv = self.conv.forward(X)
+        conv, conv_cache = self.conv.forward(X)
 
-        cache = {'conv':conv}
-        return {'aout':conv['aout'], 'cache':cache}
+        cache = (conv, conv_cache)
+        return conv, cache
         
     ###################################################################
         
     def bp(self, AI, AO, DO, cache):    
-        conv = cache['conv']
-        dconv, gconv = self.conv.bp(AI, conv['aout'], DO, conv['cache'])
+        conv, conv_cache = cache
+        dconv, gconv = self.conv.bp(AI, conv, DO, conv_cache)
         grads = []
         grads.extend(gconv)
         return dconv, grads
 
     def ss(self, AI, AO, DO, cache):    
-        conv = cache['conv']
-        dconv, gconv = self.conv.ss(AI, conv['aout'], DO, conv['cache'])
+        conv, conv_cache = cache
+        dconv, gconv = self.conv.ss(AI, conv, DO, conv_cache)
         grads = []
         grads.extend(gconv)
         return dconv, grads
