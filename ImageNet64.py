@@ -25,7 +25,7 @@ if args.gpu >= 0:
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
 '''
 
-exxact = 0
+exxact = 1
 if exxact:
     val_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/val/'
     train_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/train/'

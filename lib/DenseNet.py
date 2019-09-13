@@ -48,7 +48,7 @@ def DenseNet224(batch_size, dropout_rate, init='alexnet'):
     l2 = MaxPool(size=[batch_size,112,112,size], ksize=[1,3,3,1], strides=[1,2,2,1], padding='SAME')
 
     l3 = DenseModel(input_shape=[batch_size,56,56,F], init=init, name='dense_model', k=k, L=L)
-    l4 = AvgPool(size=[batch_size,7,7,size], ksize=[1,2,2,1], strides=[1,2,2,1], padding='SAME')
+    l4 = AvgPool(size=[batch_size,7,7,size], ksize=[1,7,7,1], strides=[1,7,7,1], padding='SAME')
 
     l5 = ConvToFullyConnected(input_shape=[batch_size,1,1,size]) 
     l6 = FullyConnected(input_shape=size, size=1000, init=init, name="fc1")
