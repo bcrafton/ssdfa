@@ -73,8 +73,8 @@ imagenet_vgg_sparse3 = {'benchmark':'vgg_fc.py', 'epochs':100, 'batch_size':32, 
 
 ################################################
 
-imagenet64 = {'benchmark':'ImageNet64.py', 'model':['vgg', 'mobile'], 'epochs':25, 'batch_size':32, 'lr':[5e-2], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None}
-imagenet224 = {'benchmark':'ImageNet224.py', 'model':['mobile'], 'epochs':25, 'batch_size':32, 'lr':[5e-2], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None}
+imagenet64 = {'benchmark':'ImageNet64.py', 'model':['dense'], 'epochs':25, 'batch_size':64, 'lr':[3e-3, 1e-2, 3e-2], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None}
+imagenet224 = {'benchmark':'ImageNet224.py', 'model':['dense'], 'epochs':25, 'batch_size':64, 'lr':[3e-3, 1e-2, 3e-2], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None}
 
 ################################################
 
@@ -86,8 +86,8 @@ imagenet224 = {'benchmark':'ImageNet224.py', 'model':['mobile'], 'epochs':25, 'b
 # params = [cifar10_conv_bp, cifar10_conv_dfa, cifar10_conv_sparse]
 # params = [cifar100_conv_bp, cifar100_conv_dfa, cifar100_conv_sparse]
 
-# params = [imagenet64]
-params = [imagenet224]
+params = [imagenet64]
+# params = [imagenet224]
 
 ################################################
 
