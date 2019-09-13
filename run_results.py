@@ -34,12 +34,12 @@ def run_command(param):
             param['eps'],
             param['dropout'], 
             param['init'],
-            param['fb_conv'],
+            param['fb'],
             param['fb_dw'], 
             param['fb_pw']
             )
              
-    cmd = "python36 %s --model %s --gpu %d --epochs %d --batch_size %d --lr %f --eps %f --dropout %f --init %s --save %d --name %s --fb_conv %s --fb_dw %s --fb_pw %s" % (
+    cmd = "python36 %s --model %s --gpu %d --epochs %d --batch_size %d --lr %f --eps %f --dropout %f --init %s --save %d --name %s --fb %s --fb_dw %s --fb_pw %s" % (
            param['benchmark'], 
            param['model'], 
            gpu, 
@@ -51,7 +51,7 @@ def run_command(param):
            param['init'], 
            1, 
            name,
-           param['fb_conv'],
+           param['fb'],
            param['fb_dw'], 
            param['fb_pw']
            )

@@ -25,13 +25,13 @@ for ii in range(num_runs):
             param['eps'],
             param['dropout'],
             param['init'],
-            param['fb_conv'],
+            param['fb'],
             param['fb_dw'],
             param['fb_pw']
             )
 
     res = np.load(name, allow_pickle=True).item()
-    key = (param['benchmark'], param['model'], param['lr'], param['fb_conv'], param['fb_dw'], param['fb_pw'])
+    key = (param['benchmark'], param['model'], param['lr'], param['fb'], param['fb_dw'], param['fb_pw'])
     val = max(res['val_acc'])
 
     print (name, val)

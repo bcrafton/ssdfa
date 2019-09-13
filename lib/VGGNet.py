@@ -89,26 +89,26 @@ def VGGNet224(batch_size, dropout_rate, init='alexnet', sparse=0):
     model = Model(layers=layers)
     return model
 
-def VGGNet64(batch_size, dropout_rate, init='alexnet', sparse=0, fb_conv='f', fb_dw='f', fb_pw='f'):
+def VGGNet64(batch_size, dropout_rate, init='alexnet', sparse=0, fb='f', fb_dw='f', fb_pw='f'):
 
     l1_1 = VGGBlock(input_shape=[batch_size, 64, 64, 6], filter_shape=[6, 64], init=init, name='block1')
-    l1_2 = VGGBlock(input_shape=[batch_size, 64, 64, 64], filter_shape=[64, 64], init=init, name='block2', fb=fb_conv, rate=0.35)
+    l1_2 = VGGBlock(input_shape=[batch_size, 64, 64, 64], filter_shape=[64, 64], init=init, name='block2', fb=fb, rate=0.35)
     l1_3 = AvgPool(size=[batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-    l2_1 = VGGBlock(input_shape=[batch_size, 32, 32, 64],  filter_shape=[64, 128], init=init, name='block3', fb=fb_conv, rate=0.35)
-    l2_2 = VGGBlock(input_shape=[batch_size, 32, 32, 128], filter_shape=[128, 128], init=init, name='block4', fb=fb_conv, rate=0.35)
+    l2_1 = VGGBlock(input_shape=[batch_size, 32, 32, 64],  filter_shape=[64, 128], init=init, name='block3', fb=fb, rate=0.35)
+    l2_2 = VGGBlock(input_shape=[batch_size, 32, 32, 128], filter_shape=[128, 128], init=init, name='block4', fb=fb, rate=0.35)
     l2_3 = AvgPool(size=[batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-    l3_1 = VGGBlock(input_shape=[batch_size, 16, 16, 128], filter_shape=[128, 256], init=init, name='block5', fb=fb_conv, rate=0.25)
-    l3_2 = VGGBlock(input_shape=[batch_size, 16, 16, 256], filter_shape=[256, 256], init=init, name='block6', fb=fb_conv, rate=0.25)
+    l3_1 = VGGBlock(input_shape=[batch_size, 16, 16, 128], filter_shape=[128, 256], init=init, name='block5', fb=fb, rate=0.25)
+    l3_2 = VGGBlock(input_shape=[batch_size, 16, 16, 256], filter_shape=[256, 256], init=init, name='block6', fb=fb, rate=0.25)
     l3_3 = AvgPool(size=[batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-    l4_1 = VGGBlock(input_shape=[batch_size, 8, 8, 256],   filter_shape=[256, 512], init=init, name='block7', fb=fb_conv, rate=0.25)
-    l4_2 = VGGBlock(input_shape=[batch_size, 8, 8, 512],   filter_shape=[512, 512], init=init, name='block8', fb=fb_conv, rate=0.25)
+    l4_1 = VGGBlock(input_shape=[batch_size, 8, 8, 256],   filter_shape=[256, 512], init=init, name='block7', fb=fb, rate=0.25)
+    l4_2 = VGGBlock(input_shape=[batch_size, 8, 8, 512],   filter_shape=[512, 512], init=init, name='block8', fb=fb, rate=0.25)
     l4_3 = AvgPool(size=[batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-    l5_1 = VGGBlock(input_shape=[batch_size, 4, 4, 512],   filter_shape=[512, 1024],  init=init, name='block9', fb=fb_conv, rate=0.15)
-    l5_2 = VGGBlock(input_shape=[batch_size, 4, 4, 1024],  filter_shape=[1024, 1024], init=init, name='block10', fb=fb_conv, rate=0.15)
+    l5_1 = VGGBlock(input_shape=[batch_size, 4, 4, 512],   filter_shape=[512, 1024],  init=init, name='block9', fb=fb, rate=0.15)
+    l5_2 = VGGBlock(input_shape=[batch_size, 4, 4, 1024],  filter_shape=[1024, 1024], init=init, name='block10', fb=fb, rate=0.15)
     l5_3 = AvgPool(size=[batch_size, 4, 4, 1024], ksize=[1, 4, 4, 1], strides=[1, 4, 4, 1], padding="SAME")
 
     l6 = ConvToFullyConnected(input_shape=[1, 1, 1024])
@@ -129,21 +129,21 @@ def VGGNet64(batch_size, dropout_rate, init='alexnet', sparse=0, fb_conv='f', fb
     return model
 
 
-def VGGNetTiny(batch_size, dropout_rate, init='alexnet', sparse=0, fb_conv='f', fb_dw='f', fb_pw='f'):
+def VGGNetTiny(batch_size, dropout_rate, init='alexnet', sparse=0, fb='f', fb_dw='f', fb_pw='f'):
 
     l1_1 = VGGBlock(input_shape=[batch_size, 64, 64, 6], filter_shape=[6, 64], init=init, name='block1')
     l1_2 = AvgPool(size=[batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-    l2_1 = VGGBlock(input_shape=[batch_size, 32, 32, 64],  filter_shape=[64, 128], init=init, name='block3', fb=fb_conv)
+    l2_1 = VGGBlock(input_shape=[batch_size, 32, 32, 64],  filter_shape=[64, 128], init=init, name='block3', fb=fb)
     l2_2 = AvgPool(size=[batch_size, 32, 32, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-    l3_1 = VGGBlock(input_shape=[batch_size, 16, 16, 128], filter_shape=[128, 256], init=init, name='block5', fb=fb_conv)
+    l3_1 = VGGBlock(input_shape=[batch_size, 16, 16, 128], filter_shape=[128, 256], init=init, name='block5', fb=fb)
     l3_2 = AvgPool(size=[batch_size, 16, 16, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-    l4_1 = VGGBlock(input_shape=[batch_size, 8, 8, 256],   filter_shape=[256, 512], init=init, name='block7', fb=fb_conv)
+    l4_1 = VGGBlock(input_shape=[batch_size, 8, 8, 256],   filter_shape=[256, 512], init=init, name='block7', fb=fb)
     l4_2 = AvgPool(size=[batch_size, 8, 8, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-    l5_1 = VGGBlock(input_shape=[batch_size, 4, 4, 512],   filter_shape=[512, 1024],  init=init, name='block9', fb=fb_conv)
+    l5_1 = VGGBlock(input_shape=[batch_size, 4, 4, 512],   filter_shape=[512, 1024],  init=init, name='block9', fb=fb)
     l5_2 = AvgPool(size=[batch_size, 4, 4, 1024], ksize=[1, 4, 4, 1], strides=[1, 4, 4, 1], padding="SAME")
 
     l6 = ConvToFullyConnected(input_shape=[1, 1, 1024])

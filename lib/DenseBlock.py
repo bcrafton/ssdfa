@@ -7,18 +7,20 @@ from lib.DenseConv import DenseConv
 
 class DenseBlock(Layer):
 
-    def __init__(self, input_shape, init, name, k, L):
+    def __init__(self, input_shape, init, name, k, L, fb, fb_pw):
         self.input_shape = input_shape
         self.batch, self.h, self.w, self.fin = self.input_shape
         self.init = init
         self.name = name
         self.k = k
         self.L = L
+        self.fb = fb
+        self.fb_pw = fb_pw
 
         self.layers = []
         for ii in range(self.L):
             c = self.fin if ii == 0 else self.fin + ii * k
-            dense = DenseConv(input_shape=[self.batch, self.h, self.w, c], init=self.init, name=self.name + ('_dense_conv_%d' % ii), k=self.k)
+            dense = DenseConv(input_shape=[self.batch, self.h, self.w, c], init=self.init, name=self.name + ('_dense_conv_%d' % ii), k=self.k, fb=self.fb, fb_pw=self.fb_pw)
             self.layers.append(dense)
         
         self.num_layers = len(self.layers)

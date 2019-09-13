@@ -8,7 +8,9 @@ from lib.DenseTransition import DenseTransition
 
 class DenseModel(Layer):
 
-    def __init__(self, input_shape, init, name, k, L):
+    def __init__(self, input_shape, init, name, k, L, fb, fb_pw):
+        assert (False) # havnt used this one in awhile
+
         self.input_shape = input_shape
         self.batch, self.h, self.w, self.fin = self.input_shape
         self.init = init

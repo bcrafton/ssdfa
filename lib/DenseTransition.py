@@ -8,13 +8,14 @@ from lib.AvgPool import AvgPool
 
 class DenseTransition(Layer):
 
-    def __init__(self, input_shape, init, name):
+    def __init__(self, input_shape, init, name, fb):
         self.input_shape = input_shape
         self.batch, self.h, self.w, self.fin = self.input_shape
         self.init = init
         self.name = name
+        self.fb = fb
 
-        self.conv1x1 = ConvBlock(input_shape=self.input_shape, filter_shape=[1, 1, self.fin, self.fin], strides=[1,1,1,1], init=self.init, name=self.name + '_conv1x1_block')
+        self.conv1x1 = ConvBlock(input_shape=self.input_shape, filter_shape=[1, 1, self.fin, self.fin], strides=[1,1,1,1], init=self.init, name=self.name + '_conv1x1_block', fb=self.fb)
         self.pool    = AvgPool(size=[self.batch, self.h, self.w, self.fin], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
     ###################################################################

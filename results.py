@@ -29,32 +29,32 @@ def get_perms(param):
 # NOTE: it makes no sense to use ud01 for pointwise convolutions.
 
 '''
-imagenet64_tiny = {'benchmark':'ImageNet64.py', 'model':['tiny'], 'epochs':15, 'batch_size':64, 'lr':[5e-2, 1e-2, 5e-3], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None, 'fb_conv':['f', 'u01', 'u012'], 'fb_dw':['f'], 'fb_pw':['f']}
-imagenet64_mobile = {'benchmark':'ImageNet64.py', 'model':['mobile'], 'epochs':15, 'batch_size':64, 'lr':[5e-2, 1e-2, 5e-3], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None, 'fb_conv':['f'], 'fb_dw':['u01', 'u012'], 'fb_pw':['u01', 'u012', 'ud0123']}
+imagenet64_tiny = {'benchmark':'ImageNet64.py', 'model':['tiny'], 'epochs':15, 'batch_size':64, 'lr':[5e-2, 1e-2, 5e-3], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None, 'fb':['f', 'u01', 'u012'], 'fb_dw':['f'], 'fb_pw':['f']}
+imagenet64_mobile = {'benchmark':'ImageNet64.py', 'model':['mobile'], 'epochs':15, 'batch_size':64, 'lr':[5e-2, 1e-2, 5e-3], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None, 'fb':['f'], 'fb_dw':['u01', 'u012'], 'fb_pw':['u01', 'u012', 'ud0123']}
 
 params = [imagenet64_tiny, imagenet64_mobile]
 '''
 
 '''
-imagenet64_mobile = {'benchmark':'ImageNet64.py', 'model':['mobile'], 'epochs':5, 'batch_size':64, 'lr':[5e-2, 1e-2], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None, 'fb_conv':['f'], 'fb_dw':['f', 'u01', 'u012'], 'fb_pw':['f', 'u01', 'u012', 'ud0123']}
+imagenet64_mobile = {'benchmark':'ImageNet64.py', 'model':['mobile'], 'epochs':5, 'batch_size':64, 'lr':[5e-2, 1e-2], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None, 'fb':['f'], 'fb_dw':['f', 'u01', 'u012'], 'fb_pw':['f', 'u01', 'u012', 'ud0123']}
 
 params = [imagenet64_mobile]
 '''
 
 '''
-imagenet64_tiny = {'benchmark':'ImageNet64.py', 'model':['tiny'], 'epochs':50, 'batch_size':64, 'lr':[5e-2, 1e-2], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None, 'fb_conv':['u01', 'ud01'], 'fb_dw':['f'], 'fb_pw':['f']}
-imagenet64_mobile = {'benchmark':'ImageNet64.py', 'model':['mobile'], 'epochs':50, 'batch_size':64, 'lr':[5e-2, 1e-2], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None, 'fb_conv':['f'], 'fb_dw':['f', 'u01'], 'fb_pw':['f', 'u01']}
+imagenet64_tiny = {'benchmark':'ImageNet64.py', 'model':['tiny'], 'epochs':50, 'batch_size':64, 'lr':[5e-2, 1e-2], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None, 'fb':['u01', 'ud01'], 'fb_dw':['f'], 'fb_pw':['f']}
+imagenet64_mobile = {'benchmark':'ImageNet64.py', 'model':['mobile'], 'epochs':50, 'batch_size':64, 'lr':[5e-2, 1e-2], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None, 'fb':['f'], 'fb_dw':['f', 'u01'], 'fb_pw':['f', 'u01']}
 
 params = [imagenet64_tiny, imagenet64_mobile]
 '''
 
 '''
-imagenet64_vgg = {'benchmark':'ImageNet64.py', 'model':['vgg'], 'epochs':50, 'batch_size':64, 'lr':[5e-2, 1e-2], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None, 'fb_conv':['u01', 'ud01f'], 'fb_dw':['f'], 'fb_pw':['f']}
+imagenet64_vgg = {'benchmark':'ImageNet64.py', 'model':['vgg'], 'epochs':50, 'batch_size':64, 'lr':[5e-2, 1e-2], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None, 'fb':['u01', 'ud01f'], 'fb_dw':['f'], 'fb_pw':['f']}
 
 params = [imagenet64_vgg]
 '''
 
-imagenet64_vgg = {'benchmark':'ImageNet64.py', 'model':['vgg'], 'epochs':50, 'batch_size':64, 'lr':[5e-2, 1e-2], 'eps':[1.], 'dropout':0.2, 'init':['glorot_uniform'], 'load':None, 'fb_conv':['udc01f'], 'fb_dw':['f'], 'fb_pw':['f']}
+imagenet64_vgg = {'benchmark':'ImageNet64.py', 'model':['vgg'], 'epochs':50, 'batch_size':64, 'lr':[5e-2, 1e-2], 'eps':[1.], 'dropout':0.2, 'init':['glorot_uniform'], 'load':None, 'fb':['udc01f'], 'fb_dw':['f'], 'fb_pw':['f']}
 
 params = [imagenet64_vgg]
 
