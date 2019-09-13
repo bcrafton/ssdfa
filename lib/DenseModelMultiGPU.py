@@ -111,18 +111,18 @@ class DenseModel(Layer):
         D = [None] * self.num_blocks
         GV = []
 
-        with tf.device('/device:GPU:0'):
+        with tf.device('/device:GPU:3'):
             D[6], gv6 = self.blocks[6].bp(A[5], A[6], DO,      C[6])
 
-        with tf.device('/device:GPU:1'):
+        with tf.device('/device:GPU:2'):
             D[5], gv5 = self.blocks[5].bp(A[4], A[5], D[6],    C[5])
             D[4], gv4 = self.blocks[4].bp(A[3], A[4], D[5],    C[4])
 
-        with tf.device('/device:GPU:2'):
+        with tf.device('/device:GPU:1'):
             D[3], gv3 = self.blocks[3].bp(A[2], A[3], D[4],    C[3])
             D[2], gv2 = self.blocks[2].bp(A[1], A[2], D[3],    C[2])
 
-        with tf.device('/device:GPU:3'):
+        with tf.device('/device:GPU:0'):
             D[1], gv1 = self.blocks[1].bp(A[0], A[1], D[2],    C[1])
             D[0], gv0 = self.blocks[0].bp(AI,   A[0], D[1],    C[0])
 
