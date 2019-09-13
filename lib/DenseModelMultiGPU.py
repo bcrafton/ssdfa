@@ -57,7 +57,7 @@ class DenseModel(Layer):
 
         with tf.device('/device:GPU:4'):
             dense_fmaps = self.fin + + (L[0]+L[1]+L[2]) * k
-            dense4 = DenseBlock(input_shape=[self.batch, self.h, self.w, dense_fmaps], init=self.init, name=self.name + ('_block_%d' % ii), k=self.k, L=self.L[ii])
+            dense4 = DenseBlock(input_shape=[self.batch, self.h // 8, self.w // 8, dense_fmaps], init=self.init, name=self.name + ('_block_%d' % ii), k=self.k, L=self.L[ii])
         
         self.blocks.append(dense1)
         self.blocks.append(trans1)
