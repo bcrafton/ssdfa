@@ -16,6 +16,9 @@ class DenseModel(Layer):
         self.k = k
         self.L = L
 
+        ###################################################################
+
+        '''
         self.blocks = []
         for ii in range(len(self.L)):
             with tf.device('/device:GPU:%d' % (ii + 1)):
@@ -27,6 +30,42 @@ class DenseModel(Layer):
                 trans = DenseTransition(input_shape=[self.batch, self.h // 2 ** ii, self.w // 2 ** ii, trans_fmaps], init=self.init, name=self.name + ('_block_%d' % ii))
                 self.blocks.append(trans)
 
+        self.num_blocks = len(self.blocks)
+        '''
+
+        #####################################
+
+        self.blocks = []
+
+        with tf.device('/device:GPU:1'):
+            dense_fmaps = self.fin 
+            dense1 = DenseBlock(input_shape=[self.batch, self.h, self.w, dense_fmaps], init=self.init, name=self.name + ('_block_%d' % ii), k=self.k, L=self.L[ii])
+            trans_fmaps = self.fin + L[0] * k
+            trans1 = DenseTransition(input_shape=[self.batch, self.h, self.w, trans_fmaps], init=self.init, name=self.name + ('_block_%d' % ii))
+
+        with tf.device('/device:GPU:2'):
+            dense_fmaps = self.fin + L[0]          * k
+            dense2 = DenseBlock(input_shape=[self.batch, self.h // 2, self.w // 2, dense_fmaps], init=self.init, name=self.name + ('_block_%d' % ii), k=self.k, L=self.L[ii])
+            trans_fmaps = self.fin + (L[0]+L[1]) * k
+            trans2 = DenseTransition(input_shape=[self.batch, self.h // 2, self.w // 2, trans_fmaps], init=self.init, name=self.name + ('_block_%d' % ii))
+
+        with tf.device('/device:GPU:3'):
+            dense_fmaps = self.fin + (L[0]+L[1])      * k
+            dense3 = DenseBlock(input_shape=[self.batch, self.h // 4, self.w // 4, dense_fmaps], init=self.init, name=self.name + ('_block_%d' % ii), k=self.k, L=self.L[ii])
+            trans_fmaps = self.fin + (L[0]+L[1]+L[2]) * k
+            trans3 = DenseTransition(input_shape=[self.batch, self.h // 4, self.w // 4, trans_fmaps], init=self.init, name=self.name + ('_block_%d' % ii))
+
+        with tf.device('/device:GPU:4'):
+            dense_fmaps = self.fin + + (L[0]+L[1]+L[2]) * k
+            dense4 = DenseBlock(input_shape=[self.batch, self.h, self.w, dense_fmaps], init=self.init, name=self.name + ('_block_%d' % ii), k=self.k, L=self.L[ii])
+        
+        self.blocks.append(dense1)
+        self.blocks.append(trans1)
+        self.blocks.append(dense2)
+        self.blocks.append(trans2)
+        self.blocks.append(dense3)
+        self.blocks.append(trans3)
+        self.blocks.append(dense4)
         self.num_blocks = len(self.blocks)
 
     ###################################################################
