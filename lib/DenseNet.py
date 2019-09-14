@@ -10,7 +10,7 @@ from lib.AvgPool import AvgPool
 from lib.MaxPool import MaxPool
 from lib.ConvBlock import ConvBlock
 from lib.BatchNorm import BatchNorm
-from lib.DenseModelMultiGPU import DenseModel
+from lib.DenseModel import DenseModel
 from lib.ConvToFullyConnected import ConvToFullyConnected
 
 def DenseNet64(batch_size, dropout_rate, init='alexnet'):
@@ -20,12 +20,12 @@ def DenseNet64(batch_size, dropout_rate, init='alexnet'):
     # 992 = 6*16 + 12*16 + 24*16 + 16*16 + 64
 
     k = 32
-    L = [6, 12, 24, 16]
-    F = 64
+    L = [4, 6, 12, 24, 12]
+    F = 32
     size = k * sum(L) + F
 
     l0 = BatchNorm(input_size=[batch_size,64,64,3], name='bn0')
-    l1 = ConvBlock(input_shape=[batch_size,64,64,3], filter_shape=[3,3,3,F], strides=[1,2,2,1], init=init, name='conv1')
+    l1 = ConvBlock(input_shape=[batch_size,64,64,3], filter_shape=[3,3,3,F], strides=[1,1,1,1], init=init, name='conv1')
 
     l2 = DenseModel(input_shape=[batch_size,32,32,F], init=init, name='dense_model', k=k, L=L)
     l3 = AvgPool(size=[batch_size,4,4,size], ksize=[1,4,4,1], strides=[1,4,4,1], padding='SAME')
