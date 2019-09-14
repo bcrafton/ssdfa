@@ -27,7 +27,7 @@ def DenseNet64(batch_size, dropout_rate, init='alexnet'):
     l0 = BatchNorm(input_size=[batch_size,64,64,3], name='bn0')
     l1 = ConvBlock(input_shape=[batch_size,64,64,3], filter_shape=[3,3,3,F], strides=[1,1,1,1], init=init, name='conv1')
 
-    l2 = DenseModel(input_shape=[batch_size,32,32,F], init=init, name='dense_model', k=k, L=L)
+    l2 = DenseModel(input_shape=[batch_size,64,64,F], init=init, name='dense_model', k=k, L=L)
     l3 = AvgPool(size=[batch_size,4,4,size], ksize=[1,4,4,1], strides=[1,4,4,1], padding='SAME')
 
     l4 = ConvToFullyConnected(input_shape=[batch_size,1,1,size]) 

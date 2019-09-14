@@ -73,8 +73,8 @@ imagenet_vgg_sparse3 = {'benchmark':'vgg_fc.py', 'epochs':100, 'batch_size':32, 
 
 ################################################
 
-imagenet64 = {'benchmark':'ImageNet64.py', 'model':['dense'], 'epochs':25, 'batch_size':64, 'lr':[3e-3, 1e-2, 3e-2], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None}
-imagenet224 = {'benchmark':'ImageNet224.py', 'model':['dense'], 'epochs':25, 'batch_size':64, 'lr':[3e-3, 1e-2, 3e-2], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None}
+imagenet64 = {'benchmark':'ImageNet64.py', 'model':['dense'], 'epochs':25, 'batch_size':64, 'lr':[1e-2, 5e-2], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None}
+imagenet224 = {'benchmark':'ImageNet224.py', 'model':['dense'], 'epochs':25, 'batch_size':64, 'lr':[1e-2, 5e-2], 'eps':[1.], 'dropout':0., 'init':['glorot_uniform'], 'load':None}
 
 ################################################
 
