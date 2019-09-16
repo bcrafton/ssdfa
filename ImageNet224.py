@@ -58,6 +58,8 @@ from lib.MobileNet import MobileNet224
 from lib.AlexNet import AlexNet224
 from lib.DenseNet import DenseNet224
 
+from lib.preproc import preprocess_image
+
 ##############################################
 
 IMAGENET_MEAN = [123.68, 116.78, 103.94]
@@ -105,6 +107,9 @@ def parse_function(filename, label):
 # (5) Substract the per color mean `IMAGENET_MEAN`
 # Note: we don't normalize the data here, as VGG was trained without normalization
 def train_preprocess(image, label):
+    return preprocess_image(image, 224, 224, is_training=True), label
+
+    '''
     crop_image = tf.random_crop(image, [224, 224, 3])                       # (3)
     flip_image = tf.image.random_flip_left_right(crop_image)                # (4)
 
@@ -112,6 +117,7 @@ def train_preprocess(image, label):
     centered_image = flip_image - means                                     # (5)
 
     return centered_image, label
+    '''
     
 
 # Preprocessing (for validation)
@@ -119,12 +125,16 @@ def train_preprocess(image, label):
 # (4) Substract the per color mean `IMAGENET_MEAN`
 # Note: we don't normalize the data here, as VGG was trained without normalization
 def val_preprocess(image, label):
+    return preprocess_image(image, 224, 224, is_training=False), label
+
+    '''
     crop_image = tf.image.resize_image_with_crop_or_pad(image, 224, 224)    # (3)
 
     means = tf.reshape(tf.constant(IMAGENET_MEAN), [1, 1, 3])
     centered_image = crop_image - means                                     # (4)
 
     return centered_image, label
+    '''
 
 ##############################################
 
