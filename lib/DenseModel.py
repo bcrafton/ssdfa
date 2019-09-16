@@ -15,6 +15,8 @@ class DenseModel(Layer):
         self.name = name
         self.k = k
         self.L = L
+        self.fb = fb
+        self.fb_pw = fb_pw
 
         ###################################################################
 
