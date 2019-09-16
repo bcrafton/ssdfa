@@ -90,7 +90,8 @@ def get_val_filenames():
     np.random.shuffle(val_filenames)    
 
     remainder = len(val_filenames) % args.batch_size
-    val_filenames = val_filenames[:(-remainder)]
+    if remainder > 0:
+        val_filenames = val_filenames[:(-remainder)]
 
     return val_filenames
     
@@ -106,7 +107,8 @@ def get_train_filenames():
     np.random.shuffle(train_filenames)
 
     remainder = len(train_filenames) % args.batch_size
-    train_filenames = train_filenames[:(-remainder)]
+    if remainder > 0:
+        train_filenames = train_filenames[:(-remainder)]
 
     return train_filenames
 

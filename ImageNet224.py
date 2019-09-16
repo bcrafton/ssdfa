@@ -146,8 +146,9 @@ def get_validation_dataset():
         validation_labels.append(int(lines[ii]))
 
     remainder = len(validation_labels) % args.batch_size
-    validation_images = validation_images[:(-remainder)]
-    validation_labels = validation_labels[:(-remainder)]
+    if remainder > 0:
+        validation_images = validation_images[:(-remainder)]
+        validation_labels = validation_labels[:(-remainder)]
 
     return validation_images, validation_labels
     
@@ -178,8 +179,9 @@ def get_train_dataset():
                     training_labels.append(labels[folder])
 
     remainder = len(training_labels) % args.batch_size
-    training_images = training_images[:(-remainder)]
-    training_labels = training_labels[:(-remainder)]
+    if remainder > 0:
+        training_images = training_images[:(-remainder)]
+        training_labels = training_labels[:(-remainder)]
 
     return training_images, training_labels
 
