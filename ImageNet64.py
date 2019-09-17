@@ -23,7 +23,7 @@ if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
 
-exxact = 0
+exxact = 1
 if exxact:
     val_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/val/'
     train_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/train/'
@@ -61,7 +61,7 @@ from lib.DenseNet import DenseNet64
 
 ##############################################
 
-# MEAN = [122.77093945, 116.74601272, 104.09373519]
+MEAN = [122.77093945, 116.74601272, 104.09373519]
 
 ##############################################
 
@@ -123,8 +123,8 @@ def extract_fn(record):
     image = tf.cast(image, dtype=tf.float32)
     image = tf.reshape(image, (1, 64, 64, 3))
 
-    # means = tf.reshape(tf.constant(MEAN), [1, 1, 1, 3])
-    # image = image - means
+    means = tf.reshape(tf.constant(MEAN), [1, 1, 1, 3])
+    image = (image - means) / 255. * 2.
 
     label = sample['label']
     return [image, label]
