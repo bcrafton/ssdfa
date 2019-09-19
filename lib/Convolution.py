@@ -22,11 +22,12 @@ class Convolution(Layer):
         self.name = name
         self.train_flag = train
         
-        filters = init_filters(size=self.filter_sizes, init=self.init)
+        filters = np.absolute(init_filters(size=self.filter_sizes, init=self.init))
         bias = np.ones(shape=self.fout) * bias
 
-        self.filters = tf.Variable(filters, dtype=tf.float32)
-        self.bias = tf.Variable(bias, dtype=tf.float32)
+        self.filters = tf.Variable(filters, dtype=tf.float32, constraint=lambda x: tf.clip_by_value(x, 0, np.infty))
+        if self.use_bias:
+            self.bias = tf.Variable(bias, dtype=tf.float32)
 
     ###################################################################
 

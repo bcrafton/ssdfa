@@ -23,7 +23,7 @@ if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
 
-exxact = 1
+exxact = 0
 if exxact:
     val_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/val/'
     train_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/train/'
@@ -57,7 +57,8 @@ from lib.BatchNorm import BatchNorm
 
 from lib.VGGNet import VGGNet64
 from lib.MobileNet import MobileNet64
-from lib.DenseNet import DenseNet64
+from lib.DenseNet import DenseNet64_L4
+from lib.DenseNet import DenseNet64_L5
 
 ##############################################
 
@@ -123,8 +124,8 @@ def extract_fn(record):
     image = tf.cast(image, dtype=tf.float32)
     image = tf.reshape(image, (1, 64, 64, 3))
 
-    means = tf.reshape(tf.constant(MEAN), [1, 1, 1, 3])
-    image = (image - means) / 255. * 2.
+    # means = tf.reshape(tf.constant(MEAN), [1, 1, 1, 3])
+    # image = (image - means) / 255. * 2.
 
     label = sample['label']
     return [image, label]
@@ -161,6 +162,9 @@ features, labels = iterator.get_next()
 features = tf.reshape(features, (args.batch_size, 64, 64, 3))
 labels = tf.one_hot(labels, depth=1000)
 
+X = tf.concat((features, -1. * features), axis=3) / 255.
+Y = labels
+
 train_iterator = train_dataset.make_initializable_iterator()
 val_iterator = val_dataset.make_initializable_iterator()
 
@@ -174,25 +178,24 @@ lr = tf.placeholder(tf.float32, shape=())
 
 if args.model == 'vgg':
     model = VGGNet64(batch_size=batch_size, dropout_rate=dropout_rate)
+elif args.model == 'tiny':
+    model = VGGNetTiny(batch_size=batch_size, dropout_rate=dropout_rate)
 elif args.model == 'mobile':
     model = MobileNet64(batch_size=batch_size, dropout_rate=dropout_rate)
-elif args.model == 'dense':
-    model = DenseNet64(batch_size=batch_size, dropout_rate=dropout_rate)
+elif args.model == 'dense4':
+    model = DenseNet64_L4(batch_size=batch_size, dropout_rate=dropout_rate)
+elif args.model == 'dense5':
+    model = DenseNet64_L5(batch_size=batch_size, dropout_rate=dropout_rate)
 else:
     assert (False)
 
 ###############################################################
 
-predict = tf.nn.softmax(model.predict(X=features))
+predict = tf.nn.softmax(model.predict(X=X))
 # weights = model.get_weights()
 
-grads_and_vars = model.gvs(X=features, Y=labels)        
+grads_and_vars = model.gvs(X=X, Y=Y)
 train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
-
-'''
-loss = tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=features)
-train = tf.train.AdamOptimizer(learning_rate=args.lr, epsilon=args.eps).minimize(loss)
-'''
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
