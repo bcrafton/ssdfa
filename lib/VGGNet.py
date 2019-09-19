@@ -22,7 +22,7 @@ from lib.VGGBlock import VGGBlock
 from lib.MobileBlock import MobileBlock
 from lib.BatchNorm import BatchNorm
 
-def VGGNet224(batch_size, dropout_rate, init='alexnet', sparse=0):
+def VGGNet224(batch_size, dropout_rate, init='alexnet'):
     l1_1 = Convolution(input_shape=[batch_size, 224, 224, 3],  filter_sizes=[3, 3, 3, 64],  init=init, padding="SAME", name='conv1')
     l1_2 = Relu()
     l1_3 = Convolution(input_shape=[batch_size, 224, 224, 64], filter_sizes=[3, 3, 64, 64], init=init, padding="SAME", name='conv2')
@@ -59,7 +59,7 @@ def VGGNet224(batch_size, dropout_rate, init='alexnet', sparse=0):
     l5_6 = Relu()
     l5_7 = MaxPool(size=[batch_size, 14, 14, 512], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-    l6 = ConvToFullyConnected(input_shape=[7, 7, 512])
+    l6 = ConvToFullyConnected(input_shape=[batch_size, 7, 7, 512])
 
     l7_1 = FullyConnected(input_shape=7*7*512, size=4096, init=init, name='fc1')
     l7_2 = Relu()
@@ -89,8 +89,8 @@ def VGGNet224(batch_size, dropout_rate, init='alexnet', sparse=0):
     model = Model(layers=layers)
     return model
 
-def VGGNet64(batch_size, dropout_rate, init='alexnet', sparse=0):
-    l0 = BatchNorm(input_size=[batch_size, 64, 64, 3], name='bn0')
+def VGGNet64(batch_size, dropout_rate, init='alexnet'):
+    # l0 = BatchNorm(input_size=[batch_size, 64, 64, 3], name='bn0')
 
     l1_1 = VGGBlock(input_shape=[batch_size, 64, 64, 3], filter_shape=[3, 64], init=init, name='block1')
     l1_2 = VGGBlock(input_shape=[batch_size, 64, 64, 64], filter_shape=[64, 64], init=init, name='block2')
@@ -112,13 +112,13 @@ def VGGNet64(batch_size, dropout_rate, init='alexnet', sparse=0):
     l5_2 = VGGBlock(input_shape=[batch_size, 4, 4, 1024],  filter_shape=[1024, 1024], init=init, name='block10')
     l5_3 = AvgPool(size=[batch_size, 4, 4, 1024], ksize=[1, 4, 4, 1], strides=[1, 4, 4, 1], padding="SAME")
 
-    l6 = ConvToFullyConnected(input_shape=[1, 1, 1024])
+    l6 = ConvToFullyConnected(input_shape=[batch_size, 1, 1, 1024])
     l7 = FullyConnected(input_shape=1024, size=1000, init=init, name="fc1")
 
     ###############################################################
 
     layers = [
-    l0,
+    # l0,
     l1_1, l1_2, l1_3,
     l2_1, l2_2, l2_3,
     l3_1, l3_2, l3_3,
@@ -131,7 +131,7 @@ def VGGNet64(batch_size, dropout_rate, init='alexnet', sparse=0):
     return model
 
 
-def VGGNetTiny(batch_size, dropout_rate, init='alexnet', sparse=0):
+def VGGNetTiny(batch_size, dropout_rate, init='alexnet'):
 
     l1_1 = VGGBlock(input_shape=[batch_size, 64, 64, 3], filter_shape=[3, 64], init=init, name='block1')
     l1_2 = AvgPool(size=[batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
@@ -148,7 +148,7 @@ def VGGNetTiny(batch_size, dropout_rate, init='alexnet', sparse=0):
     l5_1 = VGGBlock(input_shape=[batch_size, 4, 4, 512],   filter_shape=[512, 1024],  init=init, name='block9')
     l5_2 = AvgPool(size=[batch_size, 4, 4, 1024], ksize=[1, 4, 4, 1], strides=[1, 4, 4, 1], padding="SAME")
 
-    l6 = ConvToFullyConnected(input_shape=[1, 1, 1024])
+    l6 = ConvToFullyConnected(input_shape=[batch_size, 1, 1, 1024])
     l7 = FullyConnected(input_shape=1024, size=1000, init=init, name="fc1")
 
     ###############################################################

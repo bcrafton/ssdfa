@@ -23,7 +23,7 @@ if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
 
-exxact = 1
+exxact = 0
 if exxact:
     val_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/val/'
     train_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/train/'
@@ -57,7 +57,8 @@ from lib.BatchNorm import BatchNorm
 
 from lib.VGGNet import VGGNet64
 from lib.MobileNet import MobileNet64
-from lib.DenseNet import DenseNet64
+from lib.DenseNet import DenseNet64_L4
+from lib.DenseNet import DenseNet64_L5
 
 ##############################################
 
@@ -176,8 +177,10 @@ if args.model == 'vgg':
     model = VGGNet64(batch_size=batch_size, dropout_rate=dropout_rate)
 elif args.model == 'mobile':
     model = MobileNet64(batch_size=batch_size, dropout_rate=dropout_rate)
-elif args.model == 'dense':
-    model = DenseNet64(batch_size=batch_size, dropout_rate=dropout_rate)
+elif args.model == 'dense4':
+    model = DenseNet64_L4(batch_size=batch_size, dropout_rate=dropout_rate)
+elif args.model == 'dense5':
+    model = DenseNet64_L5(batch_size=batch_size, dropout_rate=dropout_rate)
 else:
     assert (False)
 
@@ -188,11 +191,6 @@ predict = tf.nn.softmax(model.predict(X=features))
 
 grads_and_vars = model.gvs(X=features, Y=labels)        
 train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
-
-'''
-loss = tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=features)
-train = tf.train.AdamOptimizer(learning_rate=args.lr, epsilon=args.eps).minimize(loss)
-'''
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
