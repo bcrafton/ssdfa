@@ -26,7 +26,8 @@ class Convolution(Layer):
         bias = np.ones(shape=self.fout) * bias
 
         self.filters = tf.Variable(filters, dtype=tf.float32)
-        self.bias = tf.Variable(bias, dtype=tf.float32)
+        if self.use_bias:
+            self.bias = tf.Variable(bias, dtype=tf.float32)
 
     ###################################################################
 
@@ -60,6 +61,7 @@ class Convolution(Layer):
     
     def bp(self, AI, AO, DO, cache):    
         DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
+        # DI = tf.nn.conv2d_transpose(value=DO, filter=self.filters, output_shape=self.input_shape, strides=self.strides, padding=self.padding)
         DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
         if self.use_bias:

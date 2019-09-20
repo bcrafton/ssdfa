@@ -6,7 +6,7 @@ import sys
 ##############################################
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', type=str, default="dense")
+parser.add_argument('--model', type=str, default="dense4")
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--batch_size', type=int, default=64)
@@ -186,16 +186,21 @@ else:
 
 ###############################################################
 
-predict = tf.nn.softmax(model.predict(X=features))
+predict = model.predict(X=features)
 # weights = model.get_weights()
 
 grads_and_vars = model.gvs(X=features, Y=labels)        
-train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
+# train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
 top5 = in_top_k(predict, tf.argmax(labels,1), k=5)
 total_top5 = tf.reduce_sum(tf.cast(top5, tf.float32))
+
+loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=predict)
+params = tf.trainable_variables()
+grads = tf.gradients(loss, params)
+train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).minimize(loss=loss)
 
 ###############################################################
 
@@ -236,7 +241,23 @@ for ii in range(args.epochs):
     train_top5 = 0.0
     
     for jj in range(0, len(train_filenames), args.batch_size):
-        [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
+        [_total_correct, _total_top5, gvs, gs, _] = sess.run([total_correct, total_top5, grads_and_vars, grads, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
+
+        # '''
+        print (len(gvs), len(gs))
+        for ii in range(len(gs)):
+            g1 = gvs[ii][0]
+            g2 = gs[ii]
+
+            # g1 = g1 / np.std(g1)
+            # g2 = g2 / np.std(g2)
+
+            print (np.shape(g1), np.shape(g2), end=' ')
+            # print (np.std(g1), np.std(g2), end=' ')
+            print (np.sum(np.absolute(g1-g2)) / np.sum(np.absolute(g1)))
+
+        assert(False)
+        # '''        
 
         train_total += args.batch_size
         train_correct += _total_correct

@@ -19,13 +19,15 @@ def DenseNet64_L5(batch_size, dropout_rate, init='alexnet'):
     # 1920 = 6*32 + 12*32 + 24*32 + 16*32 + 64 --- too big apparently.
     # 992 = 6*16 + 12*16 + 24*16 + 16*16 + 64
 
-    k = 32
-    L = [4, 6, 12, 24, 12]
-    F = 32
+    k = 64
+    L = [4, 4, 6, 8, 4]
+    F = 64
     size = k * sum(L) + F
+    print ('fc size:', size)
+    # assert(False)
 
     # l0 = BatchNorm(input_size=[batch_size,64,64,3], name='bn0')
-    l1 = ConvBlock(input_shape=[batch_size,64,64,3], filter_shape=[3,3,3,F], strides=[1,1,1,1], init=init, name='conv1')
+    l1 = ConvBlock(input_shape=[batch_size,64,64,3], filter_shape=[5,5,3,F], strides=[1,1,1,1], init=init, name='conv1')
 
     l2 = DenseModel(input_shape=[batch_size,64,64,F], init=init, name='dense_model', k=k, L=L)
     l3 = AvgPool(size=[batch_size,4,4,size], ksize=[1,4,4,1], strides=[1,4,4,1], padding='SAME')

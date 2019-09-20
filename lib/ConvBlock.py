@@ -54,20 +54,20 @@ class ConvBlock(Layer):
         return self.conv.num_params() + self.bn.num_params()
 
     def forward(self, X):
-        conv, _ = self.conv.forward(X)
-        bn, _   = self.bn.forward(conv)
-        relu, _ = self.relu.forward(bn)
+        conv, conv_cache = self.conv.forward(X)
+        bn, bn_cache   = self.bn.forward(conv)
+        relu, relu_cache = self.relu.forward(bn)
 
-        cache = (conv, bn, relu)
+        cache = (conv, conv_cache, bn, bn_cache, relu, relu_cache)
         return relu, cache
 
     ###################################################################
 
     def bp(self, AI, AO, DO, cache):    
-        conv, bn, relu = cache
-        drelu, grelu = self.relu.bp(bn, relu, DO, None)
-        dbn,   gbn   = self.bn.bp(conv, bn, drelu, None)
-        dconv, gconv = self.conv.bp(AI, conv, dbn, None)
+        conv, conv_cache, bn, bn_cache, relu, relu_cache = cache
+        drelu, grelu = self.relu.bp(bn, relu, DO, conv_cache)
+        dbn,   gbn   = self.bn.bp(conv, bn, drelu, bn_cache)
+        dconv, gconv = self.conv.bp(AI, conv, dbn, relu_cache)
         grads = []
         grads.extend(gconv)
         grads.extend(gbn)
