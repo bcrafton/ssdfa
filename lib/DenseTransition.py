@@ -16,7 +16,7 @@ class DenseTransition(Layer):
         self.fb = fb
 
         self.conv1x1 = ConvBlock(input_shape=self.input_shape, filter_shape=[1, 1, self.fin, self.fin], strides=[1,1,1,1], init=self.init, name=self.name + '_conv1x1_block', fb=self.fb)
-        self.pool    = AvgPool(size=[self.batch, self.h, self.w, self.fin], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+        self.pool    = AvgPool(size=[self.batch, self.h, self.w, self.fin], ksize=[1,2,2,1], strides=[1,2,2,1], padding="SAME")
 
     ###################################################################
 
@@ -34,7 +34,6 @@ class DenseTransition(Layer):
     def forward(self, X):
         conv1x1, conv1x1_cache = self.conv1x1.forward(X)
         pool, pool_cache = self.pool.forward(conv1x1)
-        # pool = tf.Print(pool, [tf.shape(pool)], message="", summarize=1000)
         cache = (conv1x1, conv1x1_cache, pool, pool_cache)
         return pool, cache
         

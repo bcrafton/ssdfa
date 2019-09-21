@@ -143,13 +143,13 @@ class DenseModel(Layer):
 
             if (ii == self.num_blocks-1):
                 D[ii], gv = block.bp(A[ii-1], A[ii], DO,      C[ii])
-                GV.extend(gv)
+                GV = gv + GV
             elif (ii == 0):
                 D[ii], gv = block.bp(AI,      A[ii], D[ii+1], C[ii])
-                GV.extend(gv)
+                GV = gv + GV
             else:
                 D[ii], gv = block.bp(A[ii-1], A[ii], D[ii+1], C[ii])
-                GV.extend(gv)
+                GV = gv + GV
 
         return D[0], GV
 

@@ -18,7 +18,7 @@ class DenseConv(Layer):
 
         self.conv1x1 = ConvBlock(
                        input_shape=[self.batch, self.h, self.w, self.fin], 
-                       filter_shape=[3, 3, self.fin, self.k * 4], 
+                       filter_shape=[1, 1, self.fin, self.k * 4], 
                        strides=[1,1,1,1], 
                        init=self.init, 
                        name=self.name + '_conv1x1_block',

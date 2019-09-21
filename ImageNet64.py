@@ -6,7 +6,7 @@ import sys
 ##############################################
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', type=str, default="dense")
+parser.add_argument('--model', type=str, default="dense4")
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--batch_size', type=int, default=64)
@@ -63,7 +63,8 @@ from lib.BatchNorm import BatchNorm
 from lib.VGGNet import VGGNetTiny
 from lib.VGGNet import VGGNet64
 from lib.MobileNet import MobileNet64
-from lib.DenseNet import DenseNet64
+from lib.DenseNet import DenseNet64_L4
+from lib.DenseNet import DenseNet64_L5
 
 from collections import deque
 import matplotlib.pyplot as plt
@@ -239,8 +240,10 @@ elif args.model == 'tiny':
     model = VGGNetTiny(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init, fb=args.fb, fb_dw=args.fb_dw, fb_pw=args.fb_pw)
 elif args.model == 'mobile':
     model = MobileNet64(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init, fb=args.fb, fb_dw=args.fb_dw, fb_pw=args.fb_pw)
-elif args.model == 'dense':
-    model = DenseNet64(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init, fb=args.fb, fb_dw=args.fb_dw, fb_pw=args.fb_pw)
+elif args.model == 'dense4':
+    model = DenseNet64_L4(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init, fb=args.fb, fb_dw=args.fb_dw, fb_pw=args.fb_pw)
+elif args.model == 'dense5':
+    model = DenseNet64_L5(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init, fb=args.fb, fb_dw=args.fb_dw, fb_pw=args.fb_pw)
 else:
     assert (False)
 
@@ -279,8 +282,8 @@ f.close()
 
 ###############################################################
 
-idx_grad = [29, 26, 23, 20, 17, 14, 11, 8, 5, 2]
-idx_deriv = [1, 2, 4, 5, 7, 8, 10, 11, 13, 14]
+# idx_grad = [29, 26, 23, 20, 17, 14, 11, 8, 5, 2]
+# idx_deriv = [1, 2, 4, 5, 7, 8, 10, 11, 13, 14]
 
 train_accs = []
 train_accs_top5 = []
@@ -308,7 +311,8 @@ for ii in range(args.epochs):
     
     for jj in range(0, len(train_filenames), args.batch_size):
         if (jj % (100 * args.batch_size) == 0):
-            [ss_gv, bp_gv, ss_deriv, bp_deriv, _total_correct, _total_top5, _] = sess.run([ss_gvs, bp_gvs, ss_derivs, bp_derivs, total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
+            # [ss_gv, bp_gv, ss_deriv, bp_deriv, _total_correct, _total_top5, _] = sess.run([ss_gvs, bp_gvs, ss_derivs, bp_derivs, total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
+            [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
         else:
             [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
 
@@ -320,14 +324,10 @@ for ii in range(args.epochs):
         train_acc_top5 = train_top5 / train_total
     
         if (jj % (100 * args.batch_size) == 0):
-            '''
-            for kk in range(len(ss_gv)):
-                print (kk, np.shape(ss_gv[kk][0]))
-            for kk in range(len(ss_deriv)):
-                print (kk, np.shape(ss_deriv[kk]))
-            assert(False)
-            '''
+            p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
+            write (p)
 
+            '''
             # gradients
             num_gv = len(ss_gv)
             angles_gv = [None] * num_gv
@@ -361,20 +361,15 @@ for ii in range(args.epochs):
                     angles_deriv[kk].append(angle)
                     matches_deriv[kk].append(match)
 
-            p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
-            write (p)
-
             angles_gv = np.average(angles_gv, axis=1)               
             matches_gv = np.average(matches_gv, axis=1) * 100.      
             angles_deriv = np.average(angles_deriv, axis=1)         
             matches_deriv = np.average(matches_deriv, axis=1) * 100.
 
-            '''
             angles_gv = angles_gv[idx_grad]
             matches_gv = matches_gv[idx_grad]
             angles_deriv = angles_deriv[idx_deriv]
             matches_deriv = matches_deriv[idx_deriv]
-            '''
 
             if not (np.any(np.isnan(angles_gv)) or np.any(np.isnan(matches_gv)) or np.any(np.isnan(angles_deriv)) or np.any(np.isnan(matches_deriv))):
                 write ('gv angles: %d %d %d'     % (int(np.max(angles_gv)),     int(np.average(angles_gv)),     int(np.min(angles_gv))))
@@ -386,6 +381,8 @@ for ii in range(args.epochs):
             print ('gv matches', np.array(matches_gv, dtype=int))
             print ('deriv angles', np.array(angles_deriv, dtype=int))
             print ('deriv matches', np.array(matches_deriv, dtype=int))
+            '''
+        
 
     train_accs.append(train_acc)
     train_accs_top5.append(train_acc_top5)
