@@ -24,7 +24,7 @@ class BatchNorm(Layer):
         
         if load:
             print ("Loading Weights: " + self.name)
-            weight_dict = np.load(load).item()
+            weight_dict = np.load(load, encoding='latin1', allow_pickle=True).item()
             gamma = weight_dict[self.name + '_gamma']
             beta = weight_dict[self.name + '_beta']
             
