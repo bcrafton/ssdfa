@@ -41,9 +41,8 @@ class ConvBlock(Layer):
                                 fb=self.fb, 
                                 rate=self.rate)
                                 
-        self.bn = BatchNorm(input_size=self.output_shape, name=self.name + '_bn')
-        signs = np.random.choice([1., -1.], size=self.fout) # np.array([1.] * (self.fout // 2) + [-1.] * (self.fout // 2))
-        self.relu = SignedRelu(signs)
+        self.bn = BatchNorm(input_size=self.output_shape, name=self.name + '_bn', load=self.load)
+        self.relu = SignedRelu(size=self.fout, name=self.name + '_relu', load=self.load)
 
     ###################################################################
 
@@ -51,6 +50,7 @@ class ConvBlock(Layer):
         weights = []
         weights.extend(self.conv.get_weights())
         weights.extend(self.bn.get_weights())
+        weights.extend(self.relu.get_weights())
         return weights
 
     def output_shape(self):
@@ -60,30 +60,30 @@ class ConvBlock(Layer):
         return self.conv.num_params() + self.bn.num_params()
 
     def forward(self, X):
-        conv, _ = self.conv.forward(X)
-        bn, _   = self.bn.forward(conv)
-        relu, _ = self.relu.forward(bn)
+        conv, conv_cache = self.conv.forward(X)
+        bn, bn_cache   = self.bn.forward(conv)
+        relu, relu_cache = self.relu.forward(bn)
 
-        cache = (conv, bn, relu)
+        cache = (conv, conv_cache, bn, bn_cache, relu, relu_cache)
         return relu, cache
 
     ###################################################################
 
     def bp(self, AI, AO, DO, cache):    
-        conv, bn, relu = cache
-        drelu, grelu = self.relu.bp(bn, relu, DO, None)
-        dbn,   gbn   = self.bn.bp(conv, bn, drelu, None)
-        dconv, gconv = self.conv.bp(AI, conv, dbn, None)
+        conv, conv_cache, bn, bn_cache, relu, relu_cache = cache
+        drelu, grelu = self.relu.bp(bn, relu, DO, conv_cache)
+        dbn,   gbn   = self.bn.bp(conv, bn, drelu, bn_cache)
+        dconv, gconv = self.conv.bp(AI, conv, dbn, relu_cache)
         grads = []
         grads.extend(gconv)
         grads.extend(gbn)
         return dconv, grads
 
     def ss(self, AI, AO, DO, cache):    
-        conv, bn, relu = cache
-        drelu, grelu = self.relu.ss(bn, relu, DO, None)
-        dbn,   gbn   = self.bn.ss(conv, bn, drelu, None)
-        dconv, gconv = self.conv.ss(AI, conv, dbn, None)
+        conv, conv_cache, bn, bn_cache, relu, relu_cache = cache
+        drelu, grelu = self.relu.ss(bn, relu, DO, conv_cache)
+        dbn,   gbn   = self.bn.ss(conv, bn, drelu, bn_cache)
+        dconv, gconv = self.conv.ss(AI, conv, dbn, relu_cache)
         grads = []
         grads.extend(gconv)
         grads.extend(gbn)

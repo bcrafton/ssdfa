@@ -19,7 +19,7 @@ class BatchNorm(Layer):
 
         self.name = name
         self._train = train
-        self.eps = eps
+        self.variance_epsilon = eps
         self.num_parameters = np.prod(self.size) * 2
         
         if load:
@@ -40,8 +40,8 @@ class BatchNorm(Layer):
             gamma = np.ones(shape=self.size)
             beta = np.zeros(shape=self.size)
         
-        self.gamma = tf.Variable(gamma, dtype=tf.float32, constraint=lambda x: tf.clip_by_value(x, 0, np.infty))
-        self.beta = tf.Variable(beta, dtype=tf.float32, constraint=lambda x: tf.clip_by_value(x, 0, np.infty))
+        self.gamma = tf.Variable(gamma, dtype=tf.float32)
+        self.beta = tf.Variable(beta, dtype=tf.float32)
         
     ###################################################################
 
@@ -60,27 +60,22 @@ class BatchNorm(Layer):
             assert(False)
 
     def forward(self, X):
-        mean = tf.reduce_mean(X, axis=self.dims)
-        _, var = tf.nn.moments(X - mean, axes=self.dims)
-        A = tf.nn.batch_normalization(x=X, mean=mean, variance=var, offset=self.beta, scale=self.gamma, variance_epsilon=self.eps)
-        return A, None
+        A, mean, var = tf.nn.fused_batch_norm(x=X, offset=self.beta, scale=self.gamma, mean=None, variance=None, epsilon=self.variance_epsilon, is_training=True)
+        return A, (mean, var)
 
     ###################################################################
 
     def bp(self, AI, AO, DO, cache):
-        mean = tf.reduce_mean(AI, axis=self.dims)
-        _, var = tf.nn.moments(AI - mean, axes=self.dims)
-        ivar = 1. / tf.sqrt(self.eps + var)
+        mean, var = cache
+        ivar = 1. / tf.sqrt(var + self.variance_epsilon)
+        [DI, dgamma, dbeta, _, _] = gen_nn_ops.fused_batch_norm_grad_v2(y_backprop=DO, 
+                                                                        x=AI, 
+                                                                        scale=self.gamma, 
+                                                                        reserve_space_1=mean, 
+                                                                        reserve_space_2=ivar, 
+                                                                        epsilon=self.variance_epsilon, 
+                                                                        is_training=True)
 
-        if len(self.input_size) == 2:
-            AI = tf.reshape(AI, (self.input_size[0], 1, 1, self.input_size[1]))
-            DO = tf.reshape(AI, (self.input_size[0], 1, 1, self.size))
-            
-        [DI, dgamma, dbeta, _, _] = gen_nn_ops.fused_batch_norm_grad_v2(y_backprop=DO, x=AI, scale=self.gamma, reserve_space_1=mean, reserve_space_2=ivar, epsilon=self.eps, is_training=True)
-        
-        if len(self.input_size) == 2:
-            DI = tf.reshape(DI, (self.input_size[0], self.size))
-            
         return DI, [(dgamma, self.gamma), (dbeta, self.beta)]
 
     def dfa(self, AI, AO, E, DO, cache):    

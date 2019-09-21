@@ -247,7 +247,7 @@ else:
 ###############################################################
 
 predict = tf.nn.softmax(model.predict(X=X))
-# weights = model.get_weights()
+weights = model.get_weights()
 
 bp_gvs, bp_derivs = model.gvs(X=X, Y=Y)
 ss_gvs, ss_derivs = model.ss_gvs(X=X, Y=Y)
@@ -274,7 +274,7 @@ val_handle = sess.run(val_iterator.string_handle())
 results_filename = args.name + '.results'
 f = open(results_filename, "w")
 f.write(results_filename + "\n")
-# f.write("total params: " + str(model.num_params()) + "\n")
+f.write("total params: " + str(model.num_params()) + "\n")
 f.close()
 
 ###############################################################
@@ -289,6 +289,12 @@ val_accs_top5 = []
 
 phase = 0
 lr_decay = args.lr
+
+[w] = sess.run([weights], feed_dict={})
+# print (w.keys())
+# w['train_acc'] = train_accs
+# w['val_acc'] = val_accs
+np.save(args.name, w)
 
 for ii in range(args.epochs):
 
@@ -424,12 +430,11 @@ for ii in range(args.epochs):
 
     p = "phase: %d" % (phase)
     write (p)
-    '''
+
     [w] = sess.run([weights], feed_dict={})
     w['train_acc'] = train_accs
     w['val_acc'] = val_accs
     np.save(args.name, w)
-    '''
 
 
 

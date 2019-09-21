@@ -38,13 +38,26 @@ class Relu(Layer):
 
 class SignedRelu(Layer):
 
-    def __init__(self, signs):
+    def __init__(self, size, name, load):
+        # self.signs = tf.constant(signs, dtype=tf.float32)
+
+        self.size = size
+        self.name = name
+        self.load = load
+
+        if self.load:
+            print ("Loading Weights: " + self.name)
+            weight_dict = np.load(load, encoding='latin1', allow_pickle=True).item()
+            signs = weight_dict[self.name]
+        else:
+            signs = np.random.choice([1., -1.], size=self.size) 
+
         self.signs = tf.constant(signs, dtype=tf.float32)
 
     #########
 
     def get_weights(self):
-        return []
+        return [(self.name, self.signs)]
         
     def num_params(self):
         return 0

@@ -24,9 +24,22 @@ class Convolution(Layer):
         self.fb = fb
         self.rate = rate
 
-        filters = np.absolute(init_filters(size=self.filter_sizes, init=self.init))
-        bias = np.ones(shape=self.fout) * bias
-        mask = np.random.choice([0., 1.], size=[self.fin, self.fout], replace=True, p=[1. - self.rate, self.rate])
+        if load:
+            print ("Loading Weights: " + self.name)
+            weight_dict = np.load(load, encoding='latin1', allow_pickle=True).item()
+            filters = weight_dict[self.name]
+            if self.use_bias:
+                bias = weight_dict[self.name + '_bias']
+            mask = 1.0 * (filters > np.mean(filters, axis=(0, 1), keepdims=False))
+
+            self.train_flag = False
+        else:
+            filters = np.absolute(init_filters(size=self.filter_sizes, init=self.init))
+            bias = np.ones(shape=self.fout) * bias    
+            mask = np.random.choice([0., 1.], size=[self.fin, self.fout], replace=True, p=[1. - self.rate, self.rate])
+
+        # filters = np.absolute(filters)
+        assert (np.all(filters >= 0.))
 
         self.filters = tf.Variable(filters, dtype=tf.float32, constraint=lambda x: tf.clip_by_value(x, 0, np.infty))
         if self.use_bias:
@@ -58,10 +71,6 @@ class Convolution(Layer):
     def forward(self, X):
         if self.fb   == 'ud01f':
             mask = tf.cast(tf.greater(self.filters, tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0,1], keep_dims=True)), dtype=tf.float32)
-        elif self.fb == 'ud012f':
-            mask = tf.cast(tf.greater(self.filters, tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0,1,2], keep_dims=True)), dtype=tf.float32)
-        elif self.fb == 'ud0123f':
-            mask = tf.cast(tf.greater(self.filters, tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0,1,2,3], keep_dims=True)), dtype=tf.float32)
         elif self.fb == 'udc01f':
             mask = self.mask
         else:
@@ -76,18 +85,17 @@ class Convolution(Layer):
     
     def bp(self, AI, AO, DO, cache):    
         if self.fb == 'udc01f':
+            DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters * self.mask, out_backprop=DO, strides=self.strides, padding=self.padding)
             DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding) * self.mask
         else:
+            DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
             DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
 
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
 
-        if self.fb == 'udc01f':
-            DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters * self.mask, out_backprop=DO, strides=self.strides, padding=self.padding)
-        else:
-            DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
-
-        if self.use_bias:
+        if not self.train_flag:
+            return DI, []
+        elif self.use_bias:
             return DI, [(DF, self.filters), (DB, self.bias)]
         else:
             return DI, [(DF, self.filters)]
@@ -104,19 +112,9 @@ class Convolution(Layer):
             ss = self.filters
         elif self.fb == 'u01':
             ss = tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0, 1], keep_dims=True)
-        elif self.fb == 'u012':
-            ss = tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0, 1, 2], keep_dims=True)
-        elif self.fb == 'u0123':
-            ss = tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0, 1, 2, 3], keep_dims=True)
         elif self.fb == 'ud01' or self.fb == 'ud01f':
             mask = tf.cast(tf.greater(self.filters, tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0, 1], keep_dims=True)), dtype=tf.float32)
             ss = mask * 2. * tf.reduce_mean(self.filters, axis=[0, 1], keep_dims=True)
-        elif self.fb == 'ud012' or self.fb == 'ud012f':
-            mask = tf.cast(tf.greater(self.filters, tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0, 1, 2], keep_dims=True)), dtype=tf.float32)
-            ss = mask * 2. * tf.reduce_mean(self.filters, axis=[0, 1, 2], keep_dims=True)
-        elif self.fb == 'ud0123' or self.fb == 'ud0123f':
-            mask = tf.cast(tf.greater(self.filters, tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0, 1, 2, 3], keep_dims=True)), dtype=tf.float32)
-            ss = mask * 2. * tf.reduce_mean(self.filters, axis=[0, 1, 2, 3], keep_dims=True)
         elif self.fb == 'udc01f':
             mask = self.mask * tf.ones_like(self.filters)
             ss = mask * 2. * tf.reduce_mean(self.filters, axis=[0, 1], keep_dims=True)
@@ -125,6 +123,8 @@ class Convolution(Layer):
             
         DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=ss, out_backprop=DO, strides=self.strides, padding=self.padding)
 
+        if not self.train_flag:
+            return DI, []
         if self.use_bias:
             return DI, [(DF, self.filters), (DB, self.bias)]
         else:
