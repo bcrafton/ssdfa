@@ -106,13 +106,13 @@ class DenseModel(Layer):
     ###################################################################
 
     def get_weights(self):
-        assert(False)
+        return []
 
     def output_shape(self):
         assert(False)
 
     def num_params(self):
-        assert(False)
+        return 0
 
     def forward(self, X):
         A     = [None] * self.num_blocks
