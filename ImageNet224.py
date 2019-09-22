@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--model', type=str, default="dense")
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--epochs', type=int, default=100)
-parser.add_argument('--batch_size', type=int, default=64)
+parser.add_argument('--batch_size', type=int, default=32)
 parser.add_argument('--lr', type=float, default=5e-2)
 parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--dropout', type=float, default=0.)
@@ -23,7 +23,7 @@ if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
 
-exxact = 1
+exxact = 0
 if exxact:
     val_path = '/home/bcrafton3/Data_SSD/ILSVRC2012/val/'
     train_path = '/home/bcrafton3/Data_SSD/ILSVRC2012/train/'
@@ -107,6 +107,7 @@ def parse_function(filename, label):
 def train_preprocess(image, label):
     crop_image = tf.random_crop(image, [224, 224, 3])                       # (3)
     flip_image = tf.image.random_flip_left_right(crop_image)                # (4)
+    return flip_image, label
 
     means = tf.reshape(tf.constant(IMAGENET_MEAN), [1, 1, 3])
     centered_image = flip_image - means                                     # (5)
@@ -120,6 +121,7 @@ def train_preprocess(image, label):
 # Note: we don't normalize the data here, as VGG was trained without normalization
 def val_preprocess(image, label):
     crop_image = tf.image.resize_image_with_crop_or_pad(image, 224, 224)    # (3)
+    return crop_image, label
 
     means = tf.reshape(tf.constant(IMAGENET_MEAN), [1, 1, 3])
     centered_image = crop_image - means                                     # (4)
@@ -220,6 +222,9 @@ features, labels = iterator.get_next()
 features = tf.reshape(features, (-1, 224, 224, 3))
 labels = tf.one_hot(labels, depth=1000)
 
+X = tf.concat((features, -1. * features), axis=3) / 255.
+Y = labels
+
 train_iterator = train_dataset.make_initializable_iterator()
 val_iterator = val_dataset.make_initializable_iterator()
 
@@ -242,15 +247,15 @@ else:
 
 ###############################################################
 
-predict = tf.nn.softmax(model.predict(X=features))
-# weights = model.get_weights()
+predict = tf.nn.softmax(model.predict(X=X))
+weights = model.get_weights()
 
-grads_and_vars = model.gvs(X=features, Y=labels)
-train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
+gvs, derivs = model.gvs(X=X, Y=Y)
+train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=gvs)
 
-correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
+correct = tf.equal(tf.argmax(predict,1), tf.argmax(Y,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
-top5 = in_top_k(predict, tf.argmax(labels,1), k=5)
+top5 = in_top_k(predict, tf.argmax(Y,1), k=5)
 total_top5 = tf.reduce_sum(tf.cast(top5, tf.float32))
 
 ###############################################################
@@ -268,7 +273,7 @@ val_handle = sess.run(val_iterator.string_handle())
 results_filename = args.name + '.results'
 f = open(results_filename, "w")
 f.write(results_filename + "\n")
-# f.write("total params: " + str(model.num_params()) + "\n")
+f.write("total params: " + str(model.num_params()) + "\n")
 f.close()
 
 ###############################################################
@@ -280,6 +285,9 @@ val_accs_top5 = []
 
 phase = 0
 lr_decay = args.lr
+
+[w] = sess.run([weights], feed_dict={})
+np.save(args.name, w)
 
 for ii in range(args.epochs):
 
@@ -356,15 +364,12 @@ for ii in range(args.epochs):
     f.write(p + "\n")
     f.close()
 
-    '''
-    if args.save:
-        [w] = sess.run([weights], feed_dict={})
-        w['train_acc'] = train_accs
-        w['train_acc_top5'] = train_accs_top5
-        w['val_acc'] = val_accs
-        w['val_acc_top5'] = val_accs_top5
-        np.save(args.name, w)
-    '''
+    [w] = sess.run([weights], feed_dict={})
+    w['train_acc'] = train_accs
+    w['train_acc_top5'] = train_accs_top5
+    w['val_acc'] = val_accs
+    w['val_acc_top5'] = val_accs_top5
+    np.save(args.name, w)
 
     print('epoch %d/%d' % (ii, args.epochs))
     
