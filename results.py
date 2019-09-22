@@ -54,9 +54,12 @@ imagenet64_vgg = {'benchmark':'ImageNet64.py', 'model':['vgg'], 'epochs':50, 'ba
 params = [imagenet64_vgg]
 '''
 
-imagenet64 = {'benchmark':'ImageNet64.py', 'model':['vgg'], 'epochs':12, 'batch_size':64, 'lr':[5e-2], 'eps':[1.], 'dropout':0.0, 'init':['glorot_uniform'], 'load':None, 'fb':['ud01f', 'udc01f'], 'fb_dw':['f'], 'fb_pw':['f']}
+imagenet64 = {'benchmark':'ImageNet64.py', 'model':['dense4'], 'epochs':25, 'batch_size':64, 'lr':[5e-2], 'eps':[1.], 'dropout':0.0, 'init':['glorot_uniform'], 'load':None, 'fb':['f'], 'fb_dw':['f'], 'fb_pw':['f']}
 
-params = [imagenet64]
+imagenet64_usss = {'benchmark':'ImageNet64.py', 'model':['dense4'], 'epochs':25, 'batch_size':64, 'lr':[1e-1], 'eps':[1.], 'dropout':0.0, 'init':['glorot_uniform'], 'load':None, 
+                   'fb':['mask01_mean01', 'mask01_mean012'], 'fb_dw':['f_f'], 'fb_pw':['mask01_mean012', 'mask01_mean0123']}
+
+params = [imagenet64_usss]
 
 ################################################
 

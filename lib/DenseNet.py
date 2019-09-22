@@ -13,7 +13,7 @@ from lib.BatchNorm import BatchNorm
 from lib.DenseModel import DenseModel
 from lib.ConvToFullyConnected import ConvToFullyConnected
 
-def DenseNet64_L5(batch_size, dropout_rate, init='alexnet', fb='f', fb_dw='f', fb_pw='f'):
+def DenseNet64_L5(batch_size, dropout_rate, init='alexnet', fb='f_f', fb_dw='f_f', fb_pw='f_f'):
 
     k = 64
     L = [4, 4, 6, 8, 4]
@@ -31,7 +31,7 @@ def DenseNet64_L5(batch_size, dropout_rate, init='alexnet', fb='f', fb_dw='f', f
     model = Model(layers=[l1, l2, l3, l4, l5])
     return model
 
-def DenseNet64_L4(batch_size, dropout_rate, init='alexnet', fb='f', fb_dw='f', fb_pw='f'):
+def DenseNet64_L4(batch_size, dropout_rate, init='alexnet', fb='f_f', fb_dw='f_f', fb_pw='f_f'):
     k = 64
     L = [4, 8, 12, 8]
     F = 64
@@ -48,7 +48,7 @@ def DenseNet64_L4(batch_size, dropout_rate, init='alexnet', fb='f', fb_dw='f', f
     model = Model(layers=[l1, l2, l3, l4, l5])
     return model
 
-def DenseNet224(batch_size, dropout_rate, init='alexnet', fb='f', fb_dw='f', fb_pw='f'):
+def DenseNet224(batch_size, dropout_rate, init='alexnet', fb='f_f', fb_dw='f_f', fb_pw='f_f'):
 
     k = 32
     L = [6, 12, 24, 16]

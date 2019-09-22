@@ -89,7 +89,7 @@ def VGGNet224(batch_size, dropout_rate, init='alexnet', sparse=0):
     model = Model(layers=layers)
     return model
 
-def VGGNet64(batch_size, dropout_rate, init='alexnet', sparse=0, fb='f', fb_dw='f', fb_pw='f'):
+def VGGNet64(batch_size, dropout_rate, init='alexnet', sparse=0, fb='f_f', fb_dw='f_f', fb_pw='f_f'):
 
     # load = 'ud01f_weights.npy'
     load = None
@@ -132,7 +132,7 @@ def VGGNet64(batch_size, dropout_rate, init='alexnet', sparse=0, fb='f', fb_dw='
     return model
 
 
-def VGGNetTiny(batch_size, dropout_rate, init='alexnet', sparse=0, fb='f', fb_dw='f', fb_pw='f'):
+def VGGNetTiny(batch_size, dropout_rate, init='alexnet', sparse=0, fb='f_f', fb_dw='f_f', fb_pw='f_f'):
 
     l1_1 = VGGBlock(input_shape=[batch_size, 64, 64, 6], filter_shape=[6, 64], init=init, name='block1')
     l1_2 = AvgPool(size=[batch_size, 64, 64, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")

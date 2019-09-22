@@ -11,7 +11,7 @@ from lib.Activation import SignedRelu
 
 class ConvDWBlock(Layer):
 
-    def __init__(self, input_shape, filter_shape, strides, init, name, load=None, train=True, fb='f'):
+    def __init__(self, input_shape, filter_shape, strides, init, name, load=None, train=True, fb='f_f'):
         self.input_shape = input_shape
         self.batch, self.h, self.w, self.fin = self.input_shape
         

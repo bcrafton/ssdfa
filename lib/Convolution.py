@@ -9,7 +9,7 @@ from lib.init_tensor import init_filters
 
 class Convolution(Layer):
 
-    def __init__(self, input_shape, filter_sizes, init, strides=[1,1,1,1], padding='SAME', bias=0., use_bias=True, name=None, load=None, train=True, fb='f', rate=0.5):
+    def __init__(self, input_shape, filter_sizes, init, strides=[1,1,1,1], padding='SAME', bias=0., use_bias=True, name=None, load=None, train=True, fb='f_f', rate=0.5):
         self.input_shape = input_shape
         self.filter_sizes = filter_sizes
         self.batch_size, self.h, self.w, self.fin = self.input_shape
@@ -23,6 +23,8 @@ class Convolution(Layer):
         self.train_flag = train
         self.fb = fb
         self.rate = rate
+
+        [self.fb_mask, self.fb_kernel] = self.fb.split('_')
 
         if load:
             print ("Loading Weights: " + self.name)
@@ -68,29 +70,54 @@ class Convolution(Layer):
         else:
             return filter_weights_size
 
-    def forward(self, X):
-        if self.fb   == 'ud01f':
-            mask = tf.cast(tf.greater(self.filters, tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0,1], keep_dims=True)), dtype=tf.float32)
-        elif self.fb == 'udc01f':
-            mask = self.mask
+    ###################################################################
+
+    def get_mask(self):
+        if   self.fb_mask == 'f':
+            return tf.ones_like(self.filters)
+        elif self.fb_mask == 'mask01':
+            return tf.ones_like(self.filters) * self.mask
+        elif self.fb_mask == 'mean01':
+            return tf.ones_like(self.filters) * tf.cast(tf.greater(self.filters, tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0, 1], keep_dims=True)), dtype=tf.float32) 
+        elif self.fb_mask == 'mean012':
+            return tf.ones_like(self.filters) * tf.cast(tf.greater(self.filters, tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0, 1, 2], keep_dims=True)), dtype=tf.float32)
+        elif self.fb_mask == 'mean0123':
+            return tf.ones_like(self.filters) * tf.cast(tf.greater(self.filters, tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0, 1, 2, 3], keep_dims=True)), dtype=tf.float32)
         else:
-            mask = tf.ones_like(self.filters)
+            assert (False)
+
+    def get_ss(self):
+        mask = self.get_mask()
+
+        if   self.fb_kernel == 'f':
+            return self.filters
+        elif self.fb_kernel == 'mean01':
+            return mask * tf.reduce_mean(self.filters, axis=[0, 1], keep_dims=True)
+        elif self.fb_kernel == 'mean012':
+            return mask * tf.reduce_mean(self.filters, axis=[0, 1, 2], keep_dims=True)
+        elif self.fb_kernel == 'mean0123':
+            return mask * tf.reduce_mean(self.filters, axis=[0, 1, 2, 3], keep_dims=True)
+        else:
+            assert (False)
+
+    def forward(self, X):
+
+        mask = self.get_mask()
 
         Z = tf.nn.conv2d(X, self.filters * mask, self.strides, self.padding)
         if self.use_bias:
             Z = Z + self.bias
         return Z, None
 
-    ###################################################################
-    
-    def bp(self, AI, AO, DO, cache):    
-        if self.fb == 'udc01f':
-            DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters * self.mask, out_backprop=DO, strides=self.strides, padding=self.padding)
-            DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding) * self.mask
-        else:
-            DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters, out_backprop=DO, strides=self.strides, padding=self.padding)
-            DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
+    def bp(self, AI, AO, DO, cache): 
 
+        mask = self.get_mask()
+   
+        # dont really like the masking here.
+        # use to do it just for udc01f
+        # now we are doing it for all
+        DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters * mask, out_backprop=DO, strides=self.strides, padding=self.padding)
+        DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding) * mask
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
 
         if not self.train_flag:
@@ -101,27 +128,13 @@ class Convolution(Layer):
             return DI, [(DF, self.filters)]
 
     def ss(self, AI, AO, DO, cache):
-        if self.fb == 'udc01f':
-            DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding) * self.mask
-        else:
-            DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding)
 
-        DB = tf.reduce_sum(DO, axis=[0, 1, 2])
-
-        if   self.fb == 'f':
-            ss = self.filters
-        elif self.fb == 'u01':
-            ss = tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0, 1], keep_dims=True)
-        elif self.fb == 'ud01' or self.fb == 'ud01f':
-            mask = tf.cast(tf.greater(self.filters, tf.ones_like(self.filters) * tf.reduce_mean(self.filters, axis=[0, 1], keep_dims=True)), dtype=tf.float32)
-            ss = mask * 2. * tf.reduce_mean(self.filters, axis=[0, 1], keep_dims=True)
-        elif self.fb == 'udc01f':
-            mask = self.mask * tf.ones_like(self.filters)
-            ss = mask * 2. * tf.reduce_mean(self.filters, axis=[0, 1], keep_dims=True)
-        else:
-            assert(False)
+        ss = self.get_ss()
+        mask = self.get_mask()
             
         DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=ss, out_backprop=DO, strides=self.strides, padding=self.padding)
+        DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding) * mask
+        DB = tf.reduce_sum(DO, axis=[0, 1, 2])
 
         if not self.train_flag:
             return DI, []
