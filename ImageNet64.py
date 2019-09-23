@@ -282,9 +282,6 @@ f.close()
 
 ###############################################################
 
-# idx_grad = [29, 26, 23, 20, 17, 14, 11, 8, 5, 2]
-# idx_deriv = [1, 2, 4, 5, 7, 8, 10, 11, 13, 14]
-
 train_accs = []
 train_accs_top5 = []
 val_accs = []
@@ -294,9 +291,6 @@ phase = 0
 lr_decay = args.lr
 
 [w] = sess.run([weights], feed_dict={})
-# print (w.keys())
-# w['train_acc'] = train_accs
-# w['val_acc'] = val_accs
 np.save(args.name, w)
 
 for ii in range(args.epochs):
@@ -308,11 +302,12 @@ for ii in range(args.epochs):
     train_total = 0.0
     train_correct = 0.0
     train_top5 = 0.0
-    
+
+    ##########################################
+
     for jj in range(0, len(train_filenames), args.batch_size):
         if (jj % (100 * args.batch_size) == 0):
-            # [ss_gv, bp_gv, ss_deriv, bp_deriv, _total_correct, _total_top5, _] = sess.run([ss_gvs, bp_gvs, ss_derivs, bp_derivs, total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
-            [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
+            [ss_gv, bp_gv, ss_deriv, bp_deriv, _total_correct, _total_top5, _] = sess.run([ss_gvs, bp_gvs, ss_derivs, bp_derivs, total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
         else:
             [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
 
@@ -327,15 +322,24 @@ for ii in range(args.epochs):
             p = "train accuracy: %f %f" % (train_acc, train_acc_top5)
             write (p)
 
-            '''
-            # gradients
-            num_gv = len(ss_gv)
-            angles_gv = [None] * num_gv
-            matches_gv = [None] * num_gv
-            for kk in range(num_gv):
-                angles_gv[kk] = deque(maxlen=250)
-                matches_gv[kk] = deque(maxlen=250)
+            if (ii == 0 and jj == 0):
+                # gradients
+                num_gv = len(ss_gv)
+                angles_gv = [None] * num_gv
+                matches_gv = [None] * num_gv
+                for kk in range(num_gv):
+                    angles_gv[kk] = deque(maxlen=10000)
+                    matches_gv[kk] = deque(maxlen=10000)
+                
+                # derivatives
+                num_deriv = len(ss_deriv)
+                angles_deriv = [None] * num_deriv
+                matches_deriv = [None] * num_deriv
+                for kk in range(num_deriv):
+                    angles_deriv[kk] = deque(maxlen=10000)
+                    matches_deriv[kk] = deque(maxlen=10000)
 
+            # gradients
             for kk in range(num_gv):
                 ss = np.reshape(ss_gv[kk][0], -1)
                 bp = np.reshape(bp_gv[kk][0], -1)
@@ -345,13 +349,6 @@ for ii in range(args.epochs):
                 matches_gv[kk].append(match)
 
             # derivatives
-            num_deriv = len(ss_deriv)
-            angles_deriv = [None] * num_deriv
-            matches_deriv = [None] * num_deriv
-            for kk in range(num_deriv):
-                angles_deriv[kk] = deque(maxlen=250)
-                matches_deriv[kk] = deque(maxlen=250)
-
             for kk in range(num_deriv):
                 for ll in range(args.batch_size):
                     ss = np.reshape(ss_deriv[kk][ll], -1)
@@ -361,28 +358,21 @@ for ii in range(args.epochs):
                     angles_deriv[kk].append(angle)
                     matches_deriv[kk].append(match)
 
-            angles_gv = np.average(angles_gv, axis=1)               
-            matches_gv = np.average(matches_gv, axis=1) * 100.      
-            angles_deriv = np.average(angles_deriv, axis=1)         
-            matches_deriv = np.average(matches_deriv, axis=1) * 100.
+            angles_gv_avg = np.average(angles_gv, axis=1)               
+            matches_gv_avg = np.average(matches_gv, axis=1) * 100.      
+            angles_deriv_avg = np.average(angles_deriv, axis=1)         
+            matches_deriv_avg = np.average(matches_deriv, axis=1) * 100.
 
-            angles_gv = angles_gv[idx_grad]
-            matches_gv = matches_gv[idx_grad]
-            angles_deriv = angles_deriv[idx_deriv]
-            matches_deriv = matches_deriv[idx_deriv]
-
-            if not (np.any(np.isnan(angles_gv)) or np.any(np.isnan(matches_gv)) or np.any(np.isnan(angles_deriv)) or np.any(np.isnan(matches_deriv))):
-                write ('gv angles: %d %d %d'     % (int(np.max(angles_gv)),     int(np.average(angles_gv)),     int(np.min(angles_gv))))
-                write ('gv matches: %d %d %d'    % (int(np.max(matches_gv)),    int(np.average(matches_gv)),    int(np.min(matches_gv))))
-                write ('deriv angles: %d %d %d'  % (int(np.max(angles_deriv)),  int(np.average(angles_deriv)),  int(np.min(angles_deriv))))
-                write ('deriv matches: %d %d %d' % (int(np.max(matches_deriv)), int(np.average(matches_deriv)), int(np.min(matches_deriv))))
+            if not (np.any(np.isnan(angles_gv_avg)) or np.any(np.isnan(matches_gv_avg)) or np.any(np.isnan(angles_deriv_avg)) or np.any(np.isnan(matches_deriv_avg))):
+                write ('gv angles: %d %d %d'     % (int(np.max(angles_gv_avg)),     int(np.average(angles_gv_avg)),     int(np.min(angles_gv_avg))))
+                write ('gv matches: %d %d %d'    % (int(np.max(matches_gv_avg)),    int(np.average(matches_gv_avg)),    int(np.min(matches_gv_avg))))
+                write ('deriv angles: %d %d %d'  % (int(np.max(angles_deriv_avg)),  int(np.average(angles_deriv_avg)),  int(np.min(angles_deriv_avg))))
+                write ('deriv matches: %d %d %d' % (int(np.max(matches_deriv_avg)), int(np.average(matches_deriv_avg)), int(np.min(matches_deriv_avg))))
 
             print ('gv angles', np.array(angles_gv, dtype=int))
             print ('gv matches', np.array(matches_gv, dtype=int))
             print ('deriv angles', np.array(angles_deriv, dtype=int))
             print ('deriv matches', np.array(matches_deriv, dtype=int))
-            '''
-        
 
     train_accs.append(train_acc)
     train_accs_top5.append(train_acc_top5)
