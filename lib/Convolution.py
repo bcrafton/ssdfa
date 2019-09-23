@@ -113,9 +113,6 @@ class Convolution(Layer):
 
         mask = self.get_mask()
    
-        # dont really like the masking here.
-        # use to do it just for udc01f
-        # now we are doing it for all
         DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters * mask, out_backprop=DO, strides=self.strides, padding=self.padding)
         DF = tf.nn.conv2d_backprop_filter(input=AI, filter_sizes=self.filter_sizes, out_backprop=DO, strides=self.strides, padding=self.padding) * mask
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])

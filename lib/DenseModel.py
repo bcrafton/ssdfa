@@ -130,10 +130,6 @@ class DenseModel(Layer):
     ###################################################################
         
     def bp(self, AI, AO, DO, cache):
-        # DI = tf.ones_like(AI)
-        # DI = tf.Print(DI, [tf.shape(DO)], message="", summarize=1000)
-        # return DI, []
-
         A, C = cache
         D = [None] * self.num_blocks
         GV = []
@@ -154,7 +150,24 @@ class DenseModel(Layer):
         return D[0], GV
 
     def ss(self, AI, AO, DO, cache):    
-        return self.bp(AI, AO, DO, cache)
+        A, C = cache
+        D = [None] * self.num_blocks
+        GV = []
+
+        for ii in range(self.num_blocks-1, -1, -1):
+            block = self.blocks[ii]
+
+            if (ii == self.num_blocks-1):
+                D[ii], gv = block.ss(A[ii-1], A[ii], DO,      C[ii])
+                GV = gv + GV
+            elif (ii == 0):
+                D[ii], gv = block.ss(AI,      A[ii], D[ii+1], C[ii])
+                GV = gv + GV
+            else:
+                D[ii], gv = block.ss(A[ii-1], A[ii], D[ii+1], C[ii])
+                GV = gv + GV
+
+        return D[0], GV
         
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)

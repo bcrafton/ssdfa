@@ -17,6 +17,11 @@ parser.add_argument('--init', type=str, default="alexnet")
 parser.add_argument('--save', type=int, default=0)
 parser.add_argument('--name', type=str, default="imagenet224")
 parser.add_argument('--load', type=str, default=None)
+
+parser.add_argument('--fb',    type=str, default="f")
+parser.add_argument('--fb_dw', type=str, default="f")
+parser.add_argument('--fb_pw', type=str, default="f")
+
 args = parser.parse_args()
 
 if args.gpu >= 0:
@@ -237,21 +242,38 @@ lr = tf.placeholder(tf.float32, shape=())
 ###############################################################
 
 if args.model == 'vgg':
-    model = VGGNet224(batch_size=batch_size, dropout_rate=dropout_rate)
+    model = VGGNet224(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init, fb=args.fb, fb_dw=args.fb_dw, fb_pw=args.fb_pw)
 elif args.model == 'mobile':
-    model = MobileNet224(batch_size=batch_size, dropout_rate=dropout_rate)
+    model = MobileNet224(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init, fb=args.fb, fb_dw=args.fb_dw, fb_pw=args.fb_pw)
 elif args.model == 'dense':
-    model = DenseNet224(batch_size=batch_size, dropout_rate=dropout_rate)
+    model = DenseNet224(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init, fb=args.fb, fb_dw=args.fb_dw, fb_pw=args.fb_pw)
 else:
     assert (False)
+
+'''
+if args.model == 'vgg':
+    model = VGGNet64(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init, fb=args.fb, fb_dw=args.fb_dw, fb_pw=args.fb_pw)
+elif args.model == 'tiny':
+    model = VGGNetTiny(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init, fb=args.fb, fb_dw=args.fb_dw, fb_pw=args.fb_pw)
+elif args.model == 'mobile':
+    model = MobileNet64(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init, fb=args.fb, fb_dw=args.fb_dw, fb_pw=args.fb_pw)
+elif args.model == 'dense4':
+    model = DenseNet64_L4(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init, fb=args.fb, fb_dw=args.fb_dw, fb_pw=args.fb_pw)
+elif args.model == 'dense5':
+    model = DenseNet64_L5(batch_size=batch_size, dropout_rate=dropout_rate, init=args.init, fb=args.fb, fb_dw=args.fb_dw, fb_pw=args.fb_pw)
+else:
+    assert (False)
+'''
 
 ###############################################################
 
 predict = tf.nn.softmax(model.predict(X=X))
 weights = model.get_weights()
 
-gvs, derivs = model.gvs(X=X, Y=Y)
-train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=gvs)
+bp_gvs, bp_derivs = model.gvs(X=X, Y=Y)
+ss_gvs, ss_derivs = model.ss_gvs(X=X, Y=Y)
+
+train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=ss_gvs)
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(Y,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))

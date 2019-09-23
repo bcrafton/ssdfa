@@ -55,13 +55,11 @@ def DenseNet224(batch_size, dropout_rate, init='alexnet', fb='f_f', fb_dw='f_f',
     F = 64
     size = k * sum(L) + F
 
-    l1 = ConvBlock(input_shape=[batch_size,224,224,6], filter_shape=[7,7,6,F], strides=[1,2,2,1], init=init, name='conv1', fb=fb)
-    l2 = MaxPool(size=[batch_size,112,112,size], ksize=[1,3,3,1], strides=[1,2,2,1], padding='SAME')
-
-    l3 = DenseModel(input_shape=[batch_size,56,56,F], init=init, name='dense_model', k=k, L=L, fb=fb, fb_pw=fb_pw)
-    l4 = AvgPool(size=[batch_size,7,7,size], ksize=[1,7,7,1], strides=[1,7,7,1], padding='SAME')
-
-    l5 = ConvToFullyConnected(input_shape=[batch_size,1,1,size]) 
+    l1 = ConvBlock(input_shape=[batch_size,224,224,6], filter_shape=[7,7,6,F], strides=[1,2,2,1], init=init, name='conv1', fb=fb) # 224
+    l2 = MaxPool(size=[batch_size,112,112,size], ksize=[1,3,3,1], strides=[1,2,2,1], padding='SAME')                              # 112
+    l3 = DenseModel(input_shape=[batch_size,56,56,F], init=init, name='dense_model', k=k, L=L, fb=fb, fb_pw=fb_pw)                # 56
+    l4 = AvgPool(size=[batch_size,7,7,size], ksize=[1,7,7,1], strides=[1,7,7,1], padding='SAME')                                  # 7
+    l5 = ConvToFullyConnected(input_shape=[batch_size,1,1,size])                                                                  # 1
     l6 = FullyConnected(input_shape=size, size=1000, init=init, name="fc1")
 
     model = Model(layers=[l1, l2, l3, l4, l5, l6])

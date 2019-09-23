@@ -64,7 +64,13 @@ class DenseConv(Layer):
         return dconv1x1, grads
 
     def ss(self, AI, AO, DO, cache):    
-        return self.bp(AI, AO, DO, cache)
+        conv1x1, conv1x1_cache, conv3x3, conv3x3_cache = cache
+        dconv3x3, gconv3x3 = self.conv3x3.ss(conv1x1, AO,      DO,       conv3x3_cache)
+        dconv1x1, gconv1x1 = self.conv1x1.ss(AI,      conv1x1, dconv3x3, conv1x1_cache)
+        grads = []
+        grads.extend(gconv1x1)
+        grads.extend(gconv3x3)
+        return dconv1x1, grads
 
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)

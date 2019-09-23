@@ -49,7 +49,13 @@ class DenseTransition(Layer):
         return dconv1x1, grads
 
     def ss(self, AI, AO, DO, cache):    
-        return self.bp(AI, AO, DO, cache)
+        conv1x1, conv1x1_cache, pool, pool_cache = cache
+        dpool, gpool = self.pool.ss(conv1x1, pool, DO, pool_cache)
+        dconv1x1, gconv1x1 = self.conv1x1.ss(AI, conv1x1, dpool, conv1x1_cache)
+        grads = []
+        grads.extend(gconv1x1)
+        grads.extend(gpool)
+        return dconv1x1, grads
 
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)
