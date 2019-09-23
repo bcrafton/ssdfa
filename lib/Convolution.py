@@ -111,6 +111,8 @@ class Convolution(Layer):
 
     def bp(self, AI, AO, DO, cache): 
 
+        assert (False)
+
         mask = self.get_mask()
    
         DI = tf.nn.conv2d_backprop_input(input_sizes=self.input_shape, filter=self.filters * mask, out_backprop=DO, strides=self.strides, padding=self.padding)
