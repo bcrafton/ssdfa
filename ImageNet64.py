@@ -28,7 +28,7 @@ if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
 
-exxact = 0
+exxact = 1
 if exxact:
     val_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/val/'
     train_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/train/'
@@ -369,10 +369,10 @@ for ii in range(args.epochs):
                 write ('deriv angles: %d %d %d'  % (int(np.max(angles_deriv_avg)),  int(np.average(angles_deriv_avg)),  int(np.min(angles_deriv_avg))))
                 write ('deriv matches: %d %d %d' % (int(np.max(matches_deriv_avg)), int(np.average(matches_deriv_avg)), int(np.min(matches_deriv_avg))))
 
-            print ('gv angles', np.array(angles_gv, dtype=int))
-            print ('gv matches', np.array(matches_gv, dtype=int))
-            print ('deriv angles', np.array(angles_deriv, dtype=int))
-            print ('deriv matches', np.array(matches_deriv, dtype=int))
+            print ('gv angles', np.array(angles_gv_avg, dtype=int))
+            print ('gv matches', np.array(matches_gv_avg, dtype=int))
+            print ('deriv angles', np.array(angles_deriv_avg, dtype=int))
+            print ('deriv matches', np.array(matches_deriv_avg, dtype=int))
 
     train_accs.append(train_acc)
     train_accs_top5.append(train_acc_top5)
