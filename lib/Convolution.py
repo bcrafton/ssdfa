@@ -92,11 +92,11 @@ class Convolution(Layer):
         if   self.fb_kernel == 'f':
             return self.filters
         elif self.fb_kernel == 'mean01':
-            return mask * tf.reduce_mean(self.filters, axis=[0, 1], keep_dims=True)
+            return mask * tf.reduce_mean(self.filters * mask, axis=[0, 1], keep_dims=True)
         elif self.fb_kernel == 'mean012':
-            return mask * tf.reduce_mean(self.filters, axis=[0, 1, 2], keep_dims=True)
+            return mask * tf.reduce_mean(self.filters * mask, axis=[0, 1, 2], keep_dims=True)
         elif self.fb_kernel == 'mean0123':
-            return mask * tf.reduce_mean(self.filters, axis=[0, 1, 2, 3], keep_dims=True)
+            return mask * tf.reduce_mean(self.filters * mask, axis=[0, 1, 2, 3], keep_dims=True)
         else:
             assert (False)
 
@@ -111,7 +111,7 @@ class Convolution(Layer):
 
     def bp(self, AI, AO, DO, cache): 
 
-        assert (False)
+        # assert (False)
 
         mask = self.get_mask()
    
