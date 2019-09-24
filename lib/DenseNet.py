@@ -32,8 +32,8 @@ def DenseNet64_L5(batch_size, dropout_rate, init='alexnet', fb='f_f', fb_dw='f_f
     return model
 
 def DenseNet64_L4(batch_size, dropout_rate, init='alexnet', fb='f_f', fb_dw='f_f', fb_pw='f_f'):
-    k = 32
-    L = [8, 16, 24, 16]
+    k = 64
+    L = [4, 8, 12, 8]
     F = 64
     size = k * sum(L) + F
 

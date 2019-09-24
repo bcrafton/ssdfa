@@ -64,14 +64,14 @@ imagenet224_usss = {'benchmark':'ImageNet224.py', 'model':['dense'], 'epochs':25
 
 ################################################
 
-imagenet64 = {'benchmark':'ImageNet64.py', 'model':['dense4'], 'epochs':25, 'batch_size':64, 'lr':[1e-1], 'eps':[1.], 'dropout':0.0, 'init':['glorot_uniform'], 'load':None, 'fb':['f_f'], 'fb_dw':['f_f'], 'fb_pw':['f_f']}
+imagenet64 = {'benchmark':'ImageNet64.py', 'model':['dense4'], 'epochs':25, 'batch_size':64, 'lr':[2e-1], 'eps':[1.], 'dropout':0.0, 'init':['glorot_uniform'], 'load':None, 'fb':['f_f'], 'fb_dw':['f_f'], 'fb_pw':['f_f']}
 
-imagenet64_usss = {'benchmark':'ImageNet64.py', 'model':['dense4'], 'epochs':25, 'batch_size':64, 'lr':[1e-1], 'eps':[1.], 'dropout':0.0, 'init':['glorot_uniform'], 'load':None,
+imagenet64_usss = {'benchmark':'ImageNet64.py', 'model':['dense4'], 'epochs':25, 'batch_size':64, 'lr':[2e-1], 'eps':[1.], 'dropout':0.0, 'init':['glorot_uniform'], 'load':None,
                    'fb':['mask01_mean01', 'mean01_mean01'], 'fb_dw':['f_f'], 'fb_pw':['mask01_mean01', 'mean012_mean01']}
 
 ################################################
 
-params = [imagenet64_usss]
+params = [imagenet64, imagenet64_usss]
 # params = [imagenet224, imagenet224_usss]
 
 ################################################
