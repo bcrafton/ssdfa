@@ -57,10 +57,10 @@ params = [imagenet64_vgg]
 ################################################
 
 imagenet224 =      {'benchmark':'ImageNet224.py', 'model':['dense'], 'epochs':25, 'batch_size':32, 'lr':[5e-2], 'eps':[1.], 'dropout':0.0, 'init':['glorot_uniform'], 'load':None, 
-                   'fb':['f_f'], 'fb_dw':['f_f'], 'fb_pw':['f_f']}
+                    'fb':['f_f'], 'fb_dw':['f_f'], 'fb_pw':['f_f']}
 
 imagenet224_usss = {'benchmark':'ImageNet224.py', 'model':['dense'], 'epochs':25, 'batch_size':32, 'lr':[1e-1], 'eps':[1.], 'dropout':0.0, 'init':['glorot_uniform'], 'load':None, 
-                   'fb':['mask01_mean01', 'mask01_mean012'], 'fb_dw':['f_f'], 'fb_pw':['mask01_mean012', 'mask01_mean0123']}
+                    'fb':['mask01_mean01', 'mask01_mean012'], 'fb_dw':['f_f'], 'fb_pw':['mask01_mean012', 'mask01_mean0123']}
 
 ################################################
 
