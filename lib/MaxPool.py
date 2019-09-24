@@ -44,7 +44,7 @@ class MaxPool(Layer):
         
     def bp(self, AI, AO, DO, cache):    
         DI = gen_nn_ops.max_pool_grad(grad=DO, orig_input=AI, orig_output=AO, ksize=self.ksize, strides=self.strides, padding=self.padding)
-        return DI, []
+        return DI, [DI], []
 
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)

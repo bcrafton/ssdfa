@@ -147,7 +147,7 @@ class DenseModel(Layer):
                 D[ii], gv = block.bp(A[ii-1], A[ii], D[ii+1], C[ii])
                 GV = gv + GV
 
-        return D[0], GV
+        return D, GV
 
     def ss(self, AI, AO, DO, cache):    
         A, C = cache
@@ -167,7 +167,7 @@ class DenseModel(Layer):
                 D[ii], gv = block.ss(A[ii-1], A[ii], D[ii+1], C[ii])
                 GV = gv + GV
 
-        return D[0], GV
+        return D, GV
         
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)

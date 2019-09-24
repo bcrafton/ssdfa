@@ -26,7 +26,7 @@ class Relu(Layer):
 
     def bp(self, AI, AO, DO, cache):    
         DI = tf.cast(AO > 0.0, dtype=tf.float32) * DO
-        return DI, []
+        return DI, [DI], []
 
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)
@@ -70,7 +70,7 @@ class SignedRelu(Layer):
 
     def bp(self, AI, AO, DO, cache):    
         DI = tf.cast(AI > 0.0, dtype=tf.float32) * self.signs * DO
-        return DI, []
+        return DI, [DI], []
 
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)
@@ -101,7 +101,7 @@ class Tanh(Layer):
 
     def bp(self, AI, AO, DO, cache):    
         DI = (1. - tf.pow(AO, 2)) * DO
-        return DI, []
+        return DI, [DI], []
 
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)

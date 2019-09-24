@@ -120,11 +120,11 @@ class Convolution(Layer):
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
 
         if not self.train_flag:
-            return DI, []
+            return DI, [DI], []
         elif self.use_bias:
-            return DI, [(DF, self.filters), (DB, self.bias)]
+            return DI, [DI], [(DF, self.filters), (DB, self.bias)]
         else:
-            return DI, [(DF, self.filters)]
+            return DI, [DI], [(DF, self.filters)]
 
     def ss(self, AI, AO, DO, cache):
 
@@ -136,11 +136,11 @@ class Convolution(Layer):
         DB = tf.reduce_sum(DO, axis=[0, 1, 2])
 
         if not self.train_flag:
-            return DI, []
+            return DI, [DI], []
         if self.use_bias:
-            return DI, [(DF, self.filters), (DB, self.bias)]
+            return DI, [DI], [(DF, self.filters), (DB, self.bias)]
         else:
-            return DI, [(DF, self.filters)]
+            return DI, [DI], [(DF, self.filters)]
 
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)

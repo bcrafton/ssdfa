@@ -58,16 +58,14 @@ class VGGBlock(Layer):
     def bp(self, AI, AO, DO, cache):    
         conv, conv_cache = cache
         dconv, gconv = self.conv.bp(AI, conv, DO, conv_cache)
-        grads = []
-        grads.extend(gconv)
-        return dconv, grads
+
+        return dconv, gconv
 
     def ss(self, AI, AO, DO, cache):    
         conv, conv_cache = cache
         dconv, gconv = self.conv.ss(AI, conv, DO, conv_cache)
-        grads = []
-        grads.extend(gconv)
-        return dconv, grads
+
+        return dconv, gconv
         
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)

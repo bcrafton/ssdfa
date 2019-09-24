@@ -72,11 +72,11 @@ class DenseBlock(Layer):
                 D[jj] = DO[:, :, :, s:e] if D[jj] == None else (D[jj] + DO[:, :, :, s:e])
 
             l = self.layers[ii]
-            DO, gv = l.bp(AI[ii], AO[ii], D[ii], C[ii])
+            DO, _, gv = l.bp(AI[ii], AO[ii], D[ii], C[ii])
             GV = gv + GV
 
         DI = DI + DO
-        return DI, GV
+        return DI, [DI] + D, GV
 
     def ss(self, AI, AO, DO, cache):    
         AI, AO, C = cache
@@ -93,11 +93,11 @@ class DenseBlock(Layer):
                 D[jj] = DO[:, :, :, s:e] if D[jj] == None else (D[jj] + DO[:, :, :, s:e])
 
             l = self.layers[ii]
-            DO, gv = l.ss(AI[ii], AO[ii], D[ii], C[ii])
+            DO, _, gv = l.ss(AI[ii], AO[ii], D[ii], C[ii])
             GV = gv + GV
 
         DI = DI + DO
-        return DI, GV
+        return DI, [DI] + D, GV
         
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)

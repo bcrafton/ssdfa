@@ -27,7 +27,7 @@ class Dropout(Layer):
 
     def bp(self, AI, AO, DO, cache):
         DI = DO * self.dropout_mask
-        return DI, []
+        return [DI], []
 
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)

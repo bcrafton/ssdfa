@@ -71,23 +71,23 @@ class ConvBlock(Layer):
 
     def bp(self, AI, AO, DO, cache):    
         conv, conv_cache, bn, bn_cache, relu, relu_cache = cache
-        drelu, grelu = self.relu.bp(bn, relu, DO, conv_cache)
-        dbn,   gbn   = self.bn.bp(conv, bn, drelu, bn_cache)
-        dconv, gconv = self.conv.bp(AI, conv, dbn, relu_cache)
-        grads = []
-        grads.extend(gconv)
-        grads.extend(gbn)
-        return dconv, grads
+        drelu, drelus, grelu = self.relu.bp(bn, relu, DO, conv_cache)
+        dbn,   dbns,   gbn   = self.bn.bp(conv, bn, drelu, bn_cache)
+        dconv, dconvs, gconv = self.conv.bp(AI, conv, dbn, relu_cache)
+
+        deriv = dconvs + dbns + drelus
+        grads = gconv + gbn + grelu
+        return dconv, deriv, grads
 
     def ss(self, AI, AO, DO, cache):    
         conv, conv_cache, bn, bn_cache, relu, relu_cache = cache
-        drelu, grelu = self.relu.ss(bn, relu, DO, conv_cache)
-        dbn,   gbn   = self.bn.ss(conv, bn, drelu, bn_cache)
-        dconv, gconv = self.conv.ss(AI, conv, dbn, relu_cache)
-        grads = []
-        grads.extend(gconv)
-        grads.extend(gbn)
-        return dconv, grads
+        drelu, drelus, grelu = self.relu.ss(bn, relu, DO, conv_cache)
+        dbn,   dbns,   gbn   = self.bn.ss(conv, bn, drelu, bn_cache)
+        dconv, dconvs, gconv = self.conv.ss(AI, conv, dbn, relu_cache)
+
+        deriv = dconvs + dbns + drelus
+        grads = gconv + gbn + grelu
+        return dconv, deriv, grads
         
     def dfa(self, AI, AO, E, DO, cache):    
         return self.bp(AI, AO, DO, cache)

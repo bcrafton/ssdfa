@@ -76,7 +76,7 @@ class BatchNorm(Layer):
                                                                         epsilon=self.variance_epsilon, 
                                                                         is_training=True)
 
-        return DI, [(dgamma, self.gamma), (dbeta, self.beta)]
+        return DI, [DI], [(dgamma, self.gamma), (dbeta, self.beta)]
 
     def dfa(self, AI, AO, E, DO, cache):    
         return self.bp(AI, AO, DO, cache)

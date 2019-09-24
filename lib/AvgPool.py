@@ -48,7 +48,7 @@ class AvgPool(Layer):
         
     def bp(self, AI, AO, DO, cache):    
         DI = gen_nn_ops.avg_pool_grad(orig_input_shape=self.size, grad=DO, ksize=self.ksize, strides=self.strides, padding=self.padding)
-        return DI, []
+        return DI, [DI], []
 
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)
