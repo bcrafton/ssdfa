@@ -28,7 +28,7 @@ if args.gpu >= 0:
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"]=str(args.gpu)
 
-exxact = 1
+exxact = 0
 if exxact:
     val_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/val/'
     train_path = '/home/bcrafton3/Data_SSD/64x64/tfrecord/train/'
@@ -402,21 +402,39 @@ for ii in range(args.epochs):
     val_accs.append(val_acc)
     val_accs_top5.append(val_acc_top5)
 
+    ################################################
+
     if phase == 0:
         phase = 1
+
     elif phase == 1:
         dacc = val_accs[-1] - val_accs[-2]
         if dacc <= 0.01:
-            lr_decay = 0.1 * args.lr
+            lr_decay = 0.5 * args.lr
             phase = 2
+
     elif phase == 2:
         dacc = val_accs[-1] - val_accs[-2]
         if dacc <= 0.005:
-            lr_decay = 0.05 * args.lr
+            lr_decay = 0.25 * args.lr
             phase = 3
+
+    elif phase == 3:
+        dacc = val_accs[-1] - val_accs[-2]
+        if dacc <= 0.001:
+            lr_decay = 0.1 * args.lr
+            phase = 4
+
+    elif phase == 4:
+        dacc = val_accs[-1] - val_accs[-2]
+        if dacc <= 0.001:
+            lr_decay = 0.05 * args.lr
+            phase = 5
 
     p = "phase: %d" % (phase)
     write (p)
+
+    ################################################
 
     [w] = sess.run([weights], feed_dict={})
     w['train_acc'] = train_accs
