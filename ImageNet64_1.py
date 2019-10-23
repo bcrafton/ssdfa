@@ -247,18 +247,73 @@ for ii in range(args.epochs):
         deriv = deriv[1:15]
 
         '''
+        for kk in range(len(deriv)):
+            print(kk, np.shape(act[kk]), np.shape(deriv[kk]))
+        assert(False)
+        '''
+
+        '''
+        for kk in range(len(deriv)):
+            l = act[kk][0]
+            r = deriv[kk][0]
+            next = np.concatenate((l, r), axis=0)
+
+            if (kk == 0):
+                img = next
+            else:
+                img = np.concatenate((img, next), axis=0)
+
+        plt.imsave('%d.jpg' % (jj), img)
+        '''
+
+        '''
+        for kk in range(len(deriv)):
+            # print (np.shape(act[kk][0, :, :, 0]))
+
+            l = cv2.resize(act[kk][0, :, :, 0], (64, 64))
+            r = cv2.resize(deriv[kk][0, :, :, 0], (64, 64))
+            next = np.concatenate((l, r), axis=0)
+
+            if (kk == 0):
+                img = next
+            else:
+                img = np.concatenate((img, next), axis=0)
+
+        print (np.shape(img))
+        plt.imsave('%d.jpg' % (jj), img)
+        '''
+
+        '''
+        imgs = []
+        for kk in range(len(deriv)):
+            l = act[kk][0, :, :, 0]
+            l -= np.mean(l)
+            l /= (np.max(l) + 1e-3)
+            l = cv2.resize(l, (64, 64))
+
+            r = deriv[kk][0, :, :, 0]
+            r -= np.mean(r)
+            r /= (np.max(r) + 1e-3)
+            r = cv2.resize(r, (64, 64))
+
+            imgs.append(np.concatenate((l, r), axis=1))
+
+        img = np.concatenate(imgs, axis=0)
+        print (np.shape(img))
+        plt.imsave('%d.jpg' % (jj), img)
+        '''
+
         images = []
         for cc in range(8):
             imgs = []
             for kk in range(len(deriv)):
                 l = act[kk][0, :, :, cc]
-                # l -= np.min(l)
-                # l /= (np.max(l) + 1e-3)
-                l = 1.0 * (l > 0.)
+                l -= np.mean(l)
+                l /= (np.max(l) + 1e-3)
                 l = cv2.resize(l, (64, 64))
 
                 r = deriv[kk][0, :, :, cc]
-                r -= np.min(r)
+                r -= np.mean(r)
                 r /= (np.max(r) + 1e-3)
                 r = cv2.resize(r, (64, 64))
 
@@ -270,33 +325,6 @@ for ii in range(args.epochs):
         image = np.concatenate(images, axis=1)
         print (np.shape(image))
         plt.imsave('%d.jpg' % (jj), image)
-        '''
-
-        images = []
-        for cc in range(8):
-            imgs = []
-            for kk in range(len(deriv)):
-                l = act[kk][0, :, :, cc]
-                l = 1.0 * (l > 0.)
-
-                r1 = deriv[kk][0, :, :, cc]
-                r1 = 1.0 * (r1 > 0.) * l
-
-                r2 = deriv[kk][0, :, :, cc]
-                r2 = 1.0 * (r2 < 0.) * l
-
-                r1 = cv2.resize(r1, (64, 64))
-                l = cv2.resize(l, (64, 64))
-                r2 = cv2.resize(r2, (64, 64))
-
-                imgs.append(np.concatenate((l, r1, r2, np.zeros_like(r2)), axis=1))
-
-            img = np.concatenate(imgs, axis=0)
-            images.append(img)
-
-        image = np.concatenate(images, axis=1)
-        # print (np.shape(image))
-        plt.imsave('%d.jpg' % (jj), image, cmap='gray')
 
         ###############################################
 
