@@ -243,53 +243,41 @@ for ii in range(args.epochs):
         assert(len(act) == len(deriv))
         assert(len(act) == 17)
 
+        '''
+        for ii in range(len(deriv)):
+            print (np.shape(act[ii]), np.shape(deriv[ii]))
+        assert(False)
+
         act = act[0:14]
         deriv = deriv[1:15]
-
         '''
-        images = []
-        for cc in range(8):
-            imgs = []
-            for kk in range(len(deriv)):
-                l = act[kk][0, :, :, cc]
-                # l -= np.min(l)
-                # l /= (np.max(l) + 1e-3)
-                l = 1.0 * (l > 0.)
-                l = cv2.resize(l, (64, 64))
 
-                r = deriv[kk][0, :, :, cc]
-                r -= np.min(r)
-                r /= (np.max(r) + 1e-3)
-                r = cv2.resize(r, (64, 64))
+        act_idx   = [0, 1, 3, 4, 6, 7, 9, 10, 12, 13]
+        deriv_idx = [1, 2, 4, 5, 7, 8, 10, 11, 13, 14]
 
-                imgs.append(np.concatenate((l, r), axis=1))
-
-            img = np.concatenate(imgs, axis=0)
-            images.append(img)
-
-        image = np.concatenate(images, axis=1)
-        print (np.shape(image))
-        plt.imsave('%d.jpg' % (jj), image)
-        '''
+        act_conv   = [act[idx]   for idx in act_idx]
+        deriv_conv = [deriv[idx] for idx in deriv_idx]
 
         images = []
         for cc in range(8):
             imgs = []
-            for kk in range(len(deriv)):
-                l = act[kk][0, :, :, cc]
+            for kk in range(len(deriv_conv)):
+                l = act_conv[kk][0, :, :, cc]
                 l = 1.0 * (l > 0.)
 
-                r1 = deriv[kk][0, :, :, cc]
+                r1 = deriv_conv[kk][0, :, :, cc]
                 r1 = 1.0 * (r1 > 0.) * l
 
-                r2 = deriv[kk][0, :, :, cc]
+                r2 = deriv_conv[kk][0, :, :, cc]
                 r2 = 1.0 * (r2 < 0.) * l
 
-                r1 = cv2.resize(r1, (64, 64))
-                l = cv2.resize(l, (64, 64))
-                r2 = cv2.resize(r2, (64, 64))
+                assert(np.all((r1 * r2) == 0)) 
 
-                imgs.append(np.concatenate((l, r1, r2, np.zeros_like(r2)), axis=1))
+                l  = cv2.resize(l,  (64, 64), interpolation=cv2.INTER_NEAREST)
+                r1 = cv2.resize(r1, (64, 64), interpolation=cv2.INTER_NEAREST)
+                r2 = cv2.resize(r2, (64, 64), interpolation=cv2.INTER_NEAREST)
+
+                imgs.append(np.concatenate((l, r1, r2, np.ones_like(r2) * 0.5), axis=1))
 
             img = np.concatenate(imgs, axis=0)
             images.append(img)
