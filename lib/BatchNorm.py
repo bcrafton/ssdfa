@@ -46,7 +46,7 @@ class BatchNorm(Layer):
     ###################################################################
 
     def get_weights(self):
-        return [(self.name + '_gamma', self.gamma), (self.name + '_beta', self.beta)]
+        return [[self.gamma, self.beta]]
 
     def num_params(self):
         return self.num_parameters

@@ -16,14 +16,14 @@ class Model:
         return param_sum
 
     def get_weights(self):
-        weights = {}
-        '''
+        weights = []
+
         for ii in range(self.num_layers):
             l = self.layers[ii]
-            tup = l.get_weights()
-            for (key, value) in tup:
-                weights[key] = value
-        ''' 
+            next = l.get_weights()
+            if len(next):
+                weights.extend(next)
+
         return weights
 
     def predict(self, X):

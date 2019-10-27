@@ -26,10 +26,7 @@ class FullyConnected(Layer):
     ###################################################################
         
     def get_weights(self):
-        if self.use_bias:
-            return [(self.name, self.weights), (self.name + "_bias", self.bias)]
-        else:
-            return [(self.name, self.weights)]
+        return [[self.weights]]
 
     def num_params(self):
         weights_size = self.input_size * self.output_size

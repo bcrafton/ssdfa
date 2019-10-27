@@ -241,23 +241,7 @@ for ii in range(args.epochs):
     train_top5 = 0.0
     
     for jj in range(0, len(train_filenames), args.batch_size):
-        [_total_correct, _total_top5, gvs, gs, _] = sess.run([total_correct, total_top5, grads_and_vars, grads, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})
-
-        # '''
-        print (len(gvs), len(gs))
-        for ii in range(len(gs)):
-            g1 = gvs[ii][0]
-            g2 = gs[ii]
-
-            # g1 = g1 / np.std(g1)
-            # g2 = g2 / np.std(g2)
-
-            print (np.shape(g1), np.shape(g2), end=' ')
-            # print (np.std(g1), np.std(g2), end=' ')
-            print (np.sum(np.absolute(g1-g2)) / np.sum(np.absolute(g1)))
-
-        assert(False)
-        # '''        
+        [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})   
 
         train_total += args.batch_size
         train_correct += _total_correct
@@ -322,11 +306,6 @@ for ii in range(args.epochs):
     f = open(results_filename, "a")
     f.write(p + "\n")
     f.close()
-    
-    '''
-    [w] = sess.run([weights], feed_dict={})
-    np.save(args.name, w)
-    '''
 
 
 

@@ -26,7 +26,15 @@ class DenseBlock(Layer):
     ###################################################################
 
     def get_weights(self):
-        assert(False)
+        weights = []
+
+        for ii in range(self.num_layers):
+            l = self.layers[ii]
+            next = l.get_weights()
+            if len(next):
+                weights.extend(next)
+
+        return weights
 
     def output_shape(self):
         assert(False)

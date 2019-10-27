@@ -78,20 +78,29 @@ lr = tf.placeholder(tf.float32, shape=())
 X = tf.placeholder(tf.float32, [None, 32, 32, 3])
 Y = tf.placeholder(tf.float32, [None, 10])
 
-# model = cifar_conv(batch_size=batch_size, dropout_rate=dropout_rate)
-model = cifar_fc(batch_size=batch_size, dropout_rate=dropout_rate)
+model = cifar_conv(batch_size=batch_size, dropout_rate=dropout_rate)
 
 ##############################################
 
 predict = model.predict(X=X)
 weights = model.get_weights()
 
+'''
 if args.dfa:
     grads_and_vars = model.dfa_gvs(X=X, Y=Y)
 else:
     grads_and_vars = model.gvs(X=X, Y=Y)
-        
-train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
+'''
+
+loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=Y, logits=predict)
+
+grads = [None] * len(weights)
+train = [None] * len(weights)
+
+for ii in range(len(weights)):
+  grads[ii] = tf.gradients(loss, weights[ii])
+  gv = zip(grads[ii], weights[ii])
+  train[ii] = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=gv)
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(Y,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
@@ -115,6 +124,10 @@ f.close()
 train_accs = []
 test_accs = []
 
+weights = sess.run(weights, feed_dict={})
+for w in weights:
+    print (len(w))
+
 for ii in range(args.epochs):
 
     #############################
@@ -128,7 +141,7 @@ for ii in range(args.epochs):
         xs = x_train[s:e]
         ys = y_train[s:e]
         
-        _correct, _ = sess.run([total_correct, train], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
+        _correct, _ = sess.run([total_correct, train[0]], feed_dict={batch_size: b, dropout_rate: args.dropout, lr: args.lr, X: xs, Y: ys})
         _total_correct += _correct
 
     train_acc = 1.0 * _total_correct / (train_examples - (train_examples % args.batch_size))
@@ -158,15 +171,6 @@ for ii in range(args.epochs):
     f = open(filename, "a")
     f.write(p + "\n")
     f.close()
-
-##############################################
-
-if args.save:
-    [w] = sess.run([weights], feed_dict={})
-    w['train_acc'] = train_accs
-    w['test_acc'] = test_accs
-    np.save(args.name, w)
     
-##############################################
 
 

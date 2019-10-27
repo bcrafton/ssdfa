@@ -34,7 +34,7 @@ class DenseConv(Layer):
         weights = []
         weights.extend(self.conv1x1.get_weights())
         weights.extend(self.conv3x3.get_weights())
-        return weights
+        return [weights]
 
     def output_shape(self):
         return self.output_shape
