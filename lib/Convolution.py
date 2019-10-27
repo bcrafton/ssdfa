@@ -32,7 +32,7 @@ class Convolution(Layer):
     ###################################################################
 
     def get_weights(self):
-        return [[self.filters]]
+        return [self.filters]
 
     def output_shape(self):
         oh = conv_output_length(self.h, self.fh, self.padding.lower(), self.sh)

@@ -6,7 +6,7 @@ import sys
 ##############################################
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--model', type=str, default="dense4")
+parser.add_argument('--model', type=str, default="dense5")
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--batch_size', type=int, default=64)
@@ -187,20 +187,34 @@ else:
 ###############################################################
 
 predict = model.predict(X=features)
-# weights = model.get_weights()
+loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=predict)
+weights = model.get_weights()
 
-grads_and_vars = model.gvs(X=features, Y=labels)        
-# train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=grads_and_vars)
+###############################################################
+
+params = model.get_weights()
+
+grads = [None] * len(params)
+train = [None] * len(params)
+
+for ii in range(len(params)):
+  grads[ii] = tf.gradients(loss, params[ii])
+  gv = zip(grads[ii], params[ii])
+  train[ii] = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=gv)
+
+###############################################################
+'''
+params = tf.trainable_variables()
+grads = tf.gradients(loss, params)
+gv = zip(grads, params)
+train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).apply_gradients(grads_and_vars=gv)
+'''
+###############################################################
 
 correct = tf.equal(tf.argmax(predict,1), tf.argmax(labels,1))
 total_correct = tf.reduce_sum(tf.cast(correct, tf.float32))
 top5 = in_top_k(predict, tf.argmax(labels,1), k=5)
 total_top5 = tf.reduce_sum(tf.cast(top5, tf.float32))
-
-loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=predict)
-params = tf.trainable_variables()
-grads = tf.gradients(loss, params)
-train = tf.train.AdamOptimizer(learning_rate=lr, epsilon=args.eps).minimize(loss=loss)
 
 ###############################################################
 
@@ -217,9 +231,14 @@ val_handle = sess.run(val_iterator.string_handle())
 results_filename = args.name + '.results'
 f = open(results_filename, "w")
 f.write(results_filename + "\n")
-# f.write("total params: " + str(model.num_params()) + "\n")
 f.close()
 
+###############################################################
+'''
+[weights] = sess.run([weights], feed_dict={})
+for w in weights:
+    print (np.shape(w))   
+'''
 ###############################################################
 
 train_accs = []
@@ -241,7 +260,7 @@ for ii in range(args.epochs):
     train_top5 = 0.0
     
     for jj in range(0, len(train_filenames), args.batch_size):
-        [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})   
+        [_total_correct, _total_top5, _] = sess.run([total_correct, total_top5, train[ii]], feed_dict={handle: train_handle, batch_size: args.batch_size, dropout_rate: args.dropout, lr: lr_decay})   
 
         train_total += args.batch_size
         train_correct += _total_correct
