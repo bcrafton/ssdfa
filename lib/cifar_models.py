@@ -24,24 +24,24 @@ from lib.MobileBlock import MobileBlock
 from lib.BatchNorm import BatchNorm
 
 def cifar_conv(batch_size, dropout_rate, init='alexnet', sparse=0, bias=0.1, num_classes=10):
-    l1_1 = ConvBlock(input_shape=[batch_size, 32, 32, 3],  filter_shape=[3, 3, 3,   96],  strides=[1,1,1,1], init=init, name='block1')
-    l1_2 = ConvBlock(input_shape=[batch_size, 32, 32, 3],  filter_shape=[3, 3, 3,   96],  strides=[1,1,1,1], init=init, name='block2')
-    l1_3 = AvgPool(size=[batch_size, 32, 32, 96], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+    l1_1 = ConvBlock(input_shape=[batch_size, 32, 32, 3],  filter_shape=[3, 3, 3, 64],  strides=[1,1,1,1], init=init, name='block1')
+    l1_2 = ConvBlock(input_shape=[batch_size, 32, 32, 64], filter_shape=[3, 3, 64, 64], strides=[1,1,1,1], init=init, name='block2')
+    l1_3 = AvgPool(size=[batch_size, 32, 32, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-    l2_1 = ConvBlock(input_shape=[batch_size, 16, 16, 96], filter_shape=[3, 3, 96,  128], strides=[1,1,1,1], init=init, name='block3')
-    l2_2 = ConvBlock(input_shape=[batch_size, 16, 16, 96], filter_shape=[3, 3, 96,  128], strides=[1,1,1,1], init=init, name='block4')
+    l2_1 = ConvBlock(input_shape=[batch_size, 16, 16, 64],  filter_shape=[3, 3, 64, 128],  strides=[1,1,1,1], init=init, name='block3')
+    l2_2 = ConvBlock(input_shape=[batch_size, 16, 16, 128], filter_shape=[3, 3, 128, 128], strides=[1,1,1,1], init=init, name='block4')
     l2_3 = AvgPool(size=[batch_size, 16, 16, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
     l3_1 = ConvBlock(input_shape=[batch_size, 8, 8, 128],  filter_shape=[3, 3, 128, 256], strides=[1,1,1,1], init=init, name='block5')
-    l3_2 = ConvBlock(input_shape=[batch_size, 8, 8, 128],  filter_shape=[3, 3, 128, 256], strides=[1,1,1,1], init=init, name='block6')
+    l3_2 = ConvBlock(input_shape=[batch_size, 8, 8, 256],  filter_shape=[3, 3, 256, 256], strides=[1,1,1,1], init=init, name='block6')
     l3_3 = AvgPool(size=[batch_size, 8, 8, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
 
-    l4_1 = ConvBlock(input_shape=[batch_size, 8, 8, 128],  filter_shape=[3, 3, 128, 256], strides=[1,1,1,1], init=init, name='block7')
-    l4_2 = ConvBlock(input_shape=[batch_size, 8, 8, 128],  filter_shape=[3, 3, 128, 256], strides=[1,1,1,1], init=init, name='block8')
-    l4_3 = AvgPool(size=[batch_size, 8, 8, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+    l4_1 = ConvBlock(input_shape=[batch_size, 4, 4, 256],  filter_shape=[3, 3, 256, 512], strides=[1,1,1,1], init=init, name='block7')
+    l4_2 = ConvBlock(input_shape=[batch_size, 4, 4, 512],  filter_shape=[3, 3, 512, 512], strides=[1,1,1,1], init=init, name='block8')
+    l4_3 = AvgPool(size=[batch_size, 4, 4, 512], ksize=[1, 4, 4, 1], strides=[1, 4, 4, 1], padding="SAME")
 
-    l5_1 = ConvToFullyConnected(input_shape=[batch_size, 4, 4, 256])
-    l5_2 = FullyConnected(input_shape=4*4*256, size=num_classes, init=init, bias=bias, name='fc1')
+    l5_1 = ConvToFullyConnected(input_shape=[batch_size, 1, 1, 512])
+    l5_2 = FullyConnected(input_shape=512, size=num_classes, init=init, bias=bias, name='fc1')
 
     layers=[
     l1_1, l1_2, l1_3,
