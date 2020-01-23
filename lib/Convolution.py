@@ -1,5 +1,6 @@
 
 import tensorflow as tf
+# import tensorflow_probability as tfp
 import numpy as np
 
 from lib.Layer import Layer
@@ -7,9 +8,26 @@ from lib.conv_utils import conv_output_length
 from lib.conv_utils import conv_input_length
 from lib.init_tensor import init_filters
 
+def quantize_weights(w):
+  # scale = (7. - (-8.)) / (tfp.stats.percentile(w, 95) - tfp.stats.percentile(w, 5))
+  scale = (7. - (-8.)) / (tf.reduce_max(w) - tf.reduce_min(w))
+  # scale = (7. - (-8.)) / (2 * tf.math.reduce_std(w))
+
+  w = scale * w
+  w = tf.floor(w)
+  w = tf.clip_by_value(w, -8, 7)
+  return w, scale
+  
+def quantize_activations(a):
+  scale = (15 - 0) / (tfp.stats.percentile(w, 95) - tfp.stats.percentile(w, 5))
+  a = scale * a
+  a = tf.floor(a)
+  a = tf.clip_by_value(a, 0, 15)
+  return a
+
 class Convolution(Layer):
 
-    def __init__(self, input_shape, filter_sizes, init, strides=[1,1,1,1], padding='SAME', bias=0., use_bias=True, name=None, load=None, train=True):
+    def __init__(self, input_shape, filter_sizes, init, strides=[1,1,1,1], padding='SAME', bias=0., use_bias=False, name=None, load=None, train=True):
         self.input_shape = input_shape
         self.filter_sizes = filter_sizes
         self.batch_size, self.h, self.w, self.fin = self.input_shape
@@ -51,10 +69,13 @@ class Convolution(Layer):
         else:
             return filter_weights_size
 
+    
     def forward(self, X):
-        Z = tf.nn.conv2d(X, self.filters, self.strides, self.padding)
+        qw, sw = quantize_weights(self.filters)
+        Z = tf.nn.conv2d(X, (qw / sw), self.strides, self.padding)
         if self.use_bias:
-            Z = Z + self.bias
+            qb, sb = quantize_weights(self.bias) 
+            Z = Z + (qb / sb)
         return Z, None
 
     ###################################################################

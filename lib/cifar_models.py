@@ -23,56 +23,111 @@ from lib.VGGBlock import VGGBlock
 from lib.MobileBlock import MobileBlock
 from lib.BatchNorm import BatchNorm
 
-def cifar_conv(batch_size, dropout_rate, init='alexnet', sparse=0, bias=0.1, num_classes=10):
-    l1_1 = ConvBlock(input_shape=[batch_size, 32, 32, 3],  filter_shape=[3, 3, 3, 64],  strides=[1,1,1,1], init=init, name='block1')
-    l1_2 = ConvBlock(input_shape=[batch_size, 32, 32, 64], filter_shape=[3, 3, 64, 64], strides=[1,1,1,1], init=init, name='block2')
-    l1_3 = AvgPool(size=[batch_size, 32, 32, 64], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+from lib.ConvRelu import ConvRelu
 
-    l2_1 = ConvBlock(input_shape=[batch_size, 16, 16, 64],  filter_shape=[3, 3, 64, 128],  strides=[1,1,1,1], init=init, name='block3')
-    l2_2 = ConvBlock(input_shape=[batch_size, 16, 16, 128], filter_shape=[3, 3, 128, 128], strides=[1,1,1,1], init=init, name='block4')
-    l2_3 = AvgPool(size=[batch_size, 16, 16, 128], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+'''
+def cifar_conv(batch_size, dropout_rate, init='glorot_uniform', sparse=0, bias=0, num_classes=10):
+    l1 = ConvRelu(input_shape=[batch_size,32,32,3], filter_shape=[4,4,3,32], strides=[1,1,1,1], init=init, name='conv1')
+    
+    l2 = ConvRelu(input_shape=[batch_size,32,32,32],  filter_shape=[2,2,32,128], strides=[1,1,1,1], init=init, name='conv1')
+    l3 = ConvRelu(input_shape=[batch_size,32,32,128], filter_shape=[1,1,128,32], strides=[1,1,1,1], init=init, name='conv1')
+    l4 = ConvRelu(input_shape=[batch_size,32,32,32],  filter_shape=[4,4,32,32],  strides=[1,2,2,1], init=init, name='conv1')
+    
+    l5 = ConvRelu(input_shape=[batch_size,16,16,32],  filter_shape=[2,2,32,128], strides=[1,1,1,1], init=init, name='conv1')
+    l6 = ConvRelu(input_shape=[batch_size,16,16,128], filter_shape=[1,1,128,32], strides=[1,1,1,1], init=init, name='conv1')
+    l7 = ConvRelu(input_shape=[batch_size,16,16,32],  filter_shape=[4,4,32,32],  strides=[1,2,2,1], init=init, name='conv1')
+    
+    l8 = ConvRelu(input_shape=[batch_size,8,8,32],  filter_shape=[2,2,32,128], strides=[1,1,1,1], init=init, name='conv1')
+    l9 = ConvRelu(input_shape=[batch_size,8,8,128], filter_shape=[1,1,128,32], strides=[1,1,1,1], init=init, name='conv1')
+    l10 = ConvRelu(input_shape=[batch_size,8,8,32],  filter_shape=[4,4,32,32],  strides=[1,2,2,1], init=init, name='conv1')
+    
+    l11 = ConvToFullyConnected(input_shape=[batch_size,4,4,32])
+    l12 = FullyConnected(input_shape=512, size=10, init=init, bias=bias, name='fc4')
 
-    l3_1 = ConvBlock(input_shape=[batch_size, 8, 8, 128],  filter_shape=[3, 3, 128, 256], strides=[1,1,1,1], init=init, name='block5')
-    l3_2 = ConvBlock(input_shape=[batch_size, 8, 8, 256],  filter_shape=[3, 3, 256, 256], strides=[1,1,1,1], init=init, name='block6')
-    l3_3 = AvgPool(size=[batch_size, 8, 8, 256], ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding="SAME")
+    layers=[l1,l2,l3,l4,l5,l6,l7,l8,l9,l10,l11,l12]
+    model = Model(layers=layers)
 
-    l4_1 = ConvBlock(input_shape=[batch_size, 4, 4, 256],  filter_shape=[3, 3, 256, 512], strides=[1,1,1,1], init=init, name='block7')
-    l4_2 = ConvBlock(input_shape=[batch_size, 4, 4, 512],  filter_shape=[3, 3, 512, 512], strides=[1,1,1,1], init=init, name='block8')
-    l4_3 = AvgPool(size=[batch_size, 4, 4, 512], ksize=[1, 4, 4, 1], strides=[1, 4, 4, 1], padding="SAME")
+    return model
+'''
 
-    l5_1 = ConvToFullyConnected(input_shape=[batch_size, 1, 1, 512])
-    l5_2 = FullyConnected(input_shape=512, size=num_classes, init=init, bias=bias, name='fc1')
+'''
+def cifar_conv(batch_size, dropout_rate, init='glorot_uniform', sparse=0, bias=0, num_classes=10):
+    l1 = ConvRelu(input_shape=[batch_size,32,32,3],  filter_shape=[4,4,3,32],  strides=[1,1,1,1], init=init, name='conv1')
+    l2 = ConvRelu(input_shape=[batch_size,32,32,32], filter_shape=[4,4,32,64], strides=[1,2,2,1], init=init, name='conv1')
+    l3 = ConvRelu(input_shape=[batch_size,16,16,64], filter_shape=[4,4,64,64], strides=[1,2,2,1], init=init, name='conv1')
+    l4 = ConvRelu(input_shape=[batch_size,8,8,64], filter_shape=[4,4,64,32], strides=[1,2,2,1], init=init, name='conv1')
+    
+    l5 = ConvToFullyConnected(input_shape=[batch_size,4,4,32])
+    l6 = FullyConnected(input_shape=512, size=10, init=init, bias=bias, name='fc4')
 
-    layers=[
-    l1_1, l1_2, l1_3,
-    l2_1, l2_2, l2_3,
-    l3_1, l3_2, l3_3,
-    l4_1, l4_2, l4_3,
-    l5_1, l5_2
-    ]
+    layers=[l1,l2,l3,l4,l5,l6]
+    model = Model(layers=layers)
+
+    return model
+'''
+
+'''
+def cifar_conv(batch_size, dropout_rate, init='glorot_uniform', sparse=0, bias=0, num_classes=10):
+    l1 = ConvRelu(input_shape=[batch_size,32,32,3], filter_shape=[4,4,3,32], strides=[1,2,2,1], init=init, name='conv1')
+    
+    l2 = ConvRelu(input_shape=[batch_size,16,16,32],  filter_shape=[2,2,32,128], strides=[1,1,1,1], init=init, name='conv1')
+    l3 = ConvRelu(input_shape=[batch_size,16,16,128], filter_shape=[1,1,128,32], strides=[1,1,1,1], init=init, name='conv1')
+    l4 = ConvRelu(input_shape=[batch_size,16,16,32],  filter_shape=[4,4,32,32],  strides=[1,2,2,1], init=init, name='conv1')
+    
+    l5 = ConvRelu(input_shape=[batch_size,8,8,32],  filter_shape=[2,2,32,128], strides=[1,1,1,1], init=init, name='conv1')
+    l6 = ConvRelu(input_shape=[batch_size,8,8,128], filter_shape=[1,1,128,32], strides=[1,1,1,1], init=init, name='conv1')
+    l7 = ConvRelu(input_shape=[batch_size,8,8,32],  filter_shape=[4,4,32,32],  strides=[1,2,2,1], init=init, name='conv1')
+    
+    l8 = ConvToFullyConnected(input_shape=[batch_size,4,4,32])
+    l9 = FullyConnected(input_shape=512, size=10, init=init, bias=bias, name='fc4')
+
+    layers=[l1,l2,l3,l4,l5,l6,l7,l8,l9]
+    model = Model(layers=layers)
+
+    return model
+'''
+
+def cifar_conv(batch_size, dropout_rate, init='glorot_uniform', sparse=0, bias=0, num_classes=10):
+    l1 = ConvRelu(input_shape=[batch_size,32,32,3], filter_shape=[4,4,3,32], strides=[1,1,1,1], init=init, name='conv1')
+    
+    l2 = ConvRelu(input_shape=[batch_size,32,32,32],  filter_shape=[4,4,32,128], strides=[1,2,2,1], init=init, name='conv2')
+    l3 = ConvRelu(input_shape=[batch_size,16,16,128], filter_shape=[1,1,128,32], strides=[1,1,1,1], init=init, name='conv3')
+    
+    l4 = ConvRelu(input_shape=[batch_size,16,16,32],  filter_shape=[4,4,32,128], strides=[1,2,2,1], init=init, name='conv4')
+    l5 = ConvRelu(input_shape=[batch_size,8,8,128], filter_shape=[1,1,128,32], strides=[1,1,1,1], init=init, name='conv5')
+
+    l6 = ConvRelu(input_shape=[batch_size,8,8,32],  filter_shape=[4,4,32,128], strides=[1,2,2,1], init=init, name='conv6')
+    l7 = ConvRelu(input_shape=[batch_size,4,4,128], filter_shape=[1,1,128,32], strides=[1,1,1,1], init=init, name='conv7')
+
+    l8 = ConvToFullyConnected(input_shape=[batch_size,4,4,32])
+    l9 = FullyConnected(input_shape=512, size=10, init=init, bias=bias, name='fc4')
+
+    layers=[l1,l2,l3,l4,l5,l6,l7,l8,l9]
     model = Model(layers=layers)
 
     return model
 
+######################################################################
 
-def cifar_fc(batch_size, dropout_rate, init='alexnet', sparse=0, bias=0.1, num_classes=10):
-    l0 = ConvToFullyConnected(input_shape=[32, 32, 3])
-    l1 = Dropout(rate=0.1)
+def cifar_conv_bn(batch_size, dropout_rate, init='glorot_uniform', sparse=0, bias=0, num_classes=10):
+    l1 = Convolution(input_shape=[batch_size, 32, 32, 3],  filter_sizes=[4, 4, 3,  64], strides=[1,2,2,1], init=init, name='conv1')
+    l2 = BatchNorm(input_size=[batch_size, 16, 16, 64], name='bn1')
+    l3 = Relu()
+    
+    l4 = Convolution(input_shape=[batch_size, 16, 16, 64], filter_sizes=[4, 4, 64, 64], strides=[1,2,2,1], init=init, name='conv2')
+    l5 = BatchNorm(input_size=[batch_size, 8, 8, 64], name='bn2')
+    l6 = Relu()
+    
+    l7 = Convolution(input_shape=[batch_size,  8,  8, 64], filter_sizes=[4, 4, 64, 32], strides=[1,2,2,1], init=init, name='conv3')
+    l8 = BatchNorm(input_size=[batch_size, 4, 4, 32], name='bn3')
+    l9 = Relu()
 
-    l2 = FullyConnected(input_shape=3072, size=1000, init=init, bias=bias, name='fc1')
-    l3 = Dropout(rate=dropout_rate)
-    l4 = FeedbackFC(size=[3072, 1000], num_classes=num_classes, sparse=sparse, name='fc1_fb')
+    l10 = ConvToFullyConnected(input_shape=[batch_size, 4, 4, 32])
+    l11 = FullyConnected(input_shape=512, size=10, init=init, bias=bias, name='fc4')
 
-    l5 = FullyConnected(input_shape=1000, size=1000, init=init, bias=bias, name='fc2')
-    l6 = Dropout(rate=dropout_rate)
-    l7 = FeedbackFC(size=[1000, 1000], num_classes=num_classes, sparse=sparse, name='fc2_fb')
+    layers=[l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11]
+    model = Model(layers=layers)
 
-    l8 = FullyConnected(input_shape=1000, size=1000, init=init, bias=bias, name='fc3')
-    l9 = Dropout(rate=dropout_rate)
-    l10 = FeedbackFC(size=[1000, 1000], num_classes=num_classes, sparse=sparse, name='fc3_fb')
-
-    l11 = FullyConnected(input_shape=1000, size=num_classes, init=init, bias=bias, name='fc4')
-
-    model = Model(layers=[l0, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11])
     return model
+
 
