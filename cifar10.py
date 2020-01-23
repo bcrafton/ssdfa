@@ -42,12 +42,12 @@ from lib.cifar_models import cifar_conv
 
 def quantize_activations(a):
   # scale = (15 - 0) / (np.percentile(a, 95) - np.percentile(a, 5))
-  scale = (63 - 0) / (np.max(a) - np.min(a))
+  scale = (15 - 0) / (np.max(a) - np.min(a))
   # scale = (15 - 0) / (2 * np.std(a))
 
   a = scale * a
   a = np.floor(a)
-  a = np.clip(a, 0, 63)
+  a = np.clip(a, 0, 15)
   return a, scale
 
 ##############################################
@@ -80,7 +80,7 @@ lr = tf.placeholder(tf.float32, shape=())
 X = tf.placeholder(tf.float32, [None, 32, 32, 3])
 Y = tf.placeholder(tf.float32, [None, 10])
 
-scale = tf.placeholder(tf.float32, [7])
+scale = tf.placeholder(tf.float32, [8])
 
 model = cifar_conv(batch_size=batch_size, scale=scale)
 
@@ -166,7 +166,13 @@ for ii in range(args.epochs):
 
 ##############################################
 
-scales = [[], [], [], [], [], [], []]
+# ConvRelu:
+# cache = (conv, conv_cache, relu, relu_cache)
+
+# Dense:
+# cache = (scale,)
+
+scales = [[], [], [], [], [], [], [], []]
 
 for jj in range(0, train_examples, args.batch_size):    
     s = jj
@@ -185,6 +191,10 @@ for jj in range(0, train_examples, args.batch_size):
         sw, sa = convs[kk][1], convs[kk][3]
         # print (sw, sa)
         scales[kk].append(sa)
+    
+    # print (dense)
+    sa = dense
+    scales[7].append(sa)
 
 # print (np.shape(scales))
 scale_np = np.mean(scales, axis=(1,2))

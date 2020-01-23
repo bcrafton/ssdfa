@@ -8,18 +8,18 @@ from lib.Layer import Layer
 
 def quantize_activations(a):
   # scale = (15 - 0) / (tfp.stats.percentile(a, 95) - tfp.stats.percentile(a, 5))
-  scale = (63 - 0) / (tf.reduce_max(a) - tf.reduce_min(a))
+  scale = (15 - 0) / (tf.reduce_max(a) - tf.reduce_min(a))
   # scale = (15 - 0) / (2 * tf.math.reduce_std(a))
 
   a = scale * a
   a = tf.floor(a)
-  a = tf.clip_by_value(a, 0, 63)
+  a = tf.clip_by_value(a, 0, 15)
   return a, scale
   
 def quantize_activations2(a, scale):
   a = scale * a
   a = tf.floor(a)
-  a = tf.clip_by_value(a, 0, 63)
+  a = tf.clip_by_value(a, 0, 15)
   return a, scale
   
 ###################################################################
