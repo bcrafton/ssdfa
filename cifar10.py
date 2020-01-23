@@ -41,11 +41,8 @@ from lib.cifar_models import cifar_conv
 ##############################################
 
 def quantize_activations(a):
-  # scale = (15 - 0) / (np.percentile(a, 95) - np.percentile(a, 5))
-  scale = (15 - 0) / (np.max(a) - np.min(a))
-  # scale = (15 - 0) / (2 * np.std(a))
-
-  a = scale * a
+  scale = (np.max(a) - np.min(a)) / (15 - 0)
+  a = a / scale
   a = np.floor(a)
   a = np.clip(a, 0, 15)
   return a, scale
@@ -198,7 +195,9 @@ for jj in range(0, train_examples, args.batch_size):
 
 # print (np.shape(scales))
 scale_np = np.mean(scales, axis=(1,2))
-scale_np = 1. / np.floor(1. / scale_np)
+scale_np = np.floor(scale_np)
+
+print (scale_np)
 
 ##############################################
 
@@ -231,5 +230,24 @@ w['test_acc'] = test_accs
 np.save(args.name, w)
 
 ##############################################
+
+w['conv1_scale'] = scale_np[0]
+w['conv2_scale'] = scale_np[1]
+w['conv3_scale'] = scale_np[2]
+w['conv4_scale'] = scale_np[3]
+w['conv5_scale'] = scale_np[4]
+w['conv6_scale'] = scale_np[5]
+w['conv7_scale'] = scale_np[6]
+w['dense8_scale'] = scale_np[7]
+
+##############################################
+
+print (w.keys())
+
+
+
+
+
+
 
 

@@ -7,25 +7,21 @@ from lib.Layer import Layer
 from lib.init_tensor import init_matrix
 
 def quantize_weights(w):
-  # scale = (7. - (-8.)) / (tfp.stats.percentile(w, 95) - tfp.stats.percentile(w, 5))
-  scale = (7. - (-8.)) / (tf.reduce_max(w) - tf.reduce_min(w))
-  # scale = (7. - (-8.)) / (2 * tf.math.reduce_std(w))
-
-  w = scale * w
+  scale = (tf.reduce_max(w) - tf.reduce_min(w)) / (7. - (-8.))
+  w = w / scale
   w = tf.floor(w)
   w = tf.clip_by_value(w, -8, 7)
   return w, scale
 
 def quantize_activations(a):
-  scale = (7. - (-8.)) / (tf.reduce_max(a) - tf.reduce_min(a))
-
-  a = scale * a
+  scale = (tf.reduce_max(a) - tf.reduce_min(a)) / (7. - (-8.))
+  a = a / scale
   a = tf.floor(a)
   a = tf.clip_by_value(a, -8, 7)
   return a, scale
   
 def quantize_activations2(a, scale):
-  a = scale * a
+  a = a / scale
   a = tf.floor(a)
   a = tf.clip_by_value(a, -8, 7)
   return a, scale
@@ -51,10 +47,7 @@ class FullyConnected(Layer):
     ###################################################################
         
     def get_weights(self):
-        if self.use_bias:
-            return [(self.name, self.weights), (self.name + "_bias", self.bias)]
-        else:
-            return [(self.name, self.weights)]
+        return [(self.name, quantize_weights(self.weights)), (self.name + "_bias", quantize_weights(self.bias))]
 
     def num_params(self):
         weights_size = self.input_size * self.output_size
@@ -69,9 +62,9 @@ class FullyConnected(Layer):
     def forward(self, X):
         qw, sw = quantize_weights(self.weights)
         qb, sb = quantize_weights(self.bias) 
-        Z = tf.matmul(X, (qw / sw)) + (qb / sb)
+        Z = tf.matmul(X, (qw * sw)) + (qb * sb)
         Z, scale = quantize_activations(Z)
-        Z = Z / scale
+        Z = Z * scale
         return Z, (scale,)
 
     def forward1(self, X):
@@ -79,7 +72,7 @@ class FullyConnected(Layer):
         qb, sb = quantize_weights(self.bias) 
         Z = tf.matmul(X, qw) + qb
         Z, scale = quantize_activations(Z)
-        # Z = Z / scale
+        # Z = Z * scale
         return Z, (scale,)
         
     def forward2(self, X):
@@ -87,7 +80,7 @@ class FullyConnected(Layer):
         qb, sb = quantize_weights(self.bias) 
         Z = tf.matmul(X, qw) + qb
         Z, scale = quantize_activations2(Z, self.scale)
-        # Z = Z / scale
+        # Z = Z * scale
         return Z, (scale,)
 
     ###################################################################
