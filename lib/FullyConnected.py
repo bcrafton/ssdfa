@@ -4,8 +4,17 @@ import numpy as np
 import math
 
 from lib.Layer import Layer 
-
 from lib.init_tensor import init_matrix
+
+def quantize_weights(w):
+  # scale = (7. - (-8.)) / (tfp.stats.percentile(w, 95) - tfp.stats.percentile(w, 5))
+  scale = (7. - (-8.)) / (tf.reduce_max(w) - tf.reduce_min(w))
+  # scale = (7. - (-8.)) / (2 * tf.math.reduce_std(w))
+
+  w = scale * w
+  w = tf.floor(w)
+  w = tf.clip_by_value(w, -8, 7)
+  return w, scale
 
 class FullyConnected(Layer):
 
@@ -40,9 +49,11 @@ class FullyConnected(Layer):
             return weights_size
 
     def forward(self, X):
-        Z = tf.matmul(X, self.weights) 
+        qw, sw = quantize_weights(self.weights)
+        Z = tf.matmul(X, (qw / sw)) 
         if self.use_bias:
-            Z = Z + self.bias
+            qb, sb = quantize_weights(self.bias) 
+            Z = Z + (qb / sb)
             
         return Z, None
 

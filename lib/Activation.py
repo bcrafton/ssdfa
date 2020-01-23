@@ -8,12 +8,12 @@ from lib.Layer import Layer
 
 def quantize_activations(a):
   # scale = (15 - 0) / (tfp.stats.percentile(a, 95) - tfp.stats.percentile(a, 5))
-  scale = (15 - 0) / (tf.reduce_max(a) - tf.reduce_min(a))
+  scale = (255 - 0) / (tf.reduce_max(a) - tf.reduce_min(a))
   # scale = (15 - 0) / (2 * tf.math.reduce_std(a))
 
   a = scale * a
   a = tf.floor(a)
-  a = tf.clip_by_value(a, 0, 15)
+  a = tf.clip_by_value(a, 0, 255)
   return a, scale
   
 ###################################################################
