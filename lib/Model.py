@@ -17,13 +17,12 @@ class Model:
 
     def get_weights(self):
         weights = {}
-        '''
+
         for ii in range(self.num_layers):
-            l = self.layers[ii]
-            tup = l.get_weights()
-            for (key, value) in tup:
-                weights[key] = value
-        ''' 
+            tups = self.layers[ii].get_weights()
+            for (k, v) in tups:
+                weights[k] = v
+
         return weights
 
     def predict(self, X):

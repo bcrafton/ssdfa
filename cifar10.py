@@ -180,12 +180,15 @@ for ii in range(args.epochs):
 
 ##############################################
 
-if args.save:
-    [w] = sess.run([weights], feed_dict={})
-    w['train_acc'] = train_accs
-    w['test_acc'] = test_accs
-    np.save(args.name, w)
-    
+[w] = sess.run([weights], feed_dict={})
+
+for key in w.keys():
+    print (key, np.shape(weights[key]))
+
+w['train_acc'] = train_accs
+w['test_acc'] = test_accs
+np.save(args.name, w)
+
 ##############################################
 
 
