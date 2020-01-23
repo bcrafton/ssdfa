@@ -9,19 +9,7 @@ from lib.Layer import Layer
 from lib.ConvToFullyConnected import ConvToFullyConnected
 from lib.FullyConnected import FullyConnected
 from lib.Convolution import Convolution
-from lib.MaxPool import MaxPool
-from lib.AvgPool import AvgPool
-from lib.Dropout import Dropout
-from lib.FeedbackFC import FeedbackFC
-from lib.FeedbackConv import FeedbackConv
-
 from lib.Activation import Relu
-from lib.Activation import Tanh
-
-from lib.ConvBlock import ConvBlock
-from lib.VGGBlock import VGGBlock
-from lib.MobileBlock import MobileBlock
-from lib.BatchNorm import BatchNorm
 
 from lib.ConvRelu import ConvRelu
 
@@ -87,20 +75,20 @@ def cifar_conv(batch_size, dropout_rate, init='glorot_uniform', sparse=0, bias=0
     return model
 '''
 
-def cifar_conv(batch_size, dropout_rate, init='glorot_uniform', sparse=0, bias=0, num_classes=10):
-    l1 = ConvRelu(input_shape=[batch_size,32,32,3], filter_shape=[4,4,3,32], strides=[1,1,1,1], init=init, name='conv1')
+def cifar_conv(batch_size, minval, maxval, init='glorot_uniform'):
+    l1 = ConvRelu(input_shape=[batch_size,32,32,3], filter_shape=[4,4,3,32], strides=[1,1,1,1], init=init, name='conv1', minval=minval[0], maxval=maxval[0])
     
-    l2 = ConvRelu(input_shape=[batch_size,32,32,32],  filter_shape=[4,4,32,128], strides=[1,2,2,1], init=init, name='conv2')
-    l3 = ConvRelu(input_shape=[batch_size,16,16,128], filter_shape=[1,1,128,32], strides=[1,1,1,1], init=init, name='conv3')
+    l2 = ConvRelu(input_shape=[batch_size,32,32,32],  filter_shape=[4,4,32,128], strides=[1,2,2,1], init=init, name='conv2', minval=minval[1], maxval=maxval[1])
+    l3 = ConvRelu(input_shape=[batch_size,16,16,128], filter_shape=[1,1,128,32], strides=[1,1,1,1], init=init, name='conv3', minval=minval[2], maxval=maxval[2])
     
-    l4 = ConvRelu(input_shape=[batch_size,16,16,32],  filter_shape=[4,4,32,128], strides=[1,2,2,1], init=init, name='conv4')
-    l5 = ConvRelu(input_shape=[batch_size,8,8,128], filter_shape=[1,1,128,32], strides=[1,1,1,1], init=init, name='conv5')
+    l4 = ConvRelu(input_shape=[batch_size,16,16,32],  filter_shape=[4,4,32,128], strides=[1,2,2,1], init=init, name='conv4', minval=minval[3], maxval=maxval[3])
+    l5 = ConvRelu(input_shape=[batch_size,8,8,128], filter_shape=[1,1,128,32], strides=[1,1,1,1], init=init, name='conv5', minval=minval[4], maxval=maxval[4])
 
-    l6 = ConvRelu(input_shape=[batch_size,8,8,32],  filter_shape=[4,4,32,128], strides=[1,2,2,1], init=init, name='conv6')
-    l7 = ConvRelu(input_shape=[batch_size,4,4,128], filter_shape=[1,1,128,32], strides=[1,1,1,1], init=init, name='conv7')
+    l6 = ConvRelu(input_shape=[batch_size,8,8,32],  filter_shape=[4,4,32,128], strides=[1,2,2,1], init=init, name='conv6', minval=minval[5], maxval=maxval[5])
+    l7 = ConvRelu(input_shape=[batch_size,4,4,128], filter_shape=[1,1,128,32], strides=[1,1,1,1], init=init, name='conv7', minval=minval[6], maxval=maxval[6])
 
     l8 = ConvToFullyConnected(input_shape=[batch_size,4,4,32])
-    l9 = FullyConnected(input_shape=512, size=10, init=init, bias=bias, name='fc8')
+    l9 = FullyConnected(input_shape=512, size=10, init=init, bias=0, name='fc8')
 
     layers=[l1,l2,l3,l4,l5,l6,l7,l8,l9]
     model = Model(layers=layers)

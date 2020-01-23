@@ -8,7 +8,7 @@ from lib.Activation import Relu
 
 class ConvRelu(Layer):
 
-    def __init__(self, input_shape, filter_shape, strides, init, name, load=None, train=True):
+    def __init__(self, input_shape, filter_shape, strides, init, name, minval, maxval, load=None, train=True):
         self.input_shape = input_shape
         self.batch, self.h, self.w, self.fin = self.input_shape
         
@@ -35,7 +35,7 @@ class ConvRelu(Layer):
                                 load=self.load, 
                                 train=self.train_flag)
                                 
-        self.relu = Relu()
+        self.relu = Relu(minval=minval, maxval=maxval)
 
     ###################################################################
 
@@ -53,6 +53,20 @@ class ConvRelu(Layer):
     def forward(self, X):
         conv, conv_cache = self.conv.forward(X)
         relu, relu_cache = self.relu.forward(conv)
+
+        cache = (conv, conv_cache, relu, relu_cache)
+        return relu, cache
+        
+    def forward1(self, X):
+        conv, conv_cache = self.conv.forward1(X)
+        relu, relu_cache = self.relu.forward1(conv)
+
+        cache = (conv, conv_cache, relu, relu_cache)
+        return relu, cache
+
+    def forward2(self, X):
+        conv, conv_cache = self.conv.forward2(X)
+        relu, relu_cache = self.relu.forward2(conv)
 
         cache = (conv, conv_cache, relu, relu_cache)
         return relu, cache

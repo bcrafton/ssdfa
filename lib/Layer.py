@@ -17,6 +17,12 @@ class Layer:
 
     def forward(self, X):
         assert(False)
+        
+    def forward1(self, X):
+        return self.forward(X)
+
+    def forward2(self, X):
+        return self.forward(X)
 
     ###################################################################    
         

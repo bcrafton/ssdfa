@@ -16,12 +16,21 @@ def quantize_activations(a):
   a = tf.clip_by_value(a, 0, 255)
   return a, scale
   
+def quantize_activations2(a, minval, maxval):
+  scale = (255 - 0) / (maxval - minval)
+
+  a = scale * a
+  a = tf.floor(a)
+  a = tf.clip_by_value(a, 0, 255)
+  return a, scale
+  
 ###################################################################
 
 class Relu(Layer):
 
-    def __init__(self):
-        pass
+    def __init__(self, minval, maxval):
+        self.minval = minval
+        self.maxval = maxval
 
     #########
 
@@ -31,13 +40,21 @@ class Relu(Layer):
     def num_params(self):
         return 0
 
+    ###################################################################
+
     def forward(self, x):
         A = tf.nn.relu(x)
         A, scale = quantize_activations(A)
         A = A / scale
-        return A, None
+        return A, (scale,)
 
-    #########
+    def forward2(self, x):
+        A = tf.nn.relu(x)
+        A, scale = quantize_activations2(A, self.minval, self.maxval)
+        A = A / scale
+        return A, (scale,)
+
+    ###################################################################
 
     def bp(self, AI, AO, DO, cache):    
         DI = tf.cast(AO > 0.0, dtype=tf.float32) * DO
@@ -51,50 +68,5 @@ class Relu(Layer):
 
 ###################################################################
 
-class Tanh(Layer):
-
-    def __init__(self):
-        pass
-
-    #########
-
-    def get_weights(self):
-        return []
-        
-    def num_params(self):
-        return 0
-
-    def forward(self, x):
-        A = tf.tanh(x)
-        return A, None
-
-    #########
-
-    def bp(self, AI, AO, DO, cache):    
-        DI = (1. - tf.pow(AO, 2)) * DO
-        return DI, []
-
-    def dfa(self, AI, AO, E, DO, cache):
-        return self.bp(AI, AO, DO, cache)
-        
-    def lel(self, AI, AO, DO, Y, cache): 
-        return self.bp(AI, AO, DO, cache)
-
-###################################################################
-
-'''
-class Tanh(Activation):
-
-    def __init__(self):
-        pass
-
-    def forward(self, x):
-        return tf.tanh(x)
-
-    def gradient(self, x):
-        # this is gradient wtf A, not Z
-        return 1 - tf.pow(x, 2)
-'''
-        
         
         

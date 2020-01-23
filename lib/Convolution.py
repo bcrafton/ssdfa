@@ -8,6 +8,7 @@ from lib.conv_utils import conv_output_length
 from lib.conv_utils import conv_input_length
 from lib.init_tensor import init_filters
 
+'''
 def quantize_weights(w):
   # scale = (7. - (-8.)) / (tfp.stats.percentile(w, 95) - tfp.stats.percentile(w, 5))
   scale = (7. - (-8.)) / (tf.reduce_max(w) - tf.reduce_min(w))
@@ -17,13 +18,17 @@ def quantize_weights(w):
   w = tf.floor(w)
   w = tf.clip_by_value(w, -8, 7)
   return w, scale
-  
-def quantize_activations(a):
-  scale = (15 - 0) / (tfp.stats.percentile(w, 95) - tfp.stats.percentile(w, 5))
-  a = scale * a
-  a = tf.floor(a)
-  a = tf.clip_by_value(a, 0, 15)
-  return a
+'''
+
+def quantize_weights(w):
+  # scale = (8. - (-7.)) / (tfp.stats.percentile(w, 95) - tfp.stats.percentile(w, 5))
+  scale = (8. - (-7.)) / (tf.reduce_max(w) - tf.reduce_min(w))
+  # scale = (8. - (-7.)) / (2 * tf.math.reduce_std(w))
+
+  w = scale * w
+  w = tf.floor(w)
+  w = tf.clip_by_value(w, -7, 8)
+  return w, scale
 
 class Convolution(Layer):
 
@@ -69,14 +74,26 @@ class Convolution(Layer):
         else:
             return filter_weights_size
 
-    
+    ###################################################################
+
     def forward(self, X):
         qw, sw = quantize_weights(self.filters)
         Z = tf.nn.conv2d(X, (qw / sw), self.strides, self.padding)
         if self.use_bias:
             qb, sb = quantize_weights(self.bias) 
             Z = Z + (qb / sb)
-        return Z, None
+        return Z, (Z,)
+        
+    def forward1(self, X):
+        qw, sw = quantize_weights(self.filters)
+        Z = tf.nn.conv2d(X, qw, self.strides, self.padding)
+        if self.use_bias:
+            qb, sb = quantize_weights(self.bias) 
+            Z = Z + qb
+        return Z, (sw,)
+        
+    def forward2(self, X):
+        return self.forward1(X)
 
     ###################################################################
     

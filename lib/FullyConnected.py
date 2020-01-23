@@ -55,7 +55,7 @@ class FullyConnected(Layer):
             qb, sb = quantize_weights(self.bias) 
             Z = Z + (qb / sb)
             
-        return Z, None
+        return Z, (Z,)
 
     ###################################################################
         

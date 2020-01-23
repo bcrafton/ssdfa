@@ -24,8 +24,8 @@ class ConvToFullyConnected(Layer):
 
     def forward(self, X):
         A = tf.reshape(X, [self.batch, self.h * self.w * self.fin])
-        return A, None
-    
+        return A, (A,)
+       
     ###################################################################
         
     def bp(self, AI, AO, DO, cache):
