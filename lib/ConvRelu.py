@@ -8,7 +8,7 @@ from lib.Activation import Relu
 
 class ConvRelu(Layer):
 
-    def __init__(self, input_shape, filter_shape, strides, init, name, minval, maxval, load=None, train=True):
+    def __init__(self, input_shape, filter_shape, strides, init, name, scale, load=None, train=True):
         self.input_shape = input_shape
         self.batch, self.h, self.w, self.fin = self.input_shape
         
@@ -35,7 +35,7 @@ class ConvRelu(Layer):
                                 load=self.load, 
                                 train=self.train_flag)
                                 
-        self.relu = Relu(minval=minval, maxval=maxval)
+        self.relu = Relu(scale=scale)
 
     ###################################################################
 

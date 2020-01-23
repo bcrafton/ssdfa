@@ -6,7 +6,7 @@ import sys
 ##############################################
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--epochs', type=int, default=1)
+parser.add_argument('--epochs', type=int, default=5)
 parser.add_argument('--batch_size', type=int, default=64)
 parser.add_argument('--lr', type=float, default=1e-3)
 parser.add_argument('--eps', type=float, default=1.)
@@ -42,12 +42,12 @@ from lib.cifar_models import cifar_conv
 
 def quantize_activations(a):
   # scale = (15 - 0) / (np.percentile(a, 95) - np.percentile(a, 5))
-  scale = (255 - 0) / (np.max(a) - np.min(a))
+  scale = (63 - 0) / (np.max(a) - np.min(a))
   # scale = (15 - 0) / (2 * np.std(a))
 
   a = scale * a
   a = np.floor(a)
-  a = np.clip(a, 0, 255)
+  a = np.clip(a, 0, 63)
   return a, scale
 
 ##############################################
@@ -80,10 +80,9 @@ lr = tf.placeholder(tf.float32, shape=())
 X = tf.placeholder(tf.float32, [None, 32, 32, 3])
 Y = tf.placeholder(tf.float32, [None, 10])
 
-minval = tf.placeholder(tf.float32, [7])
-maxval = tf.placeholder(tf.float32, [7])
+scale = tf.placeholder(tf.float32, [7])
 
-model = cifar_conv(batch_size=batch_size, minval=minval, maxval=maxval)
+model = cifar_conv(batch_size=batch_size, scale=scale)
 
 ##############################################
 
@@ -178,21 +177,21 @@ for jj in range(0, train_examples, args.batch_size):
     ys = y_train[s:e]
     
     A, cache = sess.run(predict1, feed_dict={batch_size: b, lr: 0., X: xs, Y: ys})
+
     conv1, conv2, conv3, conv4, conv5, conv6, conv7, conv2dense, dense = cache
     convs = [conv1, conv2, conv3, conv4, conv5, conv6, conv7]
+
     for kk in range(7):
-        scale = convs[kk][2]
-        scales[kk].append(scale)
-        
-        
-minval_np = [0, 0, 0, 0, 0, 0, 0]
-maxval_np = [0, 0, 0, 0, 0, 0, 0]
-for kk in range(7):
-    minval_np[kk] = max(scales[kk])
-    maxval_np[kk] = max(scales[kk])
+        sw, sa = convs[kk][1], convs[kk][3]
+        # print (sw, sa)
+        scales[kk].append(sa)
+
+# print (np.shape(scales))
+scale_np = np.mean(scales, axis=(1,2))
+scale_np = 1. / np.floor(1. / scale_np)
 
 ##############################################
-'''
+
 _total_correct = 0
 for jj in range(0, test_examples, args.batch_size):
     s = jj
@@ -202,12 +201,14 @@ for jj in range(0, test_examples, args.batch_size):
     xs = x_test[s:e]
     ys = y_test[s:e]
     
-    _correct = sess.run(total_correct, feed_dict={batch_size: b, lr: 0.0, X: xs, Y: ys})
+    _correct = sess.run(total_correct2, feed_dict={batch_size: b, lr: 0.0, X: xs, Y: ys, scale: scale_np})
     _total_correct += _correct
     
 test_acc = 1.0 * _total_correct / (test_examples - (test_examples % args.batch_size))
 test_accs.append(test_acc)
-'''
+
+print (test_acc)
+
 ##############################################
 
 [w] = sess.run([weights], feed_dict={})

@@ -8,7 +8,7 @@ from lib.conv_utils import conv_output_length
 from lib.conv_utils import conv_input_length
 from lib.init_tensor import init_filters
 
-'''
+
 def quantize_weights(w):
   # scale = (7. - (-8.)) / (tfp.stats.percentile(w, 95) - tfp.stats.percentile(w, 5))
   scale = (7. - (-8.)) / (tf.reduce_max(w) - tf.reduce_min(w))
@@ -19,7 +19,6 @@ def quantize_weights(w):
   w = tf.clip_by_value(w, -8, 7)
   return w, scale
 '''
-
 def quantize_weights(w):
   # scale = (8. - (-7.)) / (tfp.stats.percentile(w, 95) - tfp.stats.percentile(w, 5))
   scale = (8. - (-7.)) / (tf.reduce_max(w) - tf.reduce_min(w))
@@ -29,6 +28,7 @@ def quantize_weights(w):
   w = tf.floor(w)
   w = tf.clip_by_value(w, -7, 8)
   return w, scale
+'''
 
 class Convolution(Layer):
 
@@ -90,7 +90,7 @@ class Convolution(Layer):
         if self.use_bias:
             qb, sb = quantize_weights(self.bias) 
             Z = Z + qb
-        return Z, (sw,)
+        return Z, (tf.reduce_max(Z),)
         
     def forward2(self, X):
         return self.forward1(X)

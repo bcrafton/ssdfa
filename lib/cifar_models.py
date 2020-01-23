@@ -75,17 +75,17 @@ def cifar_conv(batch_size, dropout_rate, init='glorot_uniform', sparse=0, bias=0
     return model
 '''
 
-def cifar_conv(batch_size, minval, maxval, init='glorot_uniform'):
-    l1 = ConvRelu(input_shape=[batch_size,32,32,3], filter_shape=[4,4,3,32], strides=[1,1,1,1], init=init, name='conv1', minval=minval[0], maxval=maxval[0])
+def cifar_conv(batch_size, scale, init='glorot_uniform'):
+    l1 = ConvRelu(input_shape=[batch_size,32,32,3], filter_shape=[4,4,3,32], strides=[1,1,1,1], init=init, name='conv1', scale=scale[0])
     
-    l2 = ConvRelu(input_shape=[batch_size,32,32,32],  filter_shape=[4,4,32,128], strides=[1,2,2,1], init=init, name='conv2', minval=minval[1], maxval=maxval[1])
-    l3 = ConvRelu(input_shape=[batch_size,16,16,128], filter_shape=[1,1,128,32], strides=[1,1,1,1], init=init, name='conv3', minval=minval[2], maxval=maxval[2])
+    l2 = ConvRelu(input_shape=[batch_size,32,32,32],  filter_shape=[4,4,32,128], strides=[1,2,2,1], init=init, name='conv2', scale=scale[1])
+    l3 = ConvRelu(input_shape=[batch_size,16,16,128], filter_shape=[1,1,128,32], strides=[1,1,1,1], init=init, name='conv3', scale=scale[2])
     
-    l4 = ConvRelu(input_shape=[batch_size,16,16,32],  filter_shape=[4,4,32,128], strides=[1,2,2,1], init=init, name='conv4', minval=minval[3], maxval=maxval[3])
-    l5 = ConvRelu(input_shape=[batch_size,8,8,128], filter_shape=[1,1,128,32], strides=[1,1,1,1], init=init, name='conv5', minval=minval[4], maxval=maxval[4])
+    l4 = ConvRelu(input_shape=[batch_size,16,16,32],  filter_shape=[4,4,32,128], strides=[1,2,2,1], init=init, name='conv4', scale=scale[3])
+    l5 = ConvRelu(input_shape=[batch_size,8,8,128], filter_shape=[1,1,128,32], strides=[1,1,1,1], init=init, name='conv5', scale=scale[4])
 
-    l6 = ConvRelu(input_shape=[batch_size,8,8,32],  filter_shape=[4,4,32,128], strides=[1,2,2,1], init=init, name='conv6', minval=minval[5], maxval=maxval[5])
-    l7 = ConvRelu(input_shape=[batch_size,4,4,128], filter_shape=[1,1,128,32], strides=[1,1,1,1], init=init, name='conv7', minval=minval[6], maxval=maxval[6])
+    l6 = ConvRelu(input_shape=[batch_size,8,8,32],  filter_shape=[4,4,32,128], strides=[1,2,2,1], init=init, name='conv6', scale=scale[5])
+    l7 = ConvRelu(input_shape=[batch_size,4,4,128], filter_shape=[1,1,128,32], strides=[1,1,1,1], init=init, name='conv7', scale=scale[6])
 
     l8 = ConvToFullyConnected(input_shape=[batch_size,4,4,32])
     l9 = FullyConnected(input_shape=512, size=10, init=init, bias=0, name='fc8')

@@ -8,29 +8,26 @@ from lib.Layer import Layer
 
 def quantize_activations(a):
   # scale = (15 - 0) / (tfp.stats.percentile(a, 95) - tfp.stats.percentile(a, 5))
-  scale = (255 - 0) / (tf.reduce_max(a) - tf.reduce_min(a))
+  scale = (63 - 0) / (tf.reduce_max(a) - tf.reduce_min(a))
   # scale = (15 - 0) / (2 * tf.math.reduce_std(a))
 
   a = scale * a
   a = tf.floor(a)
-  a = tf.clip_by_value(a, 0, 255)
+  a = tf.clip_by_value(a, 0, 63)
   return a, scale
   
-def quantize_activations2(a, minval, maxval):
-  scale = (255 - 0) / (maxval - minval)
-
+def quantize_activations2(a, scale):
   a = scale * a
   a = tf.floor(a)
-  a = tf.clip_by_value(a, 0, 255)
+  a = tf.clip_by_value(a, 0, 63)
   return a, scale
   
 ###################################################################
 
 class Relu(Layer):
 
-    def __init__(self, minval, maxval):
-        self.minval = minval
-        self.maxval = maxval
+    def __init__(self, scale):
+        self.scale = scale
 
     #########
 
@@ -48,10 +45,16 @@ class Relu(Layer):
         A = A / scale
         return A, (scale,)
 
+    def forward1(self, x):
+        A = tf.nn.relu(x)
+        A, scale = quantize_activations(A)
+        # A = A / scale
+        return A, (scale,)
+
     def forward2(self, x):
         A = tf.nn.relu(x)
-        A, scale = quantize_activations2(A, self.minval, self.maxval)
-        A = A / scale
+        A, scale = quantize_activations2(A, self.scale)
+        # A = A / scale
         return A, (scale,)
 
     ###################################################################
