@@ -71,7 +71,7 @@ class FullyConnected(Layer):
     def forward(self, X):
         qw, sw = quantize_weights(self.weights)
         qb, sb = quantize_bias(self.bias) 
-        Z = tf.matmul(X, (qw * sw)) + (qb * sb)
+        Z = tf.matmul(X, (qw * sw)) # + (qb * sb)
         Z, scale = quantize_activations(Z)
         Z = Z * scale
         return Z, (scale,)
@@ -79,7 +79,7 @@ class FullyConnected(Layer):
     def forward1(self, X):
         qw, sw = quantize_weights(self.weights)
         qb, sb = quantize_bias(self.bias) 
-        Z = tf.matmul(X, qw) + qb
+        Z = tf.matmul(X, qw) # + qb
         Z, scale = quantize_activations(Z)
         # Z = Z * scale
         return Z, (scale,)
@@ -87,7 +87,7 @@ class FullyConnected(Layer):
     def forward2(self, X):
         qw, sw = quantize_weights(self.weights)
         qb, sb = quantize_bias(self.bias) 
-        Z = tf.matmul(X, qw) + qb
+        Z = tf.matmul(X, qw) # + qb
         Z, scale = quantize_activations2(Z, self.scale)
         # Z = Z * scale
         return Z, (scale,)

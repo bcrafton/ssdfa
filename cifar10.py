@@ -147,7 +147,7 @@ for ii in range(args.epochs):
         xs = x_test[s:e]
         ys = y_test[s:e]
         
-        _correct = sess.run(total_correct, feed_dict={batch_size: b, lr: 0.0, X: xs, Y: ys})
+        _correct = sess.run(total_correct, feed_dict={batch_size: b, lr: 0., X: xs, Y: ys})
         _total_correct += _correct
         
     test_acc = 1.0 * _total_correct / (test_examples - (test_examples % args.batch_size))
@@ -210,7 +210,7 @@ for jj in range(0, test_examples, args.batch_size):
     xs = x_test[s:e]
     ys = y_test[s:e]
     
-    _correct = sess.run(total_correct2, feed_dict={batch_size: b, lr: 0.0, X: xs, Y: ys, scale: scale_np})
+    _correct = sess.run(total_correct2, feed_dict={batch_size: b, lr: 0., X: xs, Y: ys, scale: scale_np})
     _total_correct += _correct
     
 test_acc = 1.0 * _total_correct / (test_examples - (test_examples % args.batch_size))

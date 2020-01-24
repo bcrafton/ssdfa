@@ -67,13 +67,13 @@ class Convolution(Layer):
     def forward(self, X):
         qw, sw = quantize_weights(self.filters)
         qb, sb = quantize_bias(self.bias) 
-        Z = tf.nn.conv2d(X, (qw * sw), self.strides, self.padding) + (qb * sb)
+        Z = tf.nn.conv2d(X, (qw * sw), self.strides, self.padding) # + (qb * sb)
         return Z, (Z,)
         
     def forward1(self, X):
         qw, sw = quantize_weights(self.filters)
         qb, sb = quantize_bias(self.bias) 
-        Z = tf.nn.conv2d(X, qw, self.strides, self.padding) + qb
+        Z = tf.nn.conv2d(X, qw, self.strides, self.padding) # + qb
         return Z, (tf.reduce_max(Z),)
         
     def forward2(self, X):
