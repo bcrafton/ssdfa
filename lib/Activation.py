@@ -4,8 +4,10 @@ import tensorflow as tf
 # import tensorflow_probability as tfp
 from lib.Layer import Layer
 
-###################################################################
+from lib.quant import quantize_conv_activations
+from lib.quant import quantize_conv_activations2
 
+'''
 def quantize_activations(a):
   scale = (tf.reduce_max(a) - tf.reduce_min(a)) / (15 - 0)
   a = a / scale
@@ -18,8 +20,7 @@ def quantize_activations2(a, scale):
   a = tf.floor(a)
   a = tf.clip_by_value(a, 0, 15)
   return a, scale
-  
-###################################################################
+'''
 
 class Relu(Layer):
 
@@ -38,19 +39,19 @@ class Relu(Layer):
 
     def forward(self, x):
         A = tf.nn.relu(x)
-        A, scale = quantize_activations(A)
+        A, scale = quantize_conv_activations(A)
         A = A * scale
         return A, (scale,)
 
     def forward1(self, x):
         A = tf.nn.relu(x)
-        A, scale = quantize_activations(A)
+        A, scale = quantize_conv_activations(A)
         # A = A * scale
         return A, (scale,)
 
     def forward2(self, x):
         A = tf.nn.relu(x)
-        A, scale = quantize_activations2(A, self.scale)
+        A, scale = quantize_conv_activations2(A, self.scale)
         # A = A * scale
         return A, (scale,)
 

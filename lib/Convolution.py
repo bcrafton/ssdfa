@@ -8,6 +8,10 @@ from lib.conv_utils import conv_output_length
 from lib.conv_utils import conv_input_length
 from lib.init_tensor import init_filters
 
+from lib.quant import quantize_conv
+from lib.quant import quantize_conv_bias
+
+'''
 def quantize_weights(w):
   scale = (tf.reduce_max(w) - tf.reduce_min(w)) / (7. - (-8.))
   w = w / scale
@@ -21,6 +25,7 @@ def quantize_bias(w):
   w = tf.floor(w)
   w = tf.clip_by_value(w, -1024, 1023)
   return w, scale
+'''
 
 class Convolution(Layer):
 
@@ -47,8 +52,8 @@ class Convolution(Layer):
     ###################################################################
 
     def get_weights(self):
-        filters, _ = quantize_weights(self.filters)
-        bias, _ = quantize_bias(self.bias)
+        filters, _ = quantize_conv(self.filters)
+        bias, _ = quantize_conv_bias(self.bias)
         return [(self.name, filters), (self.name + "_bias", bias)]
 
     def output_shape(self):
@@ -65,14 +70,14 @@ class Convolution(Layer):
     ###################################################################
 
     def forward(self, X):
-        qw, sw = quantize_weights(self.filters)
-        qb, sb = quantize_bias(self.bias) 
+        qw, sw = quantize_conv(self.filters)
+        qb, sb = quantize_conv_bias(self.bias) 
         Z = tf.nn.conv2d(X, (qw * sw), self.strides, self.padding) # + (qb * sb)
         return Z, (Z,)
         
     def forward1(self, X):
-        qw, sw = quantize_weights(self.filters)
-        qb, sb = quantize_bias(self.bias) 
+        qw, sw = quantize_conv(self.filters)
+        qb, sb = quantize_conv_bias(self.bias) 
         Z = tf.nn.conv2d(X, qw, self.strides, self.padding) # + qb
         return Z, (tf.reduce_max(Z),)
         

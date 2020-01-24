@@ -6,6 +6,12 @@ import math
 from lib.Layer import Layer 
 from lib.init_tensor import init_matrix
 
+from lib.quant import quantize_dense
+from lib.quant import quantize_dense_bias
+from lib.quant import quantize_dense_activations
+from lib.quant import quantize_dense_activations2
+
+'''
 def quantize_weights(w):
   scale = (tf.reduce_max(w) - tf.reduce_min(w)) / (7. - (-8.))
   w = w / scale
@@ -32,6 +38,7 @@ def quantize_activations2(a, scale):
   a = tf.floor(a)
   a = tf.clip_by_value(a, -8, 7)
   return a, scale
+'''
 
 class FullyConnected(Layer):
 
@@ -54,8 +61,8 @@ class FullyConnected(Layer):
     ###################################################################
         
     def get_weights(self):
-        weights, _ = quantize_weights(self.weights)
-        bias, _ = quantize_bias(self.bias)
+        weights, _ = quantize_dense(self.weights)
+        bias, _ = quantize_dense_bias(self.bias)
         return [(self.name, weights), (self.name + "_bias", bias)]
 
     def num_params(self):
@@ -69,26 +76,26 @@ class FullyConnected(Layer):
     ###################################################################
 
     def forward(self, X):
-        qw, sw = quantize_weights(self.weights)
-        qb, sb = quantize_bias(self.bias) 
+        qw, sw = quantize_dense(self.weights)
+        qb, sb = quantize_dense_bias(self.bias) 
         Z = tf.matmul(X, (qw * sw)) # + (qb * sb)
-        Z, scale = quantize_activations(Z)
+        Z, scale = quantize_dense_activations(Z)
         Z = Z * scale
         return Z, (scale,)
 
     def forward1(self, X):
-        qw, sw = quantize_weights(self.weights)
-        qb, sb = quantize_bias(self.bias) 
+        qw, sw = quantize_dense(self.weights)
+        qb, sb = quantize_dense_bias(self.bias) 
         Z = tf.matmul(X, qw) # + qb
-        Z, scale = quantize_activations(Z)
+        Z, scale = quantize_dense_activations(Z)
         # Z = Z * scale
         return Z, (scale,)
         
     def forward2(self, X):
-        qw, sw = quantize_weights(self.weights)
-        qb, sb = quantize_bias(self.bias) 
+        qw, sw = quantize_dense(self.weights)
+        qb, sb = quantize_dense_bias(self.bias) 
         Z = tf.matmul(X, qw) # + qb
-        Z, scale = quantize_activations2(Z, self.scale)
+        Z, scale = quantize_dense_activations2(Z, self.scale)
         # Z = Z * scale
         return Z, (scale,)
 
