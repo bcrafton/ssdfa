@@ -7,8 +7,8 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--epochs', type=int, default=10)
-parser.add_argument('--batch_size', type=int, default=64)
-parser.add_argument('--lr', type=float, default=1e-4)
+parser.add_argument('--batch_size', type=int, default=10)
+parser.add_argument('--lr', type=float, default=3e-4)
 parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--init', type=str, default="glorot_uniform")
@@ -197,8 +197,11 @@ for jj in range(0, train_examples, args.batch_size):
     sa = dense
     scales[7].append(sa)
 
-# print (np.shape(scales))
-scale_np = np.max(scales, axis=(1,2))
+print (np.mean(scales, axis=(1,2)))
+print (np.max(scales, axis=(1,2)))
+
+scale_np = np.mean(scales, axis=(1,2))
+# scale_np = np.max(scales, axis=(1,2))
 scale_np = np.ceil(scale_np)
 
 print (scale_np)
