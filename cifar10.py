@@ -221,13 +221,14 @@ print (test_acc)
 ##############################################
 
 [w] = sess.run([weights], feed_dict={})
+
 '''
 for key in w.keys():
     print (key, np.shape(weights[key]))
 '''
+
 w['train_acc'] = train_accs
 w['test_acc'] = test_accs
-np.save(args.name, w)
 
 ##############################################
 
@@ -240,9 +241,12 @@ w['conv6_scale'] = scale_np[5]
 w['conv7_scale'] = scale_np[6]
 w['dense8_scale'] = scale_np[7]
 
+np.save(args.name, w)
+print (w.keys())
+
 ##############################################
 
-print (w.keys())
+
 
 
 
