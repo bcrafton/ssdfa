@@ -40,8 +40,9 @@ class Convolution(Layer):
     ###################################################################
 
     def get_weights(self):
-        # return [(self.name, self.filters), (self.name + "_bias", self.bias)]
-        return [(self.name, quantize_weights(self.filters)), (self.name + "_bias", quantize_weights(self.bias))]
+        filters, _ = quantize_weights(self.filters)
+        bias, _ = quantize_weights(self.bias)
+        return [(self.name, filters), (self.name + "_bias", bias)]
 
     def output_shape(self):
         oh = conv_output_length(self.h, self.fh, self.padding.lower(), self.sh)

@@ -47,7 +47,9 @@ class FullyConnected(Layer):
     ###################################################################
         
     def get_weights(self):
-        return [(self.name, quantize_weights(self.weights)), (self.name + "_bias", quantize_weights(self.bias))]
+        weights, _ = quantize_weights(self.weights)
+        bias, _ = quantize_weights(self.bias)
+        return [(self.name, weights), (self.name + "_bias", bias)]
 
     def num_params(self):
         weights_size = self.input_size * self.output_size
