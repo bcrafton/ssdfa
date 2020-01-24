@@ -194,8 +194,8 @@ for jj in range(0, train_examples, args.batch_size):
     scales[7].append(sa)
 
 # print (np.shape(scales))
-scale_np = np.mean(scales, axis=(1,2))
-scale_np = np.floor(scale_np)
+scale_np = np.max(scales, axis=(1,2))
+scale_np = np.ceil(scale_np)
 
 print (scale_np)
 
