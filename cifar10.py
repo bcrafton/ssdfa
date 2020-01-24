@@ -6,9 +6,9 @@ import sys
 ##############################################
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--epochs', type=int, default=5)
+parser.add_argument('--epochs', type=int, default=10)
 parser.add_argument('--batch_size', type=int, default=64)
-parser.add_argument('--lr', type=float, default=1e-3)
+parser.add_argument('--lr', type=float, default=1e-4)
 parser.add_argument('--eps', type=float, default=1.)
 parser.add_argument('--gpu', type=int, default=0)
 parser.add_argument('--init', type=str, default="glorot_uniform")
@@ -26,6 +26,9 @@ if args.gpu >= 0:
 import tensorflow as tf
 import keras
 import numpy as np
+# np.set_printoptions(threshold=sys.maxsize)
+# np.set_printoptions(threshold=np.nan)
+np.set_printoptions(threshold=np.inf)
 
 from lib.Model import Model
 
@@ -85,7 +88,7 @@ model = cifar_conv(batch_size=batch_size, scale=scale)
 
 predict = model.predict(X=X)
 predict1 = model.predict1(X=X)
-predict2 = model.predict2(X=X)
+predict2, forward2 = model.predict2(X=X)
 
 weights = model.get_weights()
 
@@ -183,6 +186,7 @@ for jj in range(0, train_examples, args.batch_size):
 
     conv1, conv2, conv3, conv4, conv5, conv6, conv7, conv2dense, dense = cache
     convs = [conv1, conv2, conv3, conv4, conv5, conv6, conv7]
+    # print (np.shape(convs[0][0]))
 
     for kk in range(7):
         sw, sa = convs[kk][1], convs[kk][3]
@@ -202,6 +206,14 @@ print (scale_np)
 ##############################################
 
 _total_correct = 0
+conv1s = []
+conv2s = []
+conv3s = []
+conv4s = []
+conv5s = []
+conv6s = []
+conv7s = []
+
 for jj in range(0, test_examples, args.batch_size):
     s = jj
     e = min(jj + args.batch_size, test_examples)
@@ -210,13 +222,62 @@ for jj in range(0, test_examples, args.batch_size):
     xs = x_test[s:e]
     ys = y_test[s:e]
     
+    ##############################################
+    
+    A = sess.run(forward2, feed_dict={batch_size: b, lr: 0., X: xs, Y: ys, scale: scale_np})
+    conv1, conv2, conv3, conv4, conv5, conv6, conv7, conv2dense, dense = A
+    conv1s.append(conv1)
+    conv2s.append(conv2)
+    conv3s.append(conv3)
+    conv4s.append(conv4)
+    conv5s.append(conv5)
+    conv6s.append(conv6)
+    conv7s.append(conv7)
+    
+    ratio1 = np.count_nonzero(conv1) / np.prod(np.shape(conv1))
+    ratio2 = np.count_nonzero(conv2) / np.prod(np.shape(conv2))
+    ratio3 = np.count_nonzero(conv3) / np.prod(np.shape(conv3))
+    ratio4 = np.count_nonzero(conv4) / np.prod(np.shape(conv4))
+    # print (ratio1, ratio2, ratio3, ratio4)
+    
+    max1 = np.max(conv1)
+    max2 = np.max(conv2)
+    max3 = np.max(conv3)
+    max4 = np.max(conv4)
+    max5 = np.max(conv5)
+    max6 = np.max(conv6)
+    max7 = np.max(conv7)
+    # print (np.max(xs), max1, max2, max3, max4)
+    
+    ##############################################
+
     _correct = sess.run(total_correct2, feed_dict={batch_size: b, lr: 0., X: xs, Y: ys, scale: scale_np})
     _total_correct += _correct
+    
+    ##############################################
     
 test_acc = 1.0 * _total_correct / (test_examples - (test_examples % args.batch_size))
 test_accs.append(test_acc)
 
 print (test_acc)
+
+##############################################
+
+conv1s = np.concatenate(conv1s, axis=0)
+conv2s = np.concatenate(conv2s, axis=0)
+conv3s = np.concatenate(conv3s, axis=0)
+conv4s = np.concatenate(conv4s, axis=0)
+conv5s = np.concatenate(conv5s, axis=0)
+conv6s = np.concatenate(conv6s, axis=0)
+conv7s = np.concatenate(conv7s, axis=0)
+
+np.savetxt("tf_yout%d_%d.csv" % (1, 1), np.reshape(conv1s[0], (32 * 32,  32)), fmt='%d', delimiter=" ")
+np.savetxt("tf_yout%d_%d.csv" % (1, 2), np.reshape(conv2s[0], (16 * 16, 128)), fmt='%d', delimiter=" ")
+np.savetxt("tf_yout%d_%d.csv" % (1, 3), np.reshape(conv3s[0], (16 * 16,  32)), fmt='%d', delimiter=" ")
+np.savetxt("tf_yout%d_%d.csv" % (1, 4), np.reshape(conv4s[0], ( 8 *  8, 128)), fmt='%d', delimiter=" ")
+np.savetxt("tf_yout%d_%d.csv" % (1, 5), np.reshape(conv5s[0], ( 8 *  8,  32)), fmt='%d', delimiter=" ")
+np.savetxt("tf_yout%d_%d.csv" % (1, 6), np.reshape(conv6s[0], ( 4 *  4, 128)), fmt='%d', delimiter=" ")
+np.savetxt("tf_yout%d_%d.csv" % (1, 7), np.reshape(conv7s[0], ( 4 *  4,  32)), fmt='%d', delimiter=" ")
 
 ##############################################
 
@@ -229,6 +290,8 @@ for key in w.keys():
 
 w['train_acc'] = train_accs
 w['test_acc'] = test_accs
+
+# print (w['conv1'])
 
 ##############################################
 

@@ -62,7 +62,7 @@ class Model:
             else:
                 A[ii], cache[ii] = l.forward2(A[ii-1])
                 
-        return A[self.num_layers-1]
+        return A[self.num_layers-1], A
     
     ####################################################################
       
