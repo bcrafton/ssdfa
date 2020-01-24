@@ -15,6 +15,13 @@ def quantize_weights(w):
   w = tf.clip_by_value(w, -8, 7)
   return w, scale
 
+def quantize_bias(w):
+  scale = (tf.reduce_max(w) - tf.reduce_min(w)) / (1023. - (-1024.))
+  w = w / scale
+  w = tf.floor(w)
+  w = tf.clip_by_value(w, -1024, 1023)
+  return w, scale
+
 class Convolution(Layer):
 
     def __init__(self, input_shape, filter_sizes, init, strides=[1,1,1,1], padding='SAME', bias=0., use_bias=True, name=None, load=None, train=True):
@@ -41,7 +48,7 @@ class Convolution(Layer):
 
     def get_weights(self):
         filters, _ = quantize_weights(self.filters)
-        bias, _ = quantize_weights(self.bias)
+        bias, _ = quantize_bias(self.bias)
         return [(self.name, filters), (self.name + "_bias", bias)]
 
     def output_shape(self):
@@ -59,13 +66,13 @@ class Convolution(Layer):
 
     def forward(self, X):
         qw, sw = quantize_weights(self.filters)
-        qb, sb = quantize_weights(self.bias) 
+        qb, sb = quantize_bias(self.bias) 
         Z = tf.nn.conv2d(X, (qw * sw), self.strides, self.padding) + (qb * sb)
         return Z, (Z,)
         
     def forward1(self, X):
         qw, sw = quantize_weights(self.filters)
-        qb, sb = quantize_weights(self.bias) 
+        qb, sb = quantize_bias(self.bias) 
         Z = tf.nn.conv2d(X, qw, self.strides, self.padding) + qb
         return Z, (tf.reduce_max(Z),)
         
