@@ -184,7 +184,7 @@ for jj in range(0, train_examples, args.batch_size):
     
     A, cache = sess.run(predict1, feed_dict={batch_size: b, lr: 0., X: xs, Y: ys})
 
-    conv1, conv2, conv3, conv4, conv5, conv6, conv7, conv2dense, dense = cache
+    conv1, conv2, conv3, conv4, conv5, conv6, conv7, conv2dense, dense8 = cache
     convs = [conv1, conv2, conv3, conv4, conv5, conv6, conv7]
     # print (np.shape(convs[0][0]))
 
@@ -193,8 +193,7 @@ for jj in range(0, train_examples, args.batch_size):
         # print (sw, sa)
         scales[kk].append(sa)
     
-    # print (dense)
-    sa = dense
+    sa = dense8
     scales[7].append(sa)
 
 print (np.mean(scales, axis=(1,2)))
@@ -216,6 +215,7 @@ conv4s = []
 conv5s = []
 conv6s = []
 conv7s = []
+dense8s = []
 
 for jj in range(0, test_examples, args.batch_size):
     s = jj
@@ -228,7 +228,7 @@ for jj in range(0, test_examples, args.batch_size):
     ##############################################
     
     A = sess.run(forward2, feed_dict={batch_size: b, lr: 0., X: xs, Y: ys, scale: scale_np})
-    conv1, conv2, conv3, conv4, conv5, conv6, conv7, conv2dense, dense = A
+    conv1, conv2, conv3, conv4, conv5, conv6, conv7, conv2dense, dense8 = A
     conv1s.append(conv1)
     conv2s.append(conv2)
     conv3s.append(conv3)
@@ -236,6 +236,7 @@ for jj in range(0, test_examples, args.batch_size):
     conv5s.append(conv5)
     conv6s.append(conv6)
     conv7s.append(conv7)
+    dense8s.append(dense8)
     
     ratio1 = np.count_nonzero(conv1) / np.prod(np.shape(conv1))
     ratio2 = np.count_nonzero(conv2) / np.prod(np.shape(conv2))
@@ -273,6 +274,7 @@ conv4s = np.concatenate(conv4s, axis=0)
 conv5s = np.concatenate(conv5s, axis=0)
 conv6s = np.concatenate(conv6s, axis=0)
 conv7s = np.concatenate(conv7s, axis=0)
+dense8s = np.concatenate(dense8s, axis=0)
 
 np.savetxt("tf_yout%d_%d.csv" % (1, 1), np.reshape(conv1s[0], (32 * 32,  32)), fmt='%d', delimiter=" ")
 np.savetxt("tf_yout%d_%d.csv" % (1, 2), np.reshape(conv2s[0], (16 * 16, 128)), fmt='%d', delimiter=" ")
@@ -281,6 +283,7 @@ np.savetxt("tf_yout%d_%d.csv" % (1, 4), np.reshape(conv4s[0], ( 8 *  8, 128)), f
 np.savetxt("tf_yout%d_%d.csv" % (1, 5), np.reshape(conv5s[0], ( 8 *  8,  32)), fmt='%d', delimiter=" ")
 np.savetxt("tf_yout%d_%d.csv" % (1, 6), np.reshape(conv6s[0], ( 4 *  4, 128)), fmt='%d', delimiter=" ")
 np.savetxt("tf_yout%d_%d.csv" % (1, 7), np.reshape(conv7s[0], ( 4 *  4,  32)), fmt='%d', delimiter=" ")
+np.savetxt("tf_yout%d_%d.csv" % (1, 8), np.reshape(dense8s[0],          (-1)), fmt='%d', delimiter=" ")
 
 ##############################################
 
