@@ -41,14 +41,7 @@ from lib.Activation import Relu
 from lib.cifar_models import cifar_conv
 # from lib.cifar_models import cifar_conv_bn
 
-##############################################
-
-def quantize_activations(a):
-  scale = (np.max(a) - np.min(a)) / (15 - 0)
-  a = a / scale
-  a = np.floor(a)
-  a = np.clip(a, 0, 15)
-  return a, scale
+from lib.quant import quantize_x
 
 ##############################################
 
@@ -60,13 +53,13 @@ test_examples = 10000
 assert(np.shape(x_train) == (50000, 32, 32, 3))
 # x_train = x_train - np.mean(x_train, axis=0, keepdims=True)
 # x_train = x_train / np.std(x_train, axis=0, keepdims=True)
-x_train, _ = quantize_activations(x_train)
+x_train, _ = quantize_x(x_train)
 y_train = keras.utils.to_categorical(y_train, 10)
 
 assert(np.shape(x_test) == (10000, 32, 32, 3))
 # x_test = x_test - np.mean(x_test, axis=0, keepdims=True)
 # x_test = x_test / np.std(x_test, axis=0, keepdims=True)
-x_test, _ = quantize_activations(x_test)
+x_test, _ = quantize_x(x_test)
 y_test = keras.utils.to_categorical(y_test, 10)
 
 ##############################################
