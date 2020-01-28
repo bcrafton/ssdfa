@@ -8,18 +8,15 @@ from lib.init_tensor import init_matrix
 
 from lib.quant import quantize_dense
 from lib.quant import quantize_dense_bias
-from lib.quant import quantize_dense_activations
-from lib.quant import quantize_dense_activations2
 
-class FullyConnected(Layer):
+class Dense(Layer):
 
-    def __init__(self, input_shape, size, init, bias, name, scale, load=None, train=True):
+    def __init__(self, input_shape, size, init, bias, name, load=None, train=True):
         self.input_size = input_shape
         self.output_size = size
         self.init = init
         self.name = name
         self.train_flag = train
-        self.scale = scale
 
         bias = np.ones(shape=self.output_size) * bias
         weights = init_matrix(size=(self.input_size, self.output_size), init=self.init)
@@ -45,23 +42,19 @@ class FullyConnected(Layer):
         qw, sw = quantize_dense(self.weights)
         qb, sb = quantize_dense_bias(self.bias, self.weights) 
         Z = tf.matmul(X, (qw * sw)) + (qb * sb)
-        Z, sa = quantize_dense_activations(Z)
-        Z = Z * sa
-        return Z, (sa,)
+        return Z, (sb,)
 
     def forward1(self, X):
         qw, sw = quantize_dense(self.weights)
         qb, sb = quantize_dense_bias(self.bias, self.weights) 
         Z = tf.matmul(X, qw) + qb
-        Z, sa = quantize_dense_activations(Z)
-        return Z, (sa,)
+        return Z, (sb,)
         
     def forward2(self, X):
         qw, sw = quantize_dense(self.weights)
         qb, sb = quantize_dense_bias(self.bias, self.weights) 
         Z = tf.matmul(X, qw) + qb
-        Z, sa = quantize_dense_activations2(Z, self.scale)
-        return Z, (sa,)
+        return Z, (sb,)
 
     ###################################################################
         

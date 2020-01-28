@@ -3,13 +3,13 @@ import tensorflow as tf
 import numpy as np
 
 from lib.Layer import Layer 
-from lib.FullyConnected import FullyConnected
+from lib.Dense import Dense
 from lib.Activation import Relu
 
 class DenseRelu(Layer):
 
     def __init__(self, input_shape, size, init, name, scale, load=None, train=True):
-        self.dense = FullyConnected(input_shape=input_shape, size=size, init=init, bias=0.1, name=name)
+        self.dense = Dense(input_shape=input_shape, size=size, init=init, bias=0.1, name=name)
         self.relu = Relu(scale=scale)
 
     ###################################################################

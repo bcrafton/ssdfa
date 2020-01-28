@@ -39,7 +39,7 @@ from lib.Convolution import Convolution
 from lib.Activation import Relu
 
 from lib.cifar_models import cifar_conv
-# from lib.cifar_models import cifar_conv_bn
+from lib.cifar_models import cifar_conv_relu
 
 from lib.quant import quantize_x
 
