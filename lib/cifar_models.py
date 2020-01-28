@@ -12,6 +12,7 @@ from lib.Convolution import Convolution
 from lib.Activation import Relu
 
 from lib.ConvRelu import ConvRelu
+from lib.DenseRelu import DenseRelu
 
 '''
 def cifar_conv(batch_size, dropout_rate, init='glorot_uniform', sparse=0, bias=0, num_classes=10):
@@ -88,7 +89,7 @@ def cifar_conv(batch_size, scale, init='glorot_uniform'):
     l7 = ConvRelu(input_shape=[batch_size,4,4,128], filter_shape=[1,1,128,32], strides=[1,1,1,1], init=init, name='conv7', scale=scale[6])
 
     l8 = ConvToFullyConnected(input_shape=[batch_size,4,4,32])
-    l9 = FullyConnected(input_shape=512, size=10, init=init, bias=0, use_bias=True, name='dense8', scale=scale[7])
+    l9 = DenseRelu(input_shape=512, size=10, init=init, name='dense8', scale=scale[7])
 
     layers=[l1,l2,l3,l4,l5,l6,l7,l8,l9]
     model = Model(layers=layers)

@@ -8,49 +8,17 @@ from lib.init_tensor import init_matrix
 
 from lib.quant import quantize_dense
 from lib.quant import quantize_dense_bias
-from lib.quant import quantize_dense_activations
-from lib.quant import quantize_dense_activations2
-
-'''
-def quantize_weights(w):
-  scale = (tf.reduce_max(w) - tf.reduce_min(w)) / (7. - (-8.))
-  w = w / scale
-  w = tf.floor(w)
-  w = tf.clip_by_value(w, -8, 7)
-  return w, scale
-
-def quantize_bias(w):
-  scale = (tf.reduce_max(w) - tf.reduce_min(w)) / (1023. - (-1024.))
-  w = w / scale
-  w = tf.floor(w)
-  w = tf.clip_by_value(w, -1024, 1023)
-  return w, scale
-
-def quantize_activations(a):
-  scale = (tf.reduce_max(a) - tf.reduce_min(a)) / (7. - (-8.))
-  a = a / scale
-  a = tf.floor(a)
-  a = tf.clip_by_value(a, -8, 7)
-  return a, scale
-  
-def quantize_activations2(a, scale):
-  a = a / scale
-  a = tf.floor(a)
-  a = tf.clip_by_value(a, -8, 7)
-  return a, scale
-'''
+# from lib.quant import quantize_dense_activations
+# from lib.quant import quantize_dense_activations2
 
 class FullyConnected(Layer):
 
-    def __init__(self, input_shape, size, init, bias, use_bias, name, scale, load=None, train=True):
+    def __init__(self, input_shape, size, init, bias, name, load=None, train=True):
         self.input_size = input_shape
         self.output_size = size
         self.init = init
         self.name = name
         self.train_flag = train
-        self.use_bias = use_bias
-        assert(self.use_bias == True)
-        self.scale = scale
 
         bias = np.ones(shape=self.output_size) * bias
         weights = init_matrix(size=(self.input_size, self.output_size), init=self.init)
@@ -62,42 +30,33 @@ class FullyConnected(Layer):
         
     def get_weights(self):
         weights, _ = quantize_dense(self.weights)
-        bias, _ = quantize_dense_bias(self.bias)
+        bias, _ = quantize_dense_bias(self.bias, self.weights)
         return [(self.name, weights), (self.name + "_bias", bias)]
 
     def num_params(self):
         weights_size = self.input_size * self.output_size
         bias_size = self.output_size
-        if self.use_bias:
-            return weights_size + bias_size
-        else:
-            return weights_size
+        return weights_size + bias_size
 
     ###################################################################
 
     def forward(self, X):
         qw, sw = quantize_dense(self.weights)
-        qb, sb = quantize_dense_bias(self.bias) 
-        Z = tf.matmul(X, (qw * sw)) # + (qb * sb)
-        Z, scale = quantize_dense_activations(Z)
-        Z = Z * scale
-        return Z, (scale,)
+        qb, sb = quantize_dense_bias(self.bias, self.weights) 
+        Z = tf.matmul(X, (qw * sw)) + (qb * sb)
+        return Z, (sb,)
 
     def forward1(self, X):
         qw, sw = quantize_dense(self.weights)
-        qb, sb = quantize_dense_bias(self.bias) 
-        Z = tf.matmul(X, qw) # + qb
-        Z, scale = quantize_dense_activations(Z)
-        # Z = Z * scale
-        return Z, (scale,)
+        qb, sb = quantize_dense_bias(self.bias, self.weights) 
+        Z = tf.matmul(X, qw) + qb
+        return Z, (sb,)
         
     def forward2(self, X):
         qw, sw = quantize_dense(self.weights)
-        qb, sb = quantize_dense_bias(self.bias) 
-        Z = tf.matmul(X, qw) # + qb
-        Z, scale = quantize_dense_activations2(Z, self.scale)
-        # Z = Z * scale
-        return Z, (scale,)
+        qb, sb = quantize_dense_bias(self.bias, self.weights) 
+        Z = tf.matmul(X, qw) + qb
+        return Z, (sb,)
 
     ###################################################################
         
@@ -105,10 +64,7 @@ class FullyConnected(Layer):
         DI = tf.matmul(DO, tf.transpose(self.weights))
         DW = tf.matmul(tf.transpose(AI), DO) 
         DB = tf.reduce_sum(DO, axis=0)
-        if self.use_bias:
-            return DI, [(DW, self.weights), (DB, self.bias)]
-        else:
-            return DI, [(DW, self.weights)]
+        return DI, [(DW, self.weights), (DB, self.bias)]
 
     def dfa(self, AI, AO, E, DO, cache):
         return self.bp(AI, AO, DO, cache)

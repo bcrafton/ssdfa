@@ -30,7 +30,7 @@ class ConvRelu(Layer):
                                 init=self.init, 
                                 strides=self.strides, 
                                 padding="SAME", 
-                                use_bias=True,
+                                bias=0.1,
                                 name=self.name, 
                                 load=self.load, 
                                 train=self.train_flag)
